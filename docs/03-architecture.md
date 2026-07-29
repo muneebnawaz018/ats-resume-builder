@@ -20,12 +20,12 @@ Static export keeps every advantage of the SPA (free static hosting, no server, 
 | Route | Mode | Indexed |
 | --- | --- | --- |
 | `/` | static | yes |
-| `/check` | static shell, client tool | yes |
+| `/resume-checker` | static shell, client tool | yes |
 | `/templates`, `/templates/[slug]` | static, generated from theme JSON | yes |
 | `/guides/[slug]` | static MDX | yes |
 | `/roles/[slug]` | static | yes |
 | `/methodology`, `/privacy` | static | yes |
-| `/builder` | client-only | no (`noindex`) |
+| `/resume-builder` | client-only | no (`noindex`) |
 
 The editor is an ordinary client component tree. Zustand, dnd-kit, `docx`, `mammoth` and `pdfjs-dist` are loaded through `next/dynamic` with `ssr: false` so they are excluded from the server build and from every content route's bundle.
 
@@ -134,8 +134,8 @@ No data ever leaves the browser. Analytics, if added, must be aggregate and must
 app/                       Next.js App Router
   layout.tsx
   page.tsx                 /
-  check/page.tsx           /check       static shell + client tool
-  builder/page.tsx         /builder     'use client', noindex
+  check/page.tsx           /resume-checker       static shell + client tool
+  builder/page.tsx         /resume-builder     'use client', noindex
   templates/[slug]/        generated from theme JSON
   guides/[slug]/           MDX
   roles/[slug]/
@@ -226,7 +226,7 @@ Practical rule: **nothing under `src/render/` imports from `@mui/*`.** Worth enf
 
 ### MUI and route budgets
 
-MUI components are client components, so any route importing them ships the runtime. Next code-splits per route, so `/builder` carrying MUI costs the content routes nothing — provided no shared module static-imports from `@mui/*`. That is the specific regression the per-route bundle check in CI exists to catch.
+MUI components are client components, so any route importing them ships the runtime. Next code-splits per route, so `/resume-builder` carrying MUI costs the content routes nothing — provided no shared module static-imports from `@mui/*`. That is the specific regression the per-route bundle check in CI exists to catch.
 
 Content routes use plain CSS modules. They are mostly text and need no component library.
 
@@ -289,11 +289,11 @@ DOCX first, since `mammoth` preserves structure. PDF import in v2.
 - Cold load to interactive: under 1.5s on 4G. Code-split the DOCX exporter, the importers, and `pdfjs-dist` — none are needed on first paint.
 - **Content routes: framework floor + under 10KB.** Measured on the current build, the Next 16 App Router baseline is ~182KB gzipped and a content route adds ~2KB on top. The absolute figure is fixed by the framework; the number worth defending is the delta, because that is what regresses.
 - **Editor: floor + under 200KB.** Currently ~171KB for MUI, Emotion, and the store.
-- The editor bundle must never be reachable from `/`, `/check`, or a guide page. Enforce per-route in CI: an accidental static import from a shared module is the usual way this breaks, and it fails silently.
+- The editor bundle must never be reachable from `/`, `/resume-checker`, or a guide page. Enforce per-route in CI: an accidental static import from a shared module is the usual way this breaks, and it fails silently.
 
 An earlier draft of this document set a sub-30KB absolute target for content routes. That is not achievable on the App Router — it is an Astro-class number, and reaching it would mean giving up the single-framework benefit that motivated choosing Next. If content-route weight ever becomes the binding constraint, moving the content site to Astro is the lever, not shaving the Next baseline.
 
-For SEO the relevant fact is that content is in the initial HTML and the page paints without executing any of it. Verified: `curl` on `/` and `/check` returns the copy, and no external resource is requested (fonts are self-hosted by `next/font`).
+For SEO the relevant fact is that content is in the initial HTML and the page paints without executing any of it. Verified: `curl` on `/` and `/resume-checker` returns the copy, and no external resource is requested (fonts are self-hosted by `next/font`).
 
 ## Testing
 

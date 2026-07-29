@@ -70,8 +70,12 @@ function StatusBarInner({
       <Typography sx={{ fontSize: 11, color: tone.line2 }}>
         guides never print
       </Typography>
+      {/*
+        The privacy claim belongs here, where the work actually happens and
+        the reassurance is worth something — not in a marketing footer.
+      */}
       <Typography sx={{ fontSize: 11, color: tone.line2 }}>
-        stored in this browser only
+        your resume stays in this browser · no account, ever
       </Typography>
     </Box>
   );

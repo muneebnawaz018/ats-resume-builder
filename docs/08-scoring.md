@@ -142,7 +142,7 @@ The competition inflates scores because the score is a sales device. An accurate
 
 ## Implementation order
 
-1. Rule engine, Layer 1 — fast, unlocks `/check`
+1. Rule engine, Layer 1 — fast, unlocks `/resume-checker`
 2. Text extraction and line reconstruction — shared with import
 3. Block classifier and section segmentation — shared with import
 4. Field extraction and diff, Layer 2 — the differentiator

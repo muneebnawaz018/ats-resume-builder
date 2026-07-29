@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     "Upload nothing. Read your resume back the way hiring software does and see exactly which fields survived extraction.",
 };
 
+/** Baked at build time. A static export has no request to read a clock on. */
+const YEAR = new Date().getFullYear();
+
 export default function CheckPage() {
   return (
     <div className={css.page} data-scroller>
@@ -41,7 +44,7 @@ export default function CheckPage() {
                 confirm that nothing leaves.
               </p>
               <div className={css.actions}>
-                <SiteButton href="/builder" variant="outlined">
+                <SiteButton href="/resume-builder" variant="outlined">
                   Build a resume instead
                 </SiteButton>
               </div>
@@ -171,10 +174,10 @@ export default function CheckPage() {
       <div className={css.wrap}>
         <footer className={css.foot}>
           <div className={css.footBar} style={{ marginTop: 0, borderTop: 0 }}>
-            <span>No upload. No account. No paywall.</span>
+            <span>© {YEAR} ATS Resume Builder. All rights reserved.</span>
             <span>
               <Link href="/">Home</Link> ·{" "}
-              <Link href="/builder">Open the builder</Link>
+              <Link href="/resume-builder">Build a resume</Link>
             </span>
           </div>
         </footer>

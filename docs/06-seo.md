@@ -48,8 +48,8 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 | URL | Type | Purpose |
 | --- | --- | --- |
 | `/` | static | positioning: free, local, unlocked |
-| `/check` | static shell + client tool | the linter — primary acquisition page |
-| `/builder` | client, `noindex` | the editor |
+| `/resume-checker` | static shell + client tool | the linter — primary acquisition page |
+| `/resume-builder` | client, `noindex` | the editor |
 | `/templates` | static index | theme gallery, each with its own page |
 | `/templates/[slug]` | static | one per theme; preview image, description, "use this" |
 | `/guides/[slug]` | static MDX | Tier 2 content, each embedding a relevant widget |
@@ -61,11 +61,11 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 
 - Real HTML in the initial response for every indexed page. Verify with `curl`, not with devtools.
 - One `<h1>` per page, hierarchical headings, descriptive `<title>` under 60 chars, meta description 140–160.
-- Canonical URLs, `sitemap.xml`, sane `robots.txt`. `noindex` on `/builder`.
+- Canonical URLs, `sitemap.xml`, sane `robots.txt`. `noindex` on `/resume-builder`.
 - Structured data: `SoftwareApplication` on `/`, `HowTo` on relevant guides, `FAQPage` where genuine FAQs exist. Do not mark up content that is not visible on the page.
 - Core Web Vitals: LCP under 2.5s, CLS under 0.1, INP under 200ms. Static pages should carry almost no JS; the editor bundle must not load on content routes.
 - Open Graph and Twitter card images per page.
-- Internal linking: every guide links to `/check`; `/check` links to `/builder`.
+- Internal linking: every guide links to `/resume-checker`; `/resume-checker` links to `/resume-builder`.
 - No interstitials or layout-shifting ad units on content pages.
 
 ## Content principles
@@ -82,7 +82,7 @@ Publishing cadence matters less than each page being the best available answer t
 
 ## Launch sequence
 
-1. Ship `/check` and `/builder`. Nothing else matters until the tool is good.
+1. Ship `/resume-checker` and `/resume-builder`. Nothing else matters until the tool is good.
 2. Open-source the repository. Makes the privacy claim verifiable.
 3. Post to r/resumes, r/EngineeringResumes, r/cscareerquestions, Hacker News, Product Hunt. Lead with "free, no signup, data never leaves your browser" — that framing is the hook, not the feature list.
 4. Publish the comparison study. Pitch it to career newsletters and to the subreddits as data rather than promotion.
@@ -93,4 +93,4 @@ Publishing cadence matters less than each page being the best available answer t
 
 Search Console for queries and impressions. A privacy-respecting analytics tool (Plausible, Umami — self-hostable) for behaviour. **No analytics may ever touch resume content**; instrument events only, never payloads. Breaking that would destroy the one claim the product is built on.
 
-Track: `/check` completions, check → builder conversion, export completions by format, import success rate. Traffic is a means; exports are the outcome.
+Track: `/resume-checker` completions, check → builder conversion, export completions by format, import success rate. Traffic is a means; exports are the outcome.

@@ -5,14 +5,14 @@ Phases, not dates. Each phase ends in something shippable.
 ## Phase 0 — Foundation
 
 - Next.js App Router + TS strict, `output: 'export'`, path aliases
-- Route skeleton: static `/` and `/check` shells, client-only `/builder` with `noindex`
-- MUI set up on `/builder` with its Emotion cache provider; ESLint `no-restricted-imports` blocking `@mui/*` inside `src/render/`
+- Route skeleton: static `/` and `/resume-checker` shells, client-only `/resume-builder` with `noindex`
+- MUI set up on `/resume-builder` with its Emotion cache provider; ESLint `no-restricted-imports` blocking `@mui/*` inside `src/render/`
 - Zod schemas for `Resume` and `Theme`, plus the migration harness
 - Zustand slices with immer, patch-based undo/redo
 - IndexedDB persistence with debounced autosave
 - Token → CSS custom property resolution
 
-Exit: a hardcoded resume object renders at `/builder`, editing a token in the store visibly changes the preview, and `curl` on `/` returns real HTML content.
+Exit: a hardcoded resume object renders at `/resume-builder`, editing a token in the store visibly changes the preview, and `curl` on `/` returns real HTML content.
 
 Settling the route split now, rather than retrofitting it in Phase 5, is the point of doing this first. Extracting an editor from a finished SPA into a framework later is the expensive version of this work.
 
@@ -50,7 +50,7 @@ This is the phase most likely to overrun. DOCX failures are opaque; budget accor
 - Score with honest framing plus the methodology page
 - Job description paste and keyword coverage checklist
 
-Exit: `/check` is usable as a standalone product.
+Exit: `/resume-checker` is usable as a standalone product.
 
 ## Phase 4 — Import
 

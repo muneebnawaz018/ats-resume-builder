@@ -45,6 +45,9 @@ const icons = {
   ),
 };
 
+/** Baked at build time. A static export has no request to read a clock on. */
+const YEAR = new Date().getFullYear();
+
 /** What the tool does, paired with what that means in practice. */
 const CAPABILITIES = [
   ["Full editor", "Sections, items and bullets, with undo on every change."],
@@ -105,8 +108,8 @@ export default function HomePage() {
               </ul>
 
               <div className={css.actions}>
-                <SiteButton href="/check">Check your resume</SiteButton>
-                <SiteButton href="/builder" variant="outlined">
+                <SiteButton href="/resume-checker">Check your resume</SiteButton>
+                <SiteButton href="/resume-builder" variant="outlined">
                   Build a new one
                 </SiteButton>
               </div>
@@ -427,8 +430,98 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ---------- check an existing resume ---------- */}
+      <div className={`${css.band} ${css.bandTint}`} id="check">
+        <div className={css.wrap}>
+          <section className={css.section}>
+            <div className={css.cta}>
+              <div className={`${css.ctaCopy} reveal`}>
+                <p className={css.kicker}>Already have one</p>
+                <h2 className={css.h2}>Check the resume you are sending now</h2>
+                <p className={css.sectionIntro}>
+                  You do not have to rebuild anything. Point the checker at the
+                  PDF or Word file you already send out and it reads the file
+                  back the way hiring software does, then reports what survived
+                  and what did not.
+                </p>
+                <ul className={css.trust} style={{ margin: "1.5rem 0 0" }}>
+                  {[
+                    "Runs in this tab",
+                    "Nothing uploaded",
+                    "Run it as often as you like",
+                  ].map((t) => (
+                    <li key={t} className={css.trustItem}>
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <div className={css.actions} style={{ marginTop: "1.75rem" }}>
+                  <SiteButton href="/resume-checker">Check a resume</SiteButton>
+                </div>
+              </div>
+
+              <div className={`${css.demo} reveal`}>
+                <p className={css.demoHead}>What the report tells you</p>
+                <div className={css.demoBody}>
+                  <div className={css.demoPane}>
+                    <p className={css.demoLabel}>Recovered</p>
+                    <div className={css.parseList} data-scan>
+                      <div className={css.parseRow}>
+                        <span className={css.parseKey}>name</span>
+                        <span className={css.parseVal}>Alex Mercer</span>
+                      </div>
+                      <div className={css.parseRow}>
+                        <span className={css.parseKey}>email</span>
+                        <span className={css.parseVal}>alex.mercer@…</span>
+                      </div>
+                      <div className={css.parseRow}>
+                        <span className={css.parseKey}>phone</span>
+                        <span className={css.parseVal}>+1 415 555 0142</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={css.demoPane}>
+                    <p className={css.demoLabel}>Lost</p>
+                    <div className={css.parseList} data-scan>
+                      <div className={`${css.parseRow} ${css.parseRowMissing}`}>
+                        <span className={css.parseKey}>org[0]</span>
+                        <span
+                          className={`${css.parseVal} ${css.parseValMissing}`}
+                        >
+                          in a table
+                        </span>
+                      </div>
+                      <div className={`${css.parseRow} ${css.parseRowMissing}`}>
+                        <span className={css.parseKey}>end[0]</span>
+                        <span
+                          className={`${css.parseVal} ${css.parseValMissing}`}
+                        >
+                          in a text box
+                        </span>
+                      </div>
+                      <div className={`${css.parseRow} ${css.parseRowMissing}`}>
+                        <span className={css.parseKey}>skills</span>
+                        <span
+                          className={`${css.parseVal} ${css.parseValMissing}`}
+                        >
+                          column merged
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className={css.demoFoot}>
+                  Each finding names the place in your document and what to
+                  change, not a rule number.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
       {/* ---------- why this exists ---------- */}
-      <div className={`${css.band} ${css.bandTint}`} id="why">
+      <div className={css.band} id="why">
         <div className={css.wrap}>
           <section className={css.section}>
             <div className={`${css.sectionHead} reveal`}>
@@ -521,7 +614,7 @@ export default function HomePage() {
       </div>
 
       {/* ---------- faq ---------- */}
-      <div className={css.band} id="faq">
+      <div className={`${css.band} ${css.bandTint}`} id="faq">
         <div className={css.wrap}>
           <section className={css.section}>
             <div className={`${css.sectionHead} reveal`}>
@@ -592,7 +685,7 @@ export default function HomePage() {
       </div>
 
       {/* ---------- closing call to action ---------- */}
-      <div className={`${css.band} ${css.bandTint}`}>
+      <div className={css.band}>
         <div className={css.wrap}>
           <section className={css.section}>
             <div className={`${css.cta} reveal`}>
@@ -606,8 +699,8 @@ export default function HomePage() {
                   account, and the file you download is yours.
                 </p>
                 <div className={css.actions} style={{ marginTop: "1.75rem" }}>
-                  <SiteButton href="/builder">Open the builder</SiteButton>
-                  <SiteButton href="/check" variant="outlined">
+                  <SiteButton href="/resume-builder">Open the builder</SiteButton>
+                  <SiteButton href="/resume-checker" variant="outlined">
                     Check a resume
                   </SiteButton>
                 </div>
@@ -670,28 +763,61 @@ export default function HomePage() {
                 software does. Nothing is uploaded and nothing is held back
                 behind a payment.
               </p>
+
+              <ul className={css.footFacts}>
+                {[
+                  ["PDF and Word", "No watermark on either"],
+                  ["Unlimited exports", "No credits, no per-download charge"],
+                  ["Browser storage", "No account, no server copy"],
+                  ["JSON in and out", "Your data leaves whenever you want"],
+                ].map(([name, note]) => (
+                  <li key={name} className={css.footFact}>
+                    <span className={css.footFactName}>{name}</span>
+                    <span className={css.footFactNote}>{note}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <div>
               <p className={css.footColTitle}>Tools</p>
-              <ul className={css.footLinks}>
+              <ul className={`${css.footLinks} ${css.footLinksRich}`}>
                 <li>
-                  <Link href="/builder">Open the builder</Link>
+                  <Link href="/resume-builder">Open the builder</Link>
+                  <span className={css.footLinkNote}>
+                    Write and style a resume, export it when you like.
+                  </span>
                 </li>
                 <li>
-                  <Link href="/check">Check a resume</Link>
+                  <Link href="/resume-checker">Check a resume</Link>
+                  <span className={css.footLinkNote}>
+                    Read a file you already have back through a parser.
+                  </span>
+                </li>
+                <li>
+                  <Link href="/#what">What you can change</Link>
+                  <span className={css.footLinkNote}>
+                    Around thirty-five settings, all live.
+                  </span>
                 </li>
               </ul>
             </div>
 
             <div>
-              <p className={css.footColTitle}>Read</p>
+              {/* Same order as the nav and the page itself. */}
+              <p className={css.footColTitle}>On this page</p>
               <ul className={css.footLinks}>
+                <li>
+                  <Link href="/#what">What it does</Link>
+                </li>
                 <li>
                   <Link href="/#how">How ATS parsing works</Link>
                 </li>
                 <li>
                   <Link href="/#breaks">What breaks a resume</Link>
+                </li>
+                <li>
+                  <Link href="/#check">Check yours</Link>
                 </li>
                 <li>
                   <Link href="/#why">Why this is free</Link>
@@ -704,8 +830,11 @@ export default function HomePage() {
           </div>
 
           <div className={css.footBar}>
-            <span>Your resume stays in this browser. No account, ever.</span>
-            <span>Built in the open · Early, and honest about it</span>
+            <span>© {YEAR} ATS Resume Builder. All rights reserved.</span>
+            <span>
+              <Link href="/#why">Terms</Link> ·{" "}
+              <Link href="/#why">Privacy</Link>
+            </span>
           </div>
         </footer>
       </div>

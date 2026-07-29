@@ -16,7 +16,7 @@ A distinction the rule set depends on, and the most common design error in tools
 
 **Native documents** are built in this editor. The renderer physically cannot emit a table, a text box, a multi-column layout, or a page header. Structural rules about those things can never fire on a native document. Listing them as passing "critical" checks inflates the score for free and teaches the user nothing.
 
-**Foreign documents** arrive through import or through `/check`. Every structural rule applies, because the source file can contain anything.
+**Foreign documents** arrive through import or through `/resume-checker`. Every structural rule applies, because the source file can contain anything.
 
 ```ts
 type RuleScope = 'native' | 'foreign' | 'both'
@@ -119,7 +119,7 @@ Forty rules against a half-finished resume produces an unusable wall of red. Thi
 
 ### Structure — foreign documents only
 
-Native documents cannot violate these. On import or `/check` they are the highest-value checks in the product.
+Native documents cannot violate these. On import or `/resume-checker` they are the highest-value checks in the product.
 
 | id | Check | Severity | Evidence |
 | --- | --- | --- | --- |
