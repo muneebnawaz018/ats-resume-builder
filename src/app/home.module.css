@@ -37,10 +37,20 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  background: color-mix(in srgb, var(--surface-0) 88%, transparent);
-  backdrop-filter: saturate(180%) blur(12px);
-  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  /*
+   * Opaque, not translucent. A blurred bar let page content ghost through as
+   * it scrolled under, which read as a rendering fault. It sits above the
+   * page, so it casts a shadow instead.
+   */
+  background: var(--surface-0);
   border-bottom: 1px solid var(--line-1);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease);
+}
+
+/* Tightens and lifts once you leave the top of the page. */
+:global(.scrolled) .navBar {
+  box-shadow: var(--shadow-md);
 }
 
 .nav {
@@ -48,6 +58,11 @@
   display: flex;
   align-items: center;
   gap: 2rem;
+  transition: height var(--dur-base) var(--ease);
+}
+
+:global(.scrolled) .nav {
+  height: 56px;
 }
 
 .brand {
@@ -88,6 +103,7 @@
 }
 
 .navLink {
+  position: relative;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-2);
@@ -98,13 +114,26 @@
     background-color var(--dur-fast) var(--ease);
 }
 
-.navLink:hover {
-  color: var(--text-1);
-  background: var(--surface-2);
+/* Underline grows from the centre out — scaleX is composited, width is not. */
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.15rem;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--dur-base) var(--ease);
 }
 
-.pill:hover {
-  transform: translateY(-2px);
+.navLink:hover::after {
+  transform: scaleX(1);
+}
+
+.navLink:hover {
+  color: var(--text-1);
 }
 
 .navLinkActive {
@@ -228,9 +257,41 @@
   color: var(--text-3);
 }
 
+/*
+ * One line, not a checklist. Three ticked items wrapped 2 + 1 and read as a
+ * feature list competing with the buttons above it; this is a footnote, so it
+ * is set like one — single row, dot-separated, aligned to the button edge.
+ */
+.trust {
+  list-style: none;
+  margin: 0 0 1.125rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--text-3);
+}
+
+.trustItem + .trustItem::before {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--text-4);
+  margin: 0 0.75rem;
+  flex: none;
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+}
+
 /* ---------- demo card ---------- */
 
 .demo {
+  position: relative;
   border: 1px solid var(--line-1);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -244,6 +305,35 @@
 .demo:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
+}
+
+/*
+ * The signature motion: a scan line crosses the card, the way the parser
+ * crosses the page. Runs on hover only, so it reads as a response rather than
+ * as ambient decoration.
+ */
+.demo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* A 2px stripe at the top of a full-height layer, so translateY(100%)
+     carries it exactly one card height regardless of the card's size. */
+  background:
+    linear-gradient(180deg, var(--accent) 0 2px, transparent 2px) no-repeat,
+    linear-gradient(180deg, var(--accent-wash) 0 26px, transparent 26px)
+      no-repeat;
+  opacity: 0;
+}
+
+.demo:hover::after {
+  animation: scanSweep 1.4s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo:hover::after {
+    animation: none;
+  }
 }
 
 .demoHead {
@@ -362,7 +452,7 @@
   padding: 0.9rem 1.1rem;
   border-top: 1px solid var(--line-1);
   background: var(--surface-0);
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   line-height: 1.65;
   color: var(--text-2);
   margin: 0;
@@ -379,13 +469,43 @@
   margin-bottom: 2rem;
 }
 
+/*
+ * Grey mono caps floating above a heading read as a stray label. Anchoring it
+ * to a short accent rule makes it a deliberate part of the heading block, and
+ * the accent ties it to the rest of the system.
+ */
 .kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-3);
-  margin: 0 0 0.625rem;
+  color: var(--accent);
+  margin: 0 0 1rem;
+}
+
+.kicker::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  flex: none;
+  transform-origin: left;
+}
+
+/* Draws itself when the heading enters view. Gated on `.js` so it is simply
+   present when the reveal script never runs. */
+:global(.js) .kicker::before {
+  transform: scaleX(0);
+  transition: transform 520ms var(--ease) 140ms;
+}
+
+:global(.js) :global(.is-in) .kicker::before {
+  transform: scaleX(1);
 }
 
 .h2 {
@@ -397,7 +517,7 @@
 }
 
 .sectionIntro {
-  font-size: 1.0625rem;
+  font-size: 1.25rem;
   line-height: 1.75;
   color: var(--text-2);
   margin: 0;
@@ -428,19 +548,21 @@
 
 .stepNum {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
+  font-size: 1.375rem;
   color: var(--accent);
-  margin: 0 0 0.5rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
 }
 
 .stepTitle {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0 0 0.4rem;
 }
 
 .stepBody {
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   line-height: 1.7;
   color: var(--text-2);
   margin: 0;
@@ -531,18 +653,15 @@
   transform: translateX(3px);
 }
 
-.cardAccent {
-  border-left-color: var(--accent);
-}
 
 .cardTitle {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0 0 0.5rem;
 }
 
 .cardBody {
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   line-height: 1.75;
   color: var(--text-2);
   margin: 0 0 0.625rem;
@@ -558,55 +677,160 @@
 }
 
 .faqQ {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   margin: 0 0 0.4rem;
 }
 
 .faqA {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   line-height: 1.75;
   color: var(--text-2);
 }
 
 /* ---------- status ---------- */
 
-.status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
+/* ---------- closing call to action ---------- */
+
+.cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
 }
 
-.pill {
-  transition:
-    transform var(--dur-fast) var(--spring),
-    border-color var(--dur-fast) var(--ease);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--line-2);
-  color: var(--text-3);
+.ctaCopy {
+  max-width: 34rem;
 }
 
-.pillDone {
-  border-color: var(--pass);
+.ctaList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.ctaItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 10rem) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  padding: 1rem 1.375rem;
+  background: var(--surface-0);
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.ctaItem:hover {
+  background: var(--accent-wash);
+}
+
+.ctaTick {
   color: var(--pass);
-  background: var(--pass-wash);
+  transform: translateY(2px);
+}
+
+.ctaName {
+  font-weight: 650;
+  font-size: 1.0625rem;
+  color: var(--text-1);
+}
+
+.ctaNote {
+  font-size: 1.0625rem;
+  color: var(--text-3);
+  line-height: 1.55;
 }
 
 /* ---------- footer ---------- */
 
 .foot {
-  padding-block: 2rem 3rem;
-  font-size: 0.9375rem;
-  color: var(--text-3);
+  border-top: 1px solid var(--line-1);
+  margin-top: 1rem;
+  padding-block: 3.5rem 2.5rem;
+}
+
+.footTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr));
+  gap: 2.5rem 3rem;
+}
+
+.footBrand {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.625rem;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-1);
+}
+
+.footMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.footBlurb {
+  margin: 0.875rem 0 0;
+  max-width: 34ch;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.footColTitle {
+  margin: 0 0 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.footLinks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.footLinks a {
+  font-size: 0.9375rem;
+  color: var(--text-2);
+  transition:
+    color var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+  display: inline-block;
+}
+
+.footLinks a:hover {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+.footBar {
+  display: flex;
   flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line-1);
+  font-size: 0.875rem;
+  color: var(--text-4);
 }
 
 .foot a:hover {
@@ -628,14 +852,29 @@
   .faq {
     grid-template-columns: repeat(2, 1fr);
   }
+  .footTop {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .cta {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
   .steps,
   .cols,
   .faq,
-  .demoBody {
+  .demoBody,
+  .cta,
+  .footTop {
     grid-template-columns: 1fr;
+  }
+  .ctaItem {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.2rem 0.75rem;
+  }
+  .ctaNote {
+    grid-column: 2;
   }
   .navLinks {
     gap: 0;
@@ -671,9 +910,9 @@
 }
 
 .featureIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-sm);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
   background: var(--accent-wash);
   color: var(--accent);
   display: grid;
@@ -682,14 +921,14 @@
 }
 
 .featureTitle {
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   margin: 0 0 0.5rem;
 }
 
 .featureBody {
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   line-height: 1.7;
   color: var(--text-2);
   margin: 0;

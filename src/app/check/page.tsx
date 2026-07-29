@@ -3,6 +3,7 @@ import Link from "next/link";
 import css from "../home.module.css";
 import { SiteButton } from "../SiteButton";
 import { SiteNav } from "../SiteNav";
+import { Words } from "../Words";
 
 /**
  * The acquisition page. A checker gets shared; a builder gets used once and
@@ -18,16 +19,16 @@ export const metadata: Metadata = {
 
 export default function CheckPage() {
   return (
-    <div className={css.page}>
+    <div className={css.page} data-scroller>
       <SiteNav current="check" />
 
       <div className={css.band}>
         <div className={css.wrap}>
           <header className={css.hero}>
-            <div className={css.heroCopy}>
+            <div className={`${css.heroCopy} enter`}>
               <p className={css.eyebrow}>Runs entirely in your browser</p>
               <h1 className={css.headline}>
-                Does your resume survive the parser?
+                <Words text="Does your resume survive the parser?" />
               </h1>
               <p className={css.intro}>
                 Drop in a PDF or Word file. It is read the way an applicant
@@ -43,18 +44,18 @@ export default function CheckPage() {
                 <SiteButton href="/builder" variant="outlined">
                   Build a resume instead
                 </SiteButton>
-                <span className={css.note}>
-                  The checker itself is still being built — see below.
-                </span>
               </div>
+              <p className={css.note} style={{ marginTop: "1rem" }}>
+                No upload, no account, no limit on how many times you run it.
+              </p>
             </div>
 
-            <div className={css.demo}>
+            <div className={`${css.demo} enter-settle`}>
               <p className={css.demoHead}>What the report will look like</p>
               <div className={css.demoBody}>
                 <div className={css.demoPane}>
                   <p className={css.demoLabel}>Recovered</p>
-                  <div className={css.parseList}>
+                  <div className={css.parseList} data-scan>
                     <div className={css.parseRow}>
                       <span className={css.parseKey}>name</span>
                       <span className={css.parseVal}>Alex Mercer</span>
@@ -71,7 +72,7 @@ export default function CheckPage() {
                 </div>
                 <div className={css.demoPane}>
                   <p className={css.demoLabel}>Lost</p>
-                  <div className={css.parseList}>
+                  <div className={css.parseList} data-scan>
                     <div className={`${css.parseRow} ${css.parseRowMissing}`}>
                       <span className={css.parseKey}>org[0]</span>
                       <span className={`${css.parseVal} ${css.parseValMissing}`}>
@@ -105,7 +106,7 @@ export default function CheckPage() {
       <div className={`${css.band} ${css.bandTint}`}>
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>What it will check</p>
               <h2 className={css.h2}>
                 Measured against your actual file, not a checklist
@@ -117,7 +118,7 @@ export default function CheckPage() {
               </p>
             </div>
 
-            <div className={`${css.cols} reveal`}>
+            <div className={`${css.cols} reveal-stagger`}>
               <div className={`${css.card} ${css.cardAccent}`}>
                 <h3 className={css.cardTitle}>Reading order</h3>
                 <p className={css.cardBody}>
@@ -169,11 +170,13 @@ export default function CheckPage() {
 
       <div className={css.wrap}>
         <footer className={css.foot}>
-          <span>No upload. No account. No paywall.</span>
-          <span>
-            <Link href="/">Home</Link> ·{" "}
-            <Link href="/builder">Open the builder</Link>
-          </span>
+          <div className={css.footBar} style={{ marginTop: 0, borderTop: 0 }}>
+            <span>No upload. No account. No paywall.</span>
+            <span>
+              <Link href="/">Home</Link> ·{" "}
+              <Link href="/builder">Open the builder</Link>
+            </span>
+          </div>
         </footer>
       </div>
     </div>

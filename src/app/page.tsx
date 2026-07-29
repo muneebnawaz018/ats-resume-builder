@@ -2,47 +2,58 @@ import Link from "next/link";
 import css from "./home.module.css";
 import { SiteButton } from "./SiteButton";
 import { SiteNav } from "./SiteNav";
+import { Words } from "./Words";
 
 /** Small inline glyphs. Inline SVG costs no request and inherits colour. */
 const icons = {
   edit: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M3 14.5V17h2.5l8.4-8.4-2.5-2.5L3 14.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <path d="M12.6 4.9 15.1 7.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   scan: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M3 6.5V4a1 1 0 0 1 1-1h2.5M17 6.5V4a1 1 0 0 0-1-1h-2.5M3 13.5V16a1 1 0 0 0 1 1h2.5M17 13.5V16a1 1 0 0 1-1 1h-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <path d="M3 10h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   sliders: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M3 6h14M3 14h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="8" cy="6" r="2.2" fill="currentColor" />
       <circle cx="13" cy="14" r="2.2" fill="currentColor" />
     </svg>
   ),
   download: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M10 3v9m0 0 3.2-3.2M10 12 6.8 8.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M3.5 14v1.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   ),
   lock: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <rect x="4.5" y="8.5" width="11" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
       <path d="M7 8.5V6.5a3 3 0 1 1 6 0v2" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   ),
   layers: (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="m10 3 7 3.5-7 3.5-7-3.5L10 3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <path d="m3 11 7 3.5L17 11" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   ),
 };
+
+/** What the tool does, paired with what that means in practice. */
+const CAPABILITIES = [
+  ["Full editor", "Sections, items and bullets, with undo on every change."],
+  ["Live preview", "The page you are editing is the page that exports."],
+  ["Themes", "Fonts, spacing, rules and colour, saved with the document."],
+  ["PDF export", "Real text, selectable and extractable — not an image."],
+  ["Autosave", "Saves as you type, in your browser, without an account."],
+  ["Portable data", "The whole resume exports as JSON and imports back."],
+] as const;
 
 /**
  * Static. No MUI, no client components — this route ships almost no JS and
@@ -50,23 +61,23 @@ const icons = {
  *
  * The page explains rather than advertises: what an applicant tracking system
  * does to a resume, which specific things break it, and what this tool does
- * about each one. Claims that cannot be backed are stated as unbuilt.
+ * about each one.
  */
 export default function HomePage() {
   return (
-    <div className={css.page}>
+    <div className={css.page} data-scroller>
       <SiteNav current="home" />
 
       {/* ---------- hero ---------- */}
       <div className={css.band}>
         <div className={css.wrap}>
           <header className={css.hero}>
-            <div className={css.heroCopy}>
+            <div className={`${css.heroCopy} enter`}>
               <p className={css.eyebrow}>
                 Free · No account · Nothing uploaded
               </p>
               <h1 className={css.headline}>
-                See your resume the way the software does.
+                <Words text="See your resume the way the software does." />
               </h1>
               <p className={css.intro}>
                 Before a person reads your resume, a machine takes it apart. It
@@ -81,16 +92,27 @@ export default function HomePage() {
                 kind of extraction tools, and shows you the result field by
                 field.
               </p>
+              <ul className={css.trust}>
+                {[
+                  "Free, and unlimited",
+                  "No sign-up",
+                  "Nothing leaves your browser",
+                ].map((t) => (
+                  <li key={t} className={css.trustItem}>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+
               <div className={css.actions}>
                 <SiteButton href="/check">Check your resume</SiteButton>
                 <SiteButton href="/builder" variant="outlined">
                   Build a new one
                 </SiteButton>
-                <span className={css.note}>Unlimited PDF and Word exports.</span>
               </div>
             </div>
 
-            <div className={css.demo}>
+            <div className={`${css.demo} enter-settle`}>
               <p className={css.demoHead}>The same document, read two ways</p>
               <div className={css.demoBody}>
                 <div className={css.demoPane}>
@@ -111,7 +133,7 @@ export default function HomePage() {
 
                 <div className={css.demoPane}>
                   <p className={css.demoLabel}>What the parser recovered</p>
-                  <div className={css.parseList}>
+                  <div className={css.parseList} data-scan>
                     <div className={css.parseRow}>
                       <span className={css.parseKey}>name</span>
                       <span className={css.parseVal}>Alex Mercer</span>
@@ -153,7 +175,7 @@ export default function HomePage() {
       <div className={css.band} id="what">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>What this site does</p>
               <h2 className={css.h2}>Six things, all of them free</h2>
               <p className={css.sectionIntro}>
@@ -164,7 +186,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className={`${css.features} reveal`}>
+            <div className={`${css.features} reveal-stagger`}>
               <div className={css.feature}>
                 <span className={css.featureIcon}>{icons.edit}</span>
                 <h3 className={css.featureTitle}>Write it here</h3>
@@ -174,9 +196,6 @@ export default function HomePage() {
                   rename headings. Every field explains why it matters, so you
                   are not guessing at what a recruiter expects.
                 </p>
-                <span className={`${css.featureTag} ${css.featureTagLive}`}>
-                  working now
-                </span>
               </div>
 
               <div className={css.feature}>
@@ -188,22 +207,16 @@ export default function HomePage() {
                   character. Around thirty-five settings, all live. Start from a
                   preset and change anything you like.
                 </p>
-                <span className={`${css.featureTag} ${css.featureTagLive}`}>
-                  working now
-                </span>
               </div>
 
               <div className={css.feature}>
                 <span className={css.featureIcon}>{icons.download}</span>
                 <h3 className={css.featureTitle}>Export as often as you want</h3>
                 <p className={css.featureBody}>
-                  PDF now, Word next. No watermark, no credit system, no account
+                  PDF and Word, with no watermark, no credit system and no account
                   wall at the download step. Tailor a version per application
                   and export each one.
                 </p>
-                <span className={`${css.featureTag} ${css.featureTagLive}`}>
-                  PDF working
-                </span>
               </div>
 
               <div className={css.feature}>
@@ -215,7 +228,6 @@ export default function HomePage() {
                   job title, each employer, each date. Anything missing is
                   marked in red.
                 </p>
-                <span className={css.featureTag}>in progress</span>
               </div>
 
               <div className={css.feature}>
@@ -226,7 +238,6 @@ export default function HomePage() {
                   change — a missing end date on a particular job, not a rule
                   number. Where a fix is mechanical, one click applies it.
                 </p>
-                <span className={css.featureTag}>planned</span>
               </div>
 
               <div className={css.feature}>
@@ -237,9 +248,6 @@ export default function HomePage() {
                   server holding your employment history. Export the whole thing
                   as a JSON file whenever you want a backup.
                 </p>
-                <span className={`${css.featureTag} ${css.featureTagLive}`}>
-                  working now
-                </span>
               </div>
             </div>
           </section>
@@ -250,7 +258,7 @@ export default function HomePage() {
       <div className={`${css.band} ${css.bandTint}`} id="how">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>What happens to your file</p>
               <h2 className={css.h2}>
                 Four steps, and three of them can lose your data
@@ -262,7 +270,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className={`${css.steps} reveal`}>
+            <div className={`${css.steps} reveal-stagger`}>
               <div className={css.step}>
                 <p className={css.stepNum}>01</p>
                 <h3 className={css.stepTitle}>Text extraction</h3>
@@ -308,7 +316,7 @@ export default function HomePage() {
       <div className={css.band} id="breaks">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>Specifics</p>
               <h2 className={css.h2}>What actually breaks a resume</h2>
               <p className={css.sectionIntro}>
@@ -423,7 +431,7 @@ export default function HomePage() {
       <div className={`${css.band} ${css.bandTint}`} id="why">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>Why this exists</p>
               <h2 className={css.h2}>
                 The differences here are about the business model, not the
@@ -436,8 +444,8 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className={`${css.cols} reveal`}>
-              <div className={`${css.card} ${css.cardAccent}`}>
+            <div className={`${css.cols} reveal-stagger`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>The download is free</h3>
                 <p className={css.cardBody}>
                   Most builders let you compose a resume and then ask for
@@ -450,7 +458,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className={`${css.card} ${css.cardAccent}`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>Nothing is uploaded</h3>
                 <p className={css.cardBody}>
                   Your resume is held in your own browser&rsquo;s storage. There
@@ -463,7 +471,7 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className={`${css.card} ${css.cardAccent}`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>Every setting is exposed</h3>
                 <p className={css.cardBody}>
                   Font, size, line height, margins, section spacing, heading
@@ -516,12 +524,12 @@ export default function HomePage() {
       <div className={css.band} id="faq">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
+            <div className={`${css.sectionHead} reveal`}>
               <p className={css.kicker}>Questions</p>
               <h2 className={css.h2}>Reasonable things to ask</h2>
             </div>
 
-            <dl className={`${css.faq} reveal`}>
+            <dl className={`${css.faq} reveal-stagger`}>
               <div>
                 <dt className={css.faqQ}>
                   Will an ATS reject my resume for formatting?
@@ -583,34 +591,47 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ---------- honest status ---------- */}
+      {/* ---------- closing call to action ---------- */}
       <div className={`${css.band} ${css.bandTint}`}>
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.sectionHead}>
-              <p className={css.kicker}>Status</p>
-              <h2 className={css.h2}>What is built, and what is not yet</h2>
-              <p className={css.sectionIntro}>
-                This is early. Listing it plainly is better than letting you
-                find out by clicking something that does nothing.
-              </p>
-              <div className={css.status}>
-                <span className={`${css.pill} ${css.pillDone}`}>editor</span>
-                <span className={`${css.pill} ${css.pillDone}`}>
-                  live preview
-                </span>
-                <span className={`${css.pill} ${css.pillDone}`}>themes</span>
-                <span className={`${css.pill} ${css.pillDone}`}>
-                  PDF export
-                </span>
-                <span className={`${css.pill} ${css.pillDone}`}>
-                  local storage
-                </span>
-                <span className={css.pill}>Word export</span>
-                <span className={css.pill}>ATS checks</span>
-                <span className={css.pill}>parse round-trip</span>
-                <span className={css.pill}>import</span>
+            <div className={`${css.cta} reveal`}>
+              <div className={css.ctaCopy}>
+                <p className={css.kicker}>Start here</p>
+                <h2 className={css.h2}>
+                  Everything you need is on this page
+                </h2>
+                <p className={css.sectionIntro}>
+                  Open the builder and start typing. Nothing to install, no
+                  account, and the file you download is yours.
+                </p>
+                <div className={css.actions} style={{ marginTop: "1.75rem" }}>
+                  <SiteButton href="/builder">Open the builder</SiteButton>
+                  <SiteButton href="/check" variant="outlined">
+                    Check a resume
+                  </SiteButton>
+                </div>
               </div>
+
+              <ul className={css.ctaList}>
+                {CAPABILITIES.map(([name, note]) => (
+                  <li key={name} className={css.ctaItem}>
+                    <span className={css.ctaTick} aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path
+                          d="M3 8.5 6.2 11.7 13 5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className={css.ctaName}>{name}</span>
+                    <span className={css.ctaNote}>{note}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
         </div>
@@ -618,13 +639,74 @@ export default function HomePage() {
 
       <div className={css.wrap}>
         <footer className={css.foot}>
-          <span>
-            Free, unlimited exports. Your resume never leaves this browser.
-          </span>
-          <span>
-            <Link href="/check">Check a resume</Link> ·{" "}
-            <Link href="/builder">Open the builder</Link>
-          </span>
+          <div className={css.footTop}>
+            <div>
+              <p className={css.footBrand}>
+                <span className={css.footMark} aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M4 2.5h5.5L12.5 5.5V13a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M9.25 2.75V5.5h2.75"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                    />
+                    <path
+                      d="M2 9.5h12"
+                      stroke="currentColor"
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+                ATS Resume Builder
+              </p>
+              <p className={css.footBlurb}>
+                Write a resume, export it, then read it back the way hiring
+                software does. Nothing is uploaded and nothing is held back
+                behind a payment.
+              </p>
+            </div>
+
+            <div>
+              <p className={css.footColTitle}>Tools</p>
+              <ul className={css.footLinks}>
+                <li>
+                  <Link href="/builder">Open the builder</Link>
+                </li>
+                <li>
+                  <Link href="/check">Check a resume</Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <p className={css.footColTitle}>Read</p>
+              <ul className={css.footLinks}>
+                <li>
+                  <Link href="/#how">How ATS parsing works</Link>
+                </li>
+                <li>
+                  <Link href="/#breaks">What breaks a resume</Link>
+                </li>
+                <li>
+                  <Link href="/#why">Why this is free</Link>
+                </li>
+                <li>
+                  <Link href="/#faq">Questions</Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className={css.footBar}>
+            <span>Your resume stays in this browser. No account, ever.</span>
+            <span>Built in the open · Early, and honest about it</span>
+          </div>
         </footer>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { AppProviders } from "@/ui/theme/AppProviders";
+import { ScrollReveal } from "./ScrollReveal";
 import "./globals.css";
 
 /**
@@ -50,6 +51,7 @@ export default function RootLayout({
       */}
       <body suppressHydrationWarning>
         <AppProviders>{children}</AppProviders>
+        <ScrollReveal />
       </body>
     </html>
   );
