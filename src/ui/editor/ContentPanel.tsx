@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
@@ -23,6 +23,7 @@ import { useAppStore } from "@/store/useAppStore";
 import { tone } from "../theme/tokens";
 import { Field } from "./fields";
 import { ItemEditor, itemSummary } from "./ItemEditor";
+import { useConfirm } from "./useConfirm";
 
 function PanelHeading({
   title,
@@ -149,15 +150,25 @@ function BasicsEditor({ resume }: { resume: Resume }) {
 function SectionEditor({
   resume,
   sectionIndex,
+  openItemIndex,
 }: {
   resume: Resume;
   sectionIndex: number;
+  openItemIndex: number | null;
 }) {
   const s = useAppStore.getState();
+  const { confirm, dialog } = useConfirm();
   const section = resume.sections[sectionIndex];
   const [open, setOpen] = useState<string | false>(
-    section?.items[0]?.id ?? false,
+    section?.items[openItemIndex ?? 0]?.id ?? false,
   );
+
+  // Clicking a different entry on the page opens that entry here.
+  useEffect(() => {
+    if (openItemIndex === null) return;
+    const id = section?.items[openItemIndex]?.id;
+    if (id) setOpen(id);
+  }, [openItemIndex, section]);
 
   if (!section) return null;
 
@@ -259,7 +270,14 @@ function SectionEditor({
                   <Box sx={{ flex: 1 }} />
                   <Tooltip title="Delete this entry">
                     <IconButton
-                      onClick={() => s.removeItem(section.id, item.id)}
+                      onClick={() =>
+                        confirm({
+                          title: "Delete this entry?",
+                          body: `“${itemSummary(section.type, item)}” will be removed from ${section.title}. You can undo this with Ctrl+Z.`,
+                          confirmLabel: "Delete entry",
+                          onConfirm: () => s.removeItem(section.id, item.id),
+                        })
+                      }
                       aria-label="Delete entry"
                     >
                       <DeleteOutlineIcon sx={{ fontSize: 16 }} />
@@ -283,13 +301,21 @@ function SectionEditor({
               color="error"
               fullWidth
               sx={{ mt: 1 }}
-              onClick={() => s.removeSection(section.id)}
+              onClick={() =>
+                confirm({
+                  title: `Delete the ${section.title} section?`,
+                  body: `This removes ${section.items.length} entr${section.items.length === 1 ? "y" : "ies"} along with it. You can undo this with Ctrl+Z.`,
+                  confirmLabel: "Delete section",
+                  onConfirm: () => s.removeSection(section.id),
+                })
+              }
             >
               Delete this section
             </Button>
           </Box>
         </>
       )}
+      {dialog}
     </Box>
   );
 }
@@ -306,9 +332,11 @@ export function ContentPanel({
     return <BasicsEditor resume={resume} />;
   }
 
-  const match = /^sections\[(\d+)\]/.exec(selectedPath);
+  // Paths look like sections[2].items[0].bullets[3]; both indices matter.
+  const match = /^sections\[(\d+)\](?:\.items\[(\d+)\])?/.exec(selectedPath);
   if (match) {
     const index = Number(match[1]);
+    const itemIndex = match[2] === undefined ? null : Number(match[2]);
     // Keyed so switching sections resets which entry is expanded rather than
     // carrying the previous section's open row over.
     return (
@@ -316,6 +344,7 @@ export function ContentPanel({
         key={resume.sections[index]?.id ?? index}
         resume={resume}
         sectionIndex={index}
+        openItemIndex={itemIndex}
       />
     );
   }

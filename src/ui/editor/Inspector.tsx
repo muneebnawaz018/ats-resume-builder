@@ -4,9 +4,25 @@ import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { DesignPanel } from "../design/DesignPanel";
+import dynamic from "next/dynamic";
 import { tone } from "../theme/tokens";
 import { ContentPanel } from "./ContentPanel";
+
+/*
+ * The design panel carries ~35 controls and is only reachable behind a tab, so
+ * it is split out of the initial editor bundle rather than paid for up front.
+ */
+const DesignPanel = dynamic(
+  () => import("../design/DesignPanel").then((m) => m.DesignPanel),
+  {
+    ssr: false,
+    loading: () => (
+      <Box sx={{ p: 2.5, fontSize: 12.5, color: tone.text3 }}>
+        Loading design controls…
+      </Box>
+    ),
+  },
+);
 import type { Resume } from "@/schema/resume";
 import type { Theme, ThemeTokens } from "@/schema/theme";
 import type { PanelTab } from "@/store/useAppStore";
@@ -46,6 +62,7 @@ export function Inspector({
     <Box
       component="aside"
       aria-label="Inspector"
+      data-chrome
       sx={{
         width: 320,
         flexShrink: 0,

@@ -1,31 +1,28 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { AppProviders } from "@/ui/theme/AppProviders";
 import "./globals.css";
 
 /**
- * Plex was drawn for an engineering company and carries that in its skeleton —
- * neither the neutral default (Roboto, Inter) nor a personality face fighting
- * the content. See docs/09-design.md.
+ * One sans for everything, one mono for measured values.
+ *
+ * Plus Jakarta Sans has open apertures and generous counters, which is what
+ * makes long stretches of text comfortable rather than tiring. It carries
+ * enough character to not read as a default, and it stays legible down to the
+ * 11px labels in the editor — a display serif could not do both jobs.
  */
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
+const sans = Plus_Jakarta_Sans({
+  variable: "--font-ui",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
+/** Anything the machine measured is set in mono. */
+const mono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-  display: "swap",
-});
-
-/** Editorial register for long-form guides. Never used in the application. */
-const plexSerif = IBM_Plex_Serif({
-  variable: "--font-plex-serif",
-  subsets: ["latin"],
-  weight: ["400", "600"],
   display: "swap",
 });
 
@@ -44,9 +41,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plexSans.variable} ${plexMono.variable} ${plexSerif.variable}`}
+      className={`${sans.variable} ${mono.variable}`}
     >
-      <body>{children}</body>
+      {/*
+        Browser extensions (password managers, colour pickers) add attributes
+        to <body> before React hydrates, which React reports as a mismatch.
+        Nothing in this app writes to body, so the warning is always noise.
+      */}
+      <body suppressHydrationWarning>
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

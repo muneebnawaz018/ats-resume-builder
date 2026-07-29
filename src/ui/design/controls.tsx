@@ -34,7 +34,7 @@ function Row({
         {value ? (
           <Typography
             sx={{
-              fontFamily: "var(--font-plex-mono), monospace",
+              fontFamily: "var(--font-mono), monospace",
               fontSize: 11,
               color: tone.text3,
             }}
@@ -188,7 +188,7 @@ export function ColorControl({
           slotProps={{
             htmlInput: {
               "aria-label": `${label} hex value`,
-              style: { fontFamily: "var(--font-plex-mono), monospace" },
+              style: { fontFamily: "var(--font-mono), monospace" },
             },
           }}
         />
@@ -247,7 +247,7 @@ export function TextControl({
           htmlInput: {
             "aria-label": label,
             style: mono
-              ? { fontFamily: "var(--font-plex-mono), monospace" }
+              ? { fontFamily: "var(--font-mono), monospace" }
               : undefined,
           },
         }}

@@ -1,0 +1,75 @@
+import Link from "next/link";
+import css from "./home.module.css";
+
+const LINKS = [
+  { href: "/check", label: "Check a resume", key: "check" },
+  { href: "/#what", label: "What it does", key: "what" },
+  { href: "/#how", label: "How ATS works", key: "how" },
+  { href: "/#breaks", label: "What breaks", key: "breaks" },
+  { href: "/#why", label: "Why free", key: "why" },
+  { href: "/#faq", label: "FAQ", key: "faq" },
+] as const;
+
+/**
+ * Shared site header.
+ *
+ * The mark is a page with a scan line through it — the product in one glyph.
+ * Drawn inline as SVG so the header costs no extra request and stays crisp.
+ */
+export function SiteNav({ current }: { current: "home" | "check" }) {
+  return (
+    <div className={css.navBar}>
+      <div className={css.wrap}>
+        <nav className={css.nav}>
+          <Link
+            href="/"
+            className={css.brand}
+            aria-label="ATS Resume Builder, home"
+          >
+            <span className={css.logo} aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path
+                  d="M4 2.5h5.5L12.5 5.5V13a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M9.25 2.75V5.5h2.75"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                />
+                <path
+                  d="M2 9.5h12"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+            <span className={css.brandName}>ATS Resume Builder</span>
+          </Link>
+
+          <div className={css.navLinks}>
+            {LINKS.map((l) => (
+              <Link
+                key={l.key}
+                href={l.href}
+                className={`${css.navLink} ${
+                  current === "check" && l.key === "check"
+                    ? css.navLinkActive
+                    : ""
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <Link href="/builder" className={css.navCta}>
+              Open the builder
+            </Link>
+          </div>
+        </nav>
+      </div>
+    </div>
+  );
+}

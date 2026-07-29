@@ -88,7 +88,7 @@ export function ParseView({ resume }: { resume: Resume }) {
           component="dl"
           sx={{
             m: 0,
-            fontFamily: "var(--font-plex-mono), monospace",
+            fontFamily: "var(--font-mono), monospace",
             fontSize: 12,
             lineHeight: 1.9,
           }}
@@ -103,7 +103,7 @@ export function ParseView({ resume }: { resume: Resume }) {
                 borderLeft: `2px solid ${r.value ? severity.pass : severity.flag}`,
                 pl: 1.5,
                 mb: 0.25,
-                bgcolor: r.value ? "transparent" : "rgba(232,103,76,0.06)",
+                bgcolor: r.value ? "transparent" : severity.flagWash,
               }}
             >
               <Box component="dt" sx={{ color: blue.guideMark, opacity: 0.8 }}>

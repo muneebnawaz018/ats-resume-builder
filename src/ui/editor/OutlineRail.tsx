@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -20,7 +22,7 @@ import { tone } from "../theme/tokens";
  * Structure at a glance, not a form. Selecting a section here focuses it on
  * the paper; the fields themselves live in the inspector.
  */
-export function OutlineRail({
+function OutlineRailInner({
   resume,
   selectedPath,
   onSelect,
@@ -37,6 +39,7 @@ export function OutlineRail({
     <Box
       component="nav"
       aria-label="Resume outline"
+      data-chrome
       sx={{
         width: 220,
         flexShrink: 0,
@@ -132,3 +135,6 @@ export function OutlineRail({
     </Box>
   );
 }
+
+/** Memoised: an edit in the inspector must not re-render the chrome. */
+export const OutlineRail = memo(OutlineRailInner);

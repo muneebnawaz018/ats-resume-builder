@@ -23,12 +23,17 @@ function countWords(text: string): number {
 export function EditorShell() {
   const hydrate = useAppStore((s) => s.hydrate);
   const hydrated = useAppStore((s) => s.hydrated);
-  const resumes = useAppStore((s) => s.resumes);
-  const activeResumeId = useAppStore((s) => s.activeResumeId);
-  const themes = useAppStore((s) => s.themes);
+  // Subscribe to the active document, not the whole map — otherwise every
+  // keystroke notifies on an object identity nothing here reads.
+  const resume = useAppStore((s) =>
+    s.activeResumeId ? (s.resumes[s.activeResumeId] ?? null) : null,
+  );
+  const theme = useAppStore((s) =>
+    resume ? (s.themes[resume.themeId] ?? null) : null,
+  );
   const ui = useAppStore((s) => s.ui);
-  const past = useAppStore((s) => s.past);
-  const future = useAppStore((s) => s.future);
+  const canUndo = useAppStore((s) => s.past.length > 0);
+  const canRedo = useAppStore((s) => s.future.length > 0);
   const saveState = useAppStore((s) => s.saveState);
   const lastSavedAt = useAppStore((s) => s.lastSavedAt);
 
@@ -41,6 +46,41 @@ export function EditorShell() {
     s.select(path);
     s.setPanel("content");
   }, []);
+
+  /*
+   * Stable handler identities. The chrome components are memoised, and an
+   * inline arrow would hand them a new prop on every keystroke, defeating it.
+   */
+  const openAdd = useCallback(() => setAddOpen(true), []);
+  const closeAdd = useCallback(() => setAddOpen(false), []);
+  const doPrint = useCallback(() => window.print(), []);
+  const store = useAppStore.getState();
+  const handlers = useMemo(
+    () => ({
+      setView: store.setView,
+      setZoom: store.setZoom,
+      undo: store.undo,
+      redo: store.redo,
+      setPanel: store.setPanel,
+      toggleSectionVisible: store.toggleSectionVisible,
+      setThemeById: store.setThemeById,
+      setResumeName: store.setResumeName,
+    }),
+    [store],
+  );
+
+  const addSection = useCallback(
+    (type: Parameters<typeof store.addSection>[0], title: string) => {
+      const s = useAppStore.getState();
+      s.addSection(type, title);
+      const r = s.activeResume();
+      if (r) {
+        s.select(`sections[${r.sections.length - 1}]`);
+        s.setPanel("content");
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     void hydrate();
@@ -58,9 +98,6 @@ export function EditorShell() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-
-  const resume = activeResumeId ? resumes[activeResumeId] : null;
-  const theme = resume ? themes[resume.themeId] : null;
 
   const words = useMemo(() => {
     if (!resume) return 0;
@@ -89,9 +126,10 @@ export function EditorShell() {
 
   const setToken = useCallback(
     <K extends keyof ThemeTokens>(key: K, value: ThemeTokens[K]) => {
+      // Coalesced per token, so dragging a slider is one undo step.
       useAppStore.getState().editTheme((t) => {
         t[key] = value;
-      });
+      }, `token:${String(key)}`);
     },
     [],
   );
@@ -119,13 +157,14 @@ export function EditorShell() {
         name={resume.name}
         view={ui.view}
         zoom={ui.zoom}
-        canUndo={past.length > 0}
-        canRedo={future.length > 0}
-        onView={useAppStore.getState().setView}
-        onZoom={useAppStore.getState().setZoom}
-        onUndo={useAppStore.getState().undo}
-        onRedo={useAppStore.getState().redo}
-        onExport={() => window.print()}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onView={handlers.setView}
+        onZoom={handlers.setZoom}
+        onRename={handlers.setResumeName}
+        onUndo={handlers.undo}
+        onRedo={handlers.redo}
+        onExport={doPrint}
       />
 
       <Box sx={{ flex: 1, display: "flex", minHeight: 0 }}>
@@ -133,8 +172,8 @@ export function EditorShell() {
           resume={resume}
           selectedPath={ui.selectedPath}
           onSelect={selectAndEdit}
-          onToggleVisible={useAppStore.getState().toggleSectionVisible}
-          onAddSection={() => setAddOpen(true)}
+          onToggleVisible={handlers.toggleSectionVisible}
+          onAddSection={openAdd}
         />
 
         {ui.view === "reading" ? (
@@ -152,13 +191,13 @@ export function EditorShell() {
 
         <Inspector
           tab={ui.panel}
-          onTab={useAppStore.getState().setPanel}
+          onTab={handlers.setPanel}
           resume={resume}
           selectedPath={ui.selectedPath}
           theme={theme}
           safeMode={ui.safeMode}
           onToken={setToken}
-          onThemeChange={useAppStore.getState().setThemeById}
+          onThemeChange={handlers.setThemeById}
         />
       </Box>
 
@@ -169,19 +208,7 @@ export function EditorShell() {
         lastSavedAt={lastSavedAt}
       />
 
-      <AddSectionDialog
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        onAdd={(type, title) => {
-          const s = useAppStore.getState();
-          s.addSection(type, title);
-          const r = s.activeResume();
-          if (r) {
-            s.select(`sections[${r.sections.length - 1}]`);
-            s.setPanel("content");
-          }
-        }}
-      />
+      <AddSectionDialog open={addOpen} onClose={closeAdd} onAdd={addSection} />
     </Box>
   );
 }

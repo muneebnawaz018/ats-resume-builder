@@ -1,7 +1,13 @@
 "use client";
 
 import { create } from "zustand";
-import { produce, type Patch, applyPatches, enablePatches } from "immer";
+import {
+  produce,
+  type Patch,
+  applyPatches,
+  enablePatches,
+  setAutoFreeze,
+} from "immer";
 import { newId } from "@/lib/id";
 import { BUILTIN_THEMES, DEFAULT_THEME_ID } from "@/schema/builtinThemes";
 import { tryLoadResume, tryLoadTheme } from "@/schema/migrate";
@@ -12,11 +18,20 @@ import type { Theme, ThemeTokens } from "@/schema/theme";
 import { db, isDbAvailable } from "./db";
 
 enablePatches();
+// The state tree is rewritten on every keystroke; freezing it each time is
+// measurable work for no benefit, since all writes go through immer anyway.
+setAutoFreeze(false);
 
 /** Undo/redo stores immer patches, not snapshots — bounded history, and the
  *  same patches feed the version-diff view later. */
-type HistoryEntry = { undo: Patch[]; redo: Patch[] };
+type HistoryEntry = { undo: Patch[]; redo: Patch[]; key?: string; at: number };
 const HISTORY_LIMIT = 100;
+
+/**
+ * Consecutive edits to the same field within this window merge into one
+ * history entry, so Ctrl+Z undoes a phrase rather than a single character.
+ */
+const COALESCE_MS = 700;
 
 export type PanelTab = "content" | "design" | "checks";
 export type ViewMode = "reading" | "parse";
@@ -48,8 +63,8 @@ type Actions = {
   activeResume: () => Resume | null;
   activeTheme: () => Theme;
 
-  editResume: (recipe: (r: Resume) => void) => void;
-  editTheme: (recipe: (t: ThemeTokens) => void) => void;
+  editResume: (recipe: (r: Resume) => void, coalesceKey?: string) => void;
+  editTheme: (recipe: (t: ThemeTokens) => void, coalesceKey?: string) => void;
   setThemeById: (themeId: string) => void;
 
   addSection: (type: Section["type"], title: string) => void;
@@ -110,8 +125,14 @@ export const useAppStore = create<State & Actions>((set, get) => {
     }, 500);
   }
 
-  /** Applies a recipe, records patches for undo, and schedules a save. */
-  function commit(recipe: (s: State) => void) {
+  /**
+   * Applies a recipe, records patches for undo, and schedules a save.
+   *
+   * `coalesceKey` identifies the field being edited. Consecutive edits to the
+   * same key merge into the previous history entry instead of pushing a new
+   * one — without this, undo steps backwards one character at a time.
+   */
+  function commit(recipe: (s: State) => void, coalesceKey?: string) {
     const undoPatches: Patch[] = [];
     const redoPatches: Patch[] = [];
     const next = produce(get() as State, recipe, (p, inv) => {
@@ -120,12 +141,28 @@ export const useAppStore = create<State & Actions>((set, get) => {
     });
     if (redoPatches.length === 0) return;
 
-    const past = [...get().past, { undo: undoPatches, redo: redoPatches }];
-    set({
-      ...next,
-      past: past.slice(-HISTORY_LIMIT),
-      future: [],
-    });
+    const now = Date.now();
+    const past = [...get().past];
+    const last = past[past.length - 1];
+
+    if (
+      coalesceKey &&
+      last &&
+      last.key === coalesceKey &&
+      now - last.at < COALESCE_MS
+    ) {
+      past[past.length - 1] = {
+        key: coalesceKey,
+        at: now,
+        redo: [...last.redo, ...redoPatches],
+        // Inverse patches apply in reverse order.
+        undo: [...undoPatches, ...last.undo],
+      };
+    } else {
+      past.push({ undo: undoPatches, redo: redoPatches, key: coalesceKey, at: now });
+    }
+
+    set({ ...next, past: past.slice(-HISTORY_LIMIT), future: [] });
     scheduleSave();
   }
 
@@ -193,7 +230,7 @@ export const useAppStore = create<State & Actions>((set, get) => {
       );
     },
 
-    editResume(recipe) {
+    editResume(recipe, coalesceKey) {
       const id = get().activeResumeId;
       if (!id) return;
       commit((s) => {
@@ -201,10 +238,10 @@ export const useAppStore = create<State & Actions>((set, get) => {
         if (!r) return;
         recipe(r);
         r.updatedAt = new Date().toISOString();
-      });
+      }, coalesceKey);
     },
 
-    editTheme(recipe) {
+    editTheme(recipe, coalesceKey) {
       const r = get().activeResume();
       if (!r) return;
       const current = get().themes[r.themeId];
@@ -232,7 +269,7 @@ export const useAppStore = create<State & Actions>((set, get) => {
       commit((s) => {
         const t = s.themes[current.id];
         if (t) recipe(t.tokens);
-      });
+      }, coalesceKey);
     },
 
     setThemeById(themeId) {
@@ -275,10 +312,13 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
 
     renameSection(id, title) {
-      get().editResume((r) => {
-        const s = r.sections.find((x) => x.id === id);
-        if (s) s.title = title;
-      });
+      get().editResume(
+        (r) => {
+          const s = r.sections.find((x) => x.id === id);
+          if (s) s.title = title;
+        },
+        `sectionTitle:${id}`,
+      );
     },
 
     addItem(sectionId) {
@@ -289,11 +329,14 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
 
     updateItem(sectionId, itemId, patch) {
-      get().editResume((r) => {
-        const s = r.sections.find((x) => x.id === sectionId);
-        const item = s?.items.find((i) => i.id === itemId);
-        if (item) Object.assign(item, patch);
-      });
+      get().editResume(
+        (r) => {
+          const s = r.sections.find((x) => x.id === sectionId);
+          const item = s?.items.find((i) => i.id === itemId);
+          if (item) Object.assign(item, patch);
+        },
+        `item:${sectionId}:${itemId}:${Object.keys(patch).join(",")}`,
+      );
     },
 
     removeItem(sectionId, itemId) {
@@ -327,9 +370,12 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
 
     updateBasics(patch) {
-      get().editResume((r) => {
-        Object.assign(r.basics, patch);
-      });
+      get().editResume(
+        (r) => {
+          Object.assign(r.basics, patch);
+        },
+        `basics:${Object.keys(patch).join(",")}`,
+      );
     },
 
     addLink() {
@@ -344,10 +390,13 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
 
     updateLink(id, patch) {
-      get().editResume((r) => {
-        const l = r.basics.links.find((x) => x.id === id);
-        if (l) Object.assign(l, patch);
-      });
+      get().editResume(
+        (r) => {
+          const l = r.basics.links.find((x) => x.id === id);
+          if (l) Object.assign(l, patch);
+        },
+        `link:${id}:${Object.keys(patch).join(",")}`,
+      );
     },
 
     removeLink(id) {
@@ -359,7 +408,7 @@ export const useAppStore = create<State & Actions>((set, get) => {
     setResumeName(name) {
       get().editResume((r) => {
         r.name = name;
-      });
+      }, "resumeName");
     },
 
     select(path) {

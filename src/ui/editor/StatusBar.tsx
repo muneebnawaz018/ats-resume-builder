@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { tone } from "../theme/tokens";
@@ -11,7 +13,7 @@ function Metric({ label, value }: { label: string; value: string }) {
       <Typography sx={{ fontSize: 11, color: tone.text3 }}>{label}</Typography>
       <Typography
         sx={{
-          fontFamily: "var(--font-plex-mono), monospace",
+          fontFamily: "var(--font-mono), monospace",
           fontSize: 11,
           color: tone.text2,
         }}
@@ -22,7 +24,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function StatusBar({
+function StatusBarInner({
   pages,
   words,
   saveState,
@@ -48,6 +50,7 @@ export function StatusBar({
   return (
     <Box
       component="footer"
+      data-chrome
       sx={{
         height: 26,
         flexShrink: 0,
@@ -73,3 +76,6 @@ export function StatusBar({
     </Box>
   );
 }
+
+/** Memoised: an edit in the inspector must not re-render the chrome. */
+export const StatusBar = memo(StatusBarInner);

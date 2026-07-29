@@ -27,7 +27,7 @@ body {
 body {
   background: var(--surface-1);
   color: var(--text-1);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-ui), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -57,6 +57,43 @@ a {
   background: var(--line-2);
 }
 
+/*
+ * Print.
+ *
+ * Exporting a PDF prints this page, so everything that is not the document
+ * must be removed from the printed flow — otherwise the panels, toolbar and
+ * status bar land in the exported file. Chrome elements carry data-chrome.
+ */
+@media print {
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+    background: var(--surface-0);
+  }
+
+  [data-chrome] {
+    display: none !important;
+  }
+
+  /* Unwrap the app's flex/scroll containers so the page can flow and break. */
+  [data-print-flow] {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    flex: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: none !important;
+    transform: none !important;
+  }
+
+  @page {
+    margin: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -64,5 +101,55 @@ a {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion
+ *
+ * Scroll-driven reveals use `animation-timeline: view()`, which needs no
+ * JavaScript and therefore costs the content routes nothing. Browsers
+ * without support simply show the content — the @supports guard means the
+ * starting state is never applied where it could not be animated away.
+ * ------------------------------------------------------------------ */
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-rise {
+  animation: riseIn var(--dur-slow) var(--ease) both;
+}
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: riseIn var(--dur-slow) var(--ease) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 22%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

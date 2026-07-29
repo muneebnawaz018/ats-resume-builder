@@ -1,7 +1,16 @@
 "use client";
 
 import { createTheme } from "@mui/material/styles";
-import { blue, font, radius, severity, tone } from "./tokens";
+import {
+  blue,
+  font,
+  motion,
+  palette,
+  radius,
+  severity,
+  shadow,
+  tone,
+} from "./tokens";
 
 /**
  * MUI's defaults are the templated Material look and are overridden wholesale.
@@ -13,7 +22,7 @@ export const muiTheme = createTheme({
   palette: {
     mode: "light",
     background: { default: tone.surface1, paper: tone.surface0 },
-    primary: { main: blue.accent, dark: blue.accentHover, contrastText: "#fff" },
+    primary: { main: blue.accent, dark: blue.accentHover, contrastText: palette.white },
     secondary: { main: tone.text2 },
     error: { main: severity.flag },
     warning: { main: severity.caution },
@@ -48,11 +57,27 @@ export const muiTheme = createTheme({
     MuiButtonBase: { defaultProps: { disableRipple: true } },
 
     MuiButton: {
-      defaultProps: { disableElevation: true, size: "small" },
+      defaultProps: { disableElevation: true, size: "medium" },
       styleOverrides: {
-        root: { paddingInline: 12, minHeight: 30 },
-        outlined: { borderColor: tone.line2 },
-        text: { paddingInline: 8 },
+        root: {
+          borderRadius: radius.md,
+          paddingInline: 18,
+          minHeight: 40,
+          fontWeight: 600,
+          transition: `background-color ${motion.fast} ${motion.ease}, box-shadow ${motion.base} ${motion.ease}, transform ${motion.fast} ${motion.ease}, border-color ${motion.fast} ${motion.ease}`,
+          "&:active": { transform: "scale(.97)" },
+        },
+        sizeSmall: { minHeight: 32, paddingInline: 12, borderRadius: radius.sm },
+        sizeLarge: { minHeight: 48, paddingInline: 24, fontSize: 15.5 },
+        contained: {
+          boxShadow: shadow.sm,
+          "&:hover": { boxShadow: shadow.md },
+        },
+        outlined: {
+          borderColor: tone.line2,
+          "&:hover": { borderColor: blue.accent, background: blue.accentWash },
+        },
+        text: { paddingInline: 10 },
       },
     },
 
@@ -60,12 +85,22 @@ export const muiTheme = createTheme({
     MuiPaper: {
       defaultProps: { elevation: 0 },
       styleOverrides: {
-        root: { backgroundImage: "none", border: `1px solid ${tone.line1}` },
+        root: {
+          backgroundImage: "none",
+          border: `1px solid ${tone.line1}`,
+          borderRadius: radius.md,
+        },
+      },
+    },
+
+    MuiDialog: {
+      styleOverrides: {
+        paper: { borderRadius: radius.lg, boxShadow: shadow.lg },
       },
     },
 
     MuiTooltip: {
-      defaultProps: { arrow: true },
+      defaultProps: { arrow: true, enterDelay: 400 },
       styleOverrides: {
         tooltip: {
           backgroundColor: tone.text1,
@@ -84,10 +119,16 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: tone.surface0,
-          "& fieldset": { borderColor: tone.line2 },
+          borderRadius: radius.sm,
+          transition: `box-shadow ${motion.fast} ${motion.ease}`,
+          "& fieldset": {
+            borderColor: tone.line2,
+            transition: `border-color ${motion.fast} ${motion.ease}`,
+          },
           "&:hover fieldset": { borderColor: tone.text3 },
+          "&.Mui-focused": { boxShadow: shadow.ring },
         },
-        input: { fontSize: 13, paddingBlock: 7 },
+        input: { fontSize: 13.5, paddingBlock: 8.5 },
       },
     },
     MuiInputLabel: { styleOverrides: { root: { fontSize: 13 } } },
@@ -122,10 +163,12 @@ export const muiTheme = createTheme({
         root: {
           textTransform: "none",
           fontSize: 12.5,
-          paddingInline: 12,
-          paddingBlock: 4,
+          paddingInline: 14,
+          paddingBlock: 5,
           borderColor: tone.line2,
           color: tone.text2,
+          borderRadius: radius.sm,
+          transition: `background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
           "&.Mui-selected": {
             backgroundColor: blue.accentWash,
             color: blue.accent,
@@ -152,7 +195,13 @@ export const muiTheme = createTheme({
     MuiIconButton: {
       defaultProps: { size: "small" },
       styleOverrides: {
-        root: { borderRadius: radius.sm, color: tone.text2 },
+        root: {
+          borderRadius: radius.sm,
+          color: tone.text2,
+          transition: `background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.spring}`,
+          "&:hover": { color: blue.accent, transform: "scale(1.12)" },
+          "&:active": { transform: "scale(.94)" },
+        },
       },
     },
 
@@ -162,6 +211,8 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: radius.sm,
+          transition: `background-color ${motion.fast} ${motion.ease}, padding-left ${motion.base} ${motion.ease}`,
+          "&:hover": { paddingLeft: 12 },
           "&.Mui-selected": {
             backgroundColor: blue.accentWash,
             "&:hover": { backgroundColor: blue.accentWash },
@@ -174,9 +225,10 @@ export const muiTheme = createTheme({
     MuiChip: {
       defaultProps: { size: "small" },
       styleOverrides: {
-        root: { borderRadius: radius.sm, fontSize: 12 },
+        root: { borderRadius: radius.pill, fontSize: 12 },
       },
     },
+
 
     MuiAccordion: {
       defaultProps: { disableGutters: true, elevation: 0, square: true },
