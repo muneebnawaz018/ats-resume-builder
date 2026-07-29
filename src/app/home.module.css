@@ -9,6 +9,8 @@
 .page {
   height: 100dvh;
   overflow-y: auto;
+  /* Anything too wide scrolls inside its own wrapper, never the page. */
+  overflow-x: hidden;
   background: var(--surface-0);
   scroll-behavior: smooth;
 }
@@ -73,6 +75,7 @@
   display: flex;
   align-items: center;
   gap: 2rem;
+  min-width: 0;
   transition: height var(--dur-base) var(--ease);
 }
 
@@ -83,15 +86,15 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  flex: none;
   margin-right: 0.5rem;
 }
 
 .logo {
   color: var(--c-white);
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
   background: var(--accent);
   display: grid;
   place-items: center;
@@ -100,14 +103,8 @@
 
 .logo svg {
   display: block;
-}
-
-.brandName {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--text-1);
-  white-space: nowrap;
+  width: 19px;
+  height: 19px;
 }
 
 .navLinks {
@@ -115,10 +112,20 @@
   align-items: center;
   gap: 0.625rem;
   margin-left: auto;
+  min-width: 0;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 0.5rem;
+  margin-left: 1.25rem;
 }
 
 .navLink {
   position: relative;
+  white-space: nowrap;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-2);
@@ -149,10 +156,6 @@
 
 .navLink:hover {
   color: var(--text-1);
-}
-
-.navLinkActive {
-  color: var(--accent);
 }
 
 /* ---------- nav: narrow screens ---------- */
@@ -210,8 +213,9 @@
 }
 
 .navMenuPanel {
+  transform-origin: top right;
   position: absolute;
-  top: calc(100% + 0.75rem);
+  top: calc(100% + 0.625rem);
   right: 0;
   min-width: min(17rem, calc(100vw - 2.5rem));
   display: grid;
@@ -224,10 +228,38 @@
   animation: menuIn var(--dur-base) var(--ease);
 }
 
+/*
+ * A pointer back to the button that opened it. Two stacked squares: the lower
+ * one carries the border, the upper one covers it with the panel's own fill so
+ * the arrow reads as part of the panel rather than a diamond behind it.
+ */
+.navMenuPanel::before,
+.navMenuPanel::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+}
+
+.navMenuPanel::before {
+  top: -7px;
+  background: var(--surface-0);
+  border-top: 1px solid var(--line-1);
+  border-left: 1px solid var(--line-1);
+  border-top-left-radius: 3px;
+}
+
+.navMenuPanel::after {
+  top: -5px;
+  background: var(--surface-0);
+}
+
 @keyframes menuIn {
   from {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-8px) scale(0.98);
   }
 }
 
@@ -253,6 +285,16 @@
   height: 44px;
 }
 
+/* A rule above the pair separates acting from navigating. */
+.navMenuPanel .navCtaGhost {
+  margin-top: 0.75rem;
+  padding-top: 0;
+}
+
+.navMenuPanel .navCtaGhost {
+  margin-left: 0;
+}
+
 /*
  * Sized to the bar, not to the page. Same shape language as the page buttons,
  * no icon and no resting shadow — it should be the one thing to click without
@@ -261,6 +303,7 @@
 .navCta {
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
   height: 36px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -274,6 +317,34 @@
 
 .navCta:hover {
   background: var(--accent-hover);
+}
+
+/* The second action: present, but subordinate to Build. */
+.navCtaGhost {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  height: 36px;
+  padding: 0 0.9375rem;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--accent);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.navCtaGhost:hover {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+/* You are already on the checker — the button says so rather than lying. */
+.navCtaGhostActive {
+  border-color: var(--accent);
+  background: var(--accent-wash);
 }
 
 /* ---------- hero ---------- */
@@ -326,65 +397,6 @@
   line-height: 1.75;
   color: var(--text-2);
   margin: 0 0 1.375rem;
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/*
- * Matches the MUI button in the editor: same radius, height, weight and
- * pressed feedback, without the runtime.
- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.625rem 1.5rem;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  border: 1px solid transparent;
-  transition:
-    background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
-    box-shadow var(--dur-base) var(--ease),
-    transform var(--dur-fast) var(--ease);
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-.btn:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-ring);
-}
-
-.btnPrimary {
-  background: var(--accent);
-  color: var(--c-white);
-}
-
-.btnPrimary:hover {
-  background: var(--accent-hover);
-  box-shadow: var(--shadow-md);
-}
-
-.btnGhost {
-  border-color: var(--line-2);
-  color: var(--accent);
-  background: var(--surface-0);
-}
-
-.btnGhost:hover {
-  border-color: var(--accent);
-  background: var(--accent-wash);
 }
 
 .note {
@@ -614,7 +626,11 @@
  */
 .kicker {
   display: flex;
-  align-items: center;
+  /*
+   * Aligned to the first line, not the block. When the label wraps, a centred
+   * rule floats into the gap between the two lines and reads as a stray mark.
+   */
+  align-items: flex-start;
   gap: 0.75rem;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
@@ -631,6 +647,8 @@
   border-radius: 2px;
   background: var(--accent);
   flex: none;
+  /* Sits on the optical centre of the first line's cap height. */
+  margin-top: 0.6em;
   transform-origin: left;
 }
 
@@ -685,17 +703,20 @@
   background: var(--accent-wash);
 }
 
+/* Centred to match the feature cards — same grid-of-equals reading. */
 .stepNum {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 1.375rem;
   color: var(--accent);
   letter-spacing: -0.02em;
+  text-align: center;
   margin: 0 0 0.75rem;
 }
 
 .stepTitle {
   font-size: 1.1875rem;
   font-weight: 700;
+  text-align: center;
   margin: 0 0 0.4rem;
 }
 
@@ -780,6 +801,54 @@
   gap: 1.25rem;
 }
 
+.feature {
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 1.5rem;
+  background: var(--surface-0);
+  transition:
+    box-shadow var(--dur-base) var(--ease),
+    transform var(--dur-base) var(--ease),
+    border-color var(--dur-base) var(--ease);
+}
+
+.feature:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-border);
+  transform: translateY(-3px);
+}
+
+.featureIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background: var(--accent-wash);
+  color: var(--accent);
+  margin: 0 auto 1.125rem;
+}
+
+.featureTitle {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin: 0 0 0.5rem;
+}
+
+.featureBody {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  margin: 0;
+}
+
+/*
+ * Mark and title centred at every width. The body copy stays ranged left —
+ * centred paragraphs cost the reader the line-to-line rhythm.
+ */
+
 /* ---------- cards ---------- */
 
 .cols {
@@ -838,6 +907,22 @@
 
 /* ---------- status ---------- */
 
+/*
+ * Copy beside a card. Used by the checker section, where the report card is
+ * the evidence for the claim next to it — so the pairing holds down to tablet
+ * portrait rather than stacking early like the row-list layout below.
+ */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+.splitCopy {
+  max-width: 34rem;
+}
+
 /* ---------- closing call to action ---------- */
 
 .cta {
@@ -866,9 +951,9 @@
 
 .ctaItem {
   display: grid;
-  grid-template-columns: auto minmax(0, 10rem) minmax(0, 1fr);
+  grid-template-columns: auto minmax(9rem, max-content) minmax(0, 1fr);
   align-items: baseline;
-  gap: 0.25rem 1rem;
+  gap: 0.25rem 1.25rem;
   padding: 1rem 1.375rem;
   background: var(--surface-0);
   transition: background-color var(--dur-fast) var(--ease);
@@ -893,6 +978,50 @@
   font-size: 1.0625rem;
   color: var(--text-3);
   line-height: 1.55;
+}
+
+/* ---------- legal pages ---------- */
+
+.legal {
+  max-width: 46rem;
+  padding-block: clamp(2.5rem, 5vw, 4rem) clamp(3rem, 6vw, 5rem);
+}
+
+.legalMeta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+  margin: 0 0 2.25rem;
+}
+
+.legal h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 2.5rem 0 0.75rem;
+}
+
+.legal p,
+.legal li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: var(--text-2);
+  margin: 0 0 1rem;
+}
+
+.legal ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.legal li {
+  margin-bottom: 0.5rem;
+}
+
+.legal a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ---------- footer ---------- */
@@ -948,34 +1077,6 @@
   color: var(--text-3);
 }
 
-/* Four short facts, set as a list, so the brand column carries weight
-   rather than trailing off after one paragraph. */
-.footFacts {
-  list-style: none;
-  margin: 1.75rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-  max-width: 32rem;
-}
-
-.footFact {
-  display: grid;
-  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr);
-  gap: 0.25rem 1rem;
-  align-items: baseline;
-  font-size: 0.9375rem;
-}
-
-.footFactName {
-  font-weight: 600;
-  color: var(--text-2);
-}
-
-.footFactNote {
-  color: var(--text-3);
-}
-
 .footColTitle {
   margin: 0 0 0.875rem;
   font-size: 0.75rem;
@@ -1027,6 +1128,15 @@
   color: var(--text-3);
 }
 
+.footBarLinks {
+  display: inline-flex;
+  gap: 1.5rem;
+}
+
+.footBarLinks a {
+  transition: color var(--dur-fast) var(--ease);
+}
+
 .footBar {
   display: flex;
   flex-wrap: wrap;
@@ -1052,33 +1162,76 @@
  */
 
 @media (max-width: 1180px) {
-  .hero {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
-  .heroCopy {
-    max-width: none;
-  }
   .steps,
   .cols,
   .faq {
     grid-template-columns: repeat(2, 1fr);
   }
+  /*
+   * Brand takes its own row and the two link lists share the next one.
+   * Squeezing all three into two columns dropped "On this page" onto a second
+   * row on its own, leaving half the footer empty.
+   */
   .footTop {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.25rem 3rem;
+  }
+  .footTop > *:first-child {
+    grid-column: 1 / -1;
+  }
+  .footBlurb {
+    max-width: 60ch;
   }
 }
 
-/* The six section links stop fitting alongside the wordmark here. */
-@media (max-width: 1000px) {
+/*
+ * The capability rows are name + sentence pairs, so a half-width column wraps
+ * every one of them onto three lines. This block takes the tablet layout from
+ * 1180 down: heading and buttons, then the list at full width.
+ */
+@media (max-width: 1180px) {
+  .cta {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+  .ctaCopy {
+    max-width: none;
+  }
+}
+
+/*
+ * The hero keeps its card on the right longer — that pairing is the argument
+ * the page opens with, and it survives a narrower column.
+ */
+@media (max-width: 900px) {
+  .hero,
+  .split {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+  .heroCopy,
+  .splitCopy {
+    max-width: none;
+  }
+}
+
+/* Four links plus two buttons stop fitting alongside the wordmark here. */
+@media (max-width: 900px) {
   .navLinks {
     display: none;
   }
   .navMenu {
     display: block;
   }
+  /*
+   * The buttons move into the menu with the links. Two full-size buttons in a
+   * bar with nothing else in it read as a toolbar, not a header.
+   */
+  .navActions {
+    display: none;
+  }
   .nav {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 }
 
@@ -1108,10 +1261,6 @@
   .ctaNote {
     grid-column: 2;
   }
-  .footFact {
-    grid-template-columns: 1fr;
-    gap: 0.125rem;
-  }
   /* A wrapped 3-column grid loses the 1px lines that separated the steps. */
   .steps {
     gap: 1px;
@@ -1135,16 +1284,6 @@
   }
   .h2 {
     font-size: clamp(1.5rem, 6.5vw, 2rem);
-  }
-  .btn {
-    /* Full-width buttons: a 44px target is easier to hit than a 44px word. */
-    flex: 1 1 100%;
-  }
-  .actions {
-    gap: 0.625rem;
-  }
-  .brandName {
-    font-size: 1rem;
   }
   .footBar {
     flex-direction: column;
@@ -1171,9 +1310,5 @@
   }
   .miniPaper {
     padding: 0.875rem 0.9375rem;
-  }
-  /* The wordmark alone overflows a 320px bar next to the menu button. */
-  .brandName {
-    font-size: 0.9375rem;
   }
 }

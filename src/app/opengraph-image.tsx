@@ -69,7 +69,7 @@ export default function OgImage() {
 
         <div style={{ display: "flex", gap: 40, fontSize: 24, color: "#626E7B" }}>
           <div>No account</div>
-          <div>No watermark</div>
+          <div>No credits</div>
           <div>No paywall</div>
         </div>
       </div>

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site, url } from "@/lib/site";
 import css from "./home.module.css";
-import { SiteButton } from "./SiteButton";
 import { SiteNav } from "./SiteNav";
 import { Words } from "./Words";
 
@@ -109,7 +108,7 @@ const APP_JSONLD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   featureList: [
     "Resume editor with live preview",
-    "PDF and Word export with no watermark",
+    "PDF and Word export",
     "Parser check on an existing resume",
     "Browser-only storage, no account",
   ],
@@ -186,13 +185,6 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-
-              <div className={css.actions}>
-                <SiteButton href="/resume-checker">Check your resume</SiteButton>
-                <SiteButton href="/resume-builder" variant="outlined">
-                  Build a new one
-                </SiteButton>
-              </div>
             </div>
 
             <div className={`${css.demo} enter-settle`}>
@@ -296,9 +288,9 @@ export default function HomePage() {
                 <span className={css.featureIcon}>{icons.download}</span>
                 <h3 className={css.featureTitle}>Export as often as you want</h3>
                 <p className={css.featureBody}>
-                  PDF and Word, with no watermark, no credit system and no account
-                  wall at the download step. Tailor a version per application
-                  and export each one.
+                  PDF and Word, with no credit system and no account wall at
+                  the download step. Tailor a version per application and
+                  export each one.
                 </p>
               </div>
 
@@ -514,8 +506,8 @@ export default function HomePage() {
       <div className={`${css.band} ${css.bandTint}`} id="check">
         <div className={css.wrap}>
           <section className={css.section}>
-            <div className={css.cta}>
-              <div className={`${css.ctaCopy} reveal`}>
+            <div className={css.split}>
+              <div className={`${css.splitCopy} reveal`}>
                 <p className={css.kicker}>Already have one</p>
                 <h2 className={css.h2}>Check the resume you are sending now</h2>
                 <p className={css.sectionIntro}>
@@ -535,9 +527,6 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <div className={css.actions} style={{ marginTop: "1.75rem" }}>
-                  <SiteButton href="/resume-checker">Check a resume</SiteButton>
-                </div>
               </div>
 
               <div className={`${css.demo} reveal`}>
@@ -626,7 +615,7 @@ export default function HomePage() {
                   single most common complaint about the category.
                 </p>
                 <p className={css.cardBody}>
-                  Here, export is unlimited and needs no account. No watermark,
+                  Here, export is unlimited and needs no account, and there is
                   no credit system.
                 </p>
               </div>
@@ -778,12 +767,6 @@ export default function HomePage() {
                   Open the builder and start typing. Nothing to install, no
                   account, and the file you download is yours.
                 </p>
-                <div className={css.actions} style={{ marginTop: "1.75rem" }}>
-                  <SiteButton href="/resume-builder">Open the builder</SiteButton>
-                  <SiteButton href="/resume-checker" variant="outlined">
-                    Check a resume
-                  </SiteButton>
-                </div>
               </div>
 
               <ul className={css.ctaList}>
@@ -843,20 +826,6 @@ export default function HomePage() {
                 software does. Nothing is uploaded and nothing is held back
                 behind a payment.
               </p>
-
-              <ul className={css.footFacts}>
-                {[
-                  ["PDF and Word", "No watermark on either"],
-                  ["Unlimited exports", "No credits, no per-download charge"],
-                  ["Browser storage", "No account, no server copy"],
-                  ["JSON in and out", "Your data leaves whenever you want"],
-                ].map(([name, note]) => (
-                  <li key={name} className={css.footFact}>
-                    <span className={css.footFactName}>{name}</span>
-                    <span className={css.footFactNote}>{note}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div>
@@ -910,10 +879,10 @@ export default function HomePage() {
           </div>
 
           <div className={css.footBar}>
-            <span>© {YEAR} ATS Resume Builder. All rights reserved.</span>
-            <span>
-              <Link href="/#why">Terms</Link> ·{" "}
-              <Link href="/#why">Privacy</Link>
+            <span>© {YEAR} ATS Resume Builder</span>
+            <span className={css.footBarLinks}>
+              <Link href="/terms">Terms</Link>
+              <Link href="/privacy">Privacy</Link>
             </span>
           </div>
         </footer>

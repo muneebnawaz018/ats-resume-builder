@@ -22,6 +22,11 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  /*
+   * `clip` rather than `hidden`: it stops sideways scrolling without turning
+   * the element into a scroll container, which would break the sticky navbar.
+   */
+  overflow-x: clip;
 }
 
 body {

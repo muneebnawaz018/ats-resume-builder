@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { url } from "@/lib/site";
 import css from "../home.module.css";
-import { SiteButton } from "../SiteButton";
 import { SiteNav } from "../SiteNav";
 import { Words } from "../Words";
 
@@ -77,11 +76,6 @@ export default function CheckPage() {
                 there is no account to create. You can watch the network tab and
                 confirm that nothing leaves.
               </p>
-              <div className={css.actions}>
-                <SiteButton href="/resume-builder" variant="outlined">
-                  Build a resume instead
-                </SiteButton>
-              </div>
               <p className={css.note} style={{ marginTop: "1rem" }}>
                 No upload, no account, no limit on how many times you run it.
               </p>
@@ -156,7 +150,7 @@ export default function CheckPage() {
             </div>
 
             <div className={`${css.cols} reveal-stagger`}>
-              <div className={`${css.card} ${css.cardAccent}`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>Reading order</h3>
                 <p className={css.cardBody}>
                   Whether the extracted text comes out in the order a human
@@ -164,7 +158,7 @@ export default function CheckPage() {
                   multi-column layouts cause.
                 </p>
               </div>
-              <div className={`${css.card} ${css.cardAccent}`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>Field recovery</h3>
                 <p className={css.cardBody}>
                   Whether your name, contact details and each role&rsquo;s
@@ -172,7 +166,7 @@ export default function CheckPage() {
                   misattached data flagged more seriously than missing data.
                 </p>
               </div>
-              <div className={`${css.card} ${css.cardAccent}`}>
+              <div className={css.card}>
                 <h3 className={css.cardTitle}>Text layer</h3>
                 <p className={css.cardBody}>
                   Whether the PDF contains real text at all, and whether it
@@ -208,10 +202,10 @@ export default function CheckPage() {
       <div className={css.wrap}>
         <footer className={css.foot}>
           <div className={css.footBar} style={{ marginTop: 0, borderTop: 0 }}>
-            <span>© {YEAR} ATS Resume Builder. All rights reserved.</span>
-            <span>
-              <Link href="/">Home</Link> ·{" "}
-              <Link href="/resume-builder">Build a resume</Link>
+            <span>© {YEAR} ATS Resume Builder</span>
+            <span className={css.footBarLinks}>
+              <Link href="/terms">Terms</Link>
+              <Link href="/privacy">Privacy</Link>
             </span>
           </div>
         </footer>
