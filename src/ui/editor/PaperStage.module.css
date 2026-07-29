@@ -1,0 +1,105 @@
+.stage {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px 64px;
+  background: var(--ink-900);
+  /*
+   * Faint grid, well below the paper in contrast. Reads as a drafting surface
+   * without competing with the document.
+   */
+  background-image:
+    linear-gradient(var(--ink-800) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ink-800) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+
+.zoomer {
+  transform-origin: top center;
+  height: fit-content;
+}
+
+.sheet {
+  position: relative;
+  background: var(--paper);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * Margin guides. Non-photo blue, drawn over the document, never printed —
+ * which is the literal meaning of the colour. See docs/09-design.md.
+ */
+.guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px dashed var(--guide);
+  opacity: 0.45;
+}
+
+.guidesInner {
+  position: absolute;
+  border: 1px dashed var(--guide);
+  opacity: 0.55;
+}
+
+.pageBreak {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--guide);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.pageBreakLabel {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--guide);
+  opacity: 0.85;
+}
+
+/* Selection outline on a document element. Also non-printing. */
+.sheet :global([data-path]) {
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 120ms ease-out;
+}
+
+.sheet :global([data-path]:hover) {
+  outline-color: var(--guide-dim);
+  cursor: default;
+}
+
+.sheet :global([data-path].isSelected) {
+  outline-color: var(--guide);
+}
+
+@media print {
+  .stage {
+    overflow: visible;
+    padding: 0;
+    background: none;
+  }
+  .zoomer {
+    transform: none !important;
+  }
+  .sheet {
+    box-shadow: none;
+  }
+  .guides,
+  .guidesInner,
+  .pageBreak,
+  .pageBreakLabel {
+    display: none;
+  }
+}

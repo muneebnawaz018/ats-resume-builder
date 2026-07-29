@@ -1,0 +1,221 @@
+/*
+ * Resume document styles.
+ *
+ * Every appearance value comes from a CSS custom property emitted by
+ * render/tokens.ts. Nothing in this tree may import from @mui/* — the DOCX
+ * serialiser reads these resolved styles and maps them onto OOXML, so they
+ * must stay declared and stable. See docs/03-architecture.md.
+ */
+
+.doc {
+  width: var(--r-page-width);
+  box-sizing: border-box;
+  padding: var(--r-margin-top) var(--r-margin-right) var(--r-margin-bottom)
+    var(--r-margin-left);
+
+  font-family: var(--r-font-family);
+  font-size: var(--r-font-size-base);
+  line-height: var(--r-line-height);
+  color: var(--r-color-text);
+
+  background: #ffffff;
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+}
+
+.doc p,
+.doc ul,
+.doc li,
+.doc h1,
+.doc h2 {
+  margin: 0;
+  padding: 0;
+}
+
+.doc ul {
+  list-style: none;
+}
+
+.doc a {
+  color: var(--r-color-link);
+  text-decoration: none;
+}
+
+/* ---------- header ---------- */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: var(--r-heading-align-items);
+  margin-bottom: var(--r-section-gap);
+}
+
+.name {
+  font-size: var(--r-name-size);
+  font-weight: var(--r-name-weight);
+  color: var(--r-color-heading);
+  line-height: 1.1;
+}
+
+.headline {
+  font-size: var(--r-font-size-base);
+  color: var(--r-color-muted);
+  margin-top: var(--r-paragraph-gap);
+}
+
+.contact {
+  margin-top: var(--r-paragraph-gap);
+  font-size: var(--r-font-size-small);
+  color: var(--r-color-muted);
+}
+
+.contactStacked {
+  composes: contact;
+  display: flex;
+  flex-direction: column;
+  gap: 1pt;
+}
+
+.sep {
+  white-space: pre;
+}
+
+.summary {
+  margin-top: var(--r-paragraph-gap);
+}
+
+/* ---------- sections ---------- */
+
+.section + .section {
+  margin-top: var(--r-section-gap);
+}
+
+.sectionTitle {
+  font-size: var(--r-heading-size);
+  font-weight: var(--r-heading-weight);
+  color: var(--r-color-heading);
+  text-transform: var(--r-heading-case);
+  letter-spacing: var(--r-heading-letter-spacing);
+  text-align: var(--r-heading-align);
+  line-height: 1.2;
+}
+
+/*
+ * A full-width rule is a border on the heading, never a separate element —
+ * an empty decorative node would surface as noise in extracted text.
+ */
+.ruleFull {
+  border-bottom: var(--r-rule-weight) solid var(--r-rule-color);
+  padding-bottom: var(--r-rule-gap);
+}
+
+.ruleUnderText {
+  display: inline-block;
+  border-bottom: var(--r-rule-weight) solid var(--r-rule-color);
+  padding-bottom: var(--r-rule-gap);
+}
+
+.sectionBody {
+  margin-top: var(--r-item-gap);
+}
+
+.item + .item {
+  margin-top: var(--r-item-gap);
+}
+
+/* ---------- item head ---------- */
+
+.itemHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12pt;
+}
+
+.itemHeadInline {
+  display: block;
+}
+
+.itemTitle {
+  font-weight: 700;
+  color: var(--r-color-heading);
+}
+
+.itemSub {
+  color: var(--r-color-text);
+}
+
+.itemMeta {
+  color: var(--r-color-muted);
+  font-size: var(--r-font-size-small);
+  white-space: nowrap;
+}
+
+.itemMetaInline {
+  color: var(--r-color-muted);
+  font-size: var(--r-font-size-small);
+}
+
+/* ---------- bullets ---------- */
+
+.bullets {
+  margin-top: var(--r-bullet-gap);
+}
+
+.bullet {
+  display: flex;
+  margin-top: var(--r-bullet-gap);
+}
+
+.bullet:first-child {
+  margin-top: 0;
+}
+
+/*
+ * The glyph is real text in the flow so it survives extraction as a marker.
+ * A ::marker or background image would extract as nothing.
+ */
+.bulletChar {
+  flex: 0 0 var(--r-bullet-indent);
+}
+
+.bulletText {
+  flex: 1;
+}
+
+.tech {
+  margin-top: var(--r-bullet-gap);
+  color: var(--r-color-muted);
+  font-size: var(--r-font-size-small);
+}
+
+/* ---------- skills ---------- */
+
+.skillGroup + .skillGroup {
+  margin-top: var(--r-bullet-gap);
+}
+
+.skillLabel {
+  font-weight: 700;
+  color: var(--r-color-heading);
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  .doc {
+    width: auto;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .section,
+  .item,
+  .bullet {
+    break-inside: avoid;
+  }
+
+  .sectionTitle {
+    break-after: avoid;
+  }
+}

@@ -1,0 +1,256 @@
+/*
+ * Content-route styles. Plain CSS, no MUI — these pages must ship almost no
+ * JavaScript. See the route budget in docs/03-architecture.md.
+ */
+
+.page {
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.wrap {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 1.25rem;
+  border-bottom: 1px solid var(--ink-700);
+}
+
+.mark {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.8125rem;
+  color: var(--ink-300);
+}
+
+.navLinks a:hover {
+  color: var(--ink-100);
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding-block: 5rem 4rem;
+}
+
+.eyebrow {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--guide);
+  margin-bottom: 1.25rem;
+}
+
+.headline {
+  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 1.5rem;
+  max-width: 20ch;
+}
+
+.sub {
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--ink-300);
+  max-width: 56ch;
+  margin: 0 0 2.5rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.125rem;
+  border-radius: 3px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out;
+}
+
+.btnPrimary {
+  composes: btn;
+  background: var(--guide);
+  color: var(--ink-900);
+}
+
+.btnPrimary:hover {
+  background: #96d6f3;
+}
+
+.btnGhost {
+  composes: btn;
+  border-color: var(--ink-600);
+  color: var(--ink-100);
+}
+
+.btnGhost:hover {
+  border-color: var(--ink-500);
+  background: var(--ink-800);
+}
+
+/*
+ * The hero demonstrates rather than describes: the same document, read two
+ * ways, with the fields an extractor lost marked in the parse column.
+ */
+.demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--ink-700);
+  border: 1px solid var(--ink-700);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4rem;
+}
+
+.demoPane {
+  background: var(--ink-800);
+  padding: 1.25rem;
+}
+
+.demoLabel {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  margin-bottom: 1rem;
+}
+
+.miniPaper {
+  background: var(--paper);
+  color: #111;
+  padding: 1rem 1.125rem;
+  font-family: Georgia, serif;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  border-radius: 2px;
+}
+
+.miniName {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.125rem;
+}
+
+.miniMuted {
+  color: #454545;
+  font-size: 0.6875rem;
+}
+
+.miniHead {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.6875rem;
+  border-bottom: 1px solid #111;
+  padding-bottom: 2px;
+  margin: 0.875rem 0 0.5rem;
+}
+
+.miniRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.parseList {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 2;
+}
+
+.parseRow {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.75rem;
+  border-left: 2px solid var(--pass);
+  padding-left: 0.625rem;
+}
+
+.parseRowMissing {
+  composes: parseRow;
+  border-left-color: var(--flag);
+  background: rgba(232, 103, 76, 0.06);
+}
+
+.parseKey {
+  color: var(--guide);
+  opacity: 0.8;
+}
+
+.parseVal {
+  color: var(--ink-100);
+  overflow-wrap: anywhere;
+}
+
+.parseValMissing {
+  composes: parseVal;
+  color: var(--flag);
+}
+
+/* ---------- points ---------- */
+
+.points {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+  padding-block: 4.5rem;
+  border-top: 1px solid var(--ink-700);
+  margin-top: 4rem;
+}
+
+.point h2 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.point p {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ink-300);
+  margin: 0;
+}
+
+.foot {
+  border-top: 1px solid var(--ink-700);
+  padding-block: 2rem 3rem;
+  font-size: 0.75rem;
+  color: var(--ink-500);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 780px) {
+  .demo,
+  .points {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    padding-block: 3rem 2rem;
+  }
+}
