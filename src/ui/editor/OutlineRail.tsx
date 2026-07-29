@@ -45,7 +45,12 @@ function OutlineRailInner({
         flexShrink: 0,
         borderRight: `1px solid ${tone.line1}`,
         bgcolor: tone.surface0,
-        display: "flex",
+        /*
+         * The rail is navigation, and every section it lists can also be
+         * reached by clicking it in the document. Below a laptop width the
+         * space is better spent on the page itself.
+         */
+        display: { xs: "none", lg: "flex" },
         flexDirection: "column",
         overflow: "hidden",
       }}

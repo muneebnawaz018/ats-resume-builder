@@ -16,6 +16,7 @@ import { createSampleResume } from "@/schema/sample";
 import type { Resume, Section } from "@/schema/resume";
 import type { Theme, ThemeTokens } from "@/schema/theme";
 import { db, isDbAvailable } from "./db";
+import { readSession, writeSession } from "./session";
 
 enablePatches();
 // The state tree is rewritten on every keystroke; freezing it each time is
@@ -206,7 +207,19 @@ export const useAppStore = create<State & Actions>((set, get) => {
         }
       }
 
-      let activeResumeId = Object.keys(resumes)[0] ?? null;
+      /*
+       * Reopen where you left off. The stored id wins if that document still
+       * exists; otherwise fall back to the most recently edited one, which is
+       * a better guess than whichever id happens to sort first.
+       */
+      const session = readSession();
+      let activeResumeId =
+        session.activeResumeId && resumes[session.activeResumeId]
+          ? session.activeResumeId
+          : (Object.values(resumes).sort((a, b) =>
+              b.updatedAt.localeCompare(a.updatedAt),
+            )[0]?.id ?? null);
+
       if (!activeResumeId) {
         const id = newId("r");
         resumes[id] = createSampleResume(id, new Date().toISOString());
@@ -214,7 +227,19 @@ export const useAppStore = create<State & Actions>((set, get) => {
         if (isDbAvailable()) void db.putResume(resumes[id]);
       }
 
-      set({ themes, resumes, activeResumeId, hydrated: true });
+      set((s) => ({
+        themes,
+        resumes,
+        activeResumeId,
+        hydrated: true,
+        ui: {
+          ...s.ui,
+          panel: (session.panel as State["ui"]["panel"]) ?? s.ui.panel,
+          view: (session.view as State["ui"]["view"]) ?? s.ui.view,
+          zoom: session.zoom ?? s.ui.zoom,
+        },
+      }));
+      writeSession({ activeResumeId });
     },
 
     activeResume() {
@@ -416,12 +441,16 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
     setPanel(panel) {
       set((s) => ({ ui: { ...s.ui, panel } }));
+      writeSession({ panel });
     },
     setView(view) {
       set((s) => ({ ui: { ...s.ui, view } }));
+      writeSession({ view });
     },
     setZoom(zoom) {
-      set((s) => ({ ui: { ...s.ui, zoom: Math.min(2, Math.max(0.4, zoom)) } }));
+      const z = Math.min(2, Math.max(0.4, zoom));
+      set((s) => ({ ui: { ...s.ui, zoom: z } }));
+      writeSession({ zoom: z });
     },
 
     undo() {

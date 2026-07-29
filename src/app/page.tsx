@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { site, url } from "@/lib/site";
 import css from "./home.module.css";
 import { SiteButton } from "./SiteButton";
 import { SiteNav } from "./SiteNav";
@@ -45,6 +47,74 @@ const icons = {
   ),
 };
 
+export const metadata: Metadata = {
+  title: "Free ATS Resume Builder — see what the parser recovered",
+  description: site.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    url: "/",
+    title: "Free ATS Resume Builder — see what the parser recovered",
+    description: site.description,
+  },
+};
+
+/*
+ * Structured data. The FAQ block mirrors the questions rendered further down —
+ * Google requires the answer text to match what a visitor sees, so these are
+ * the same strings, not a summary of them.
+ */
+const FAQ_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    [
+      "Will an ATS reject my resume for formatting?",
+      "Usually not directly. What happens is worse in a quiet way: the file is parsed badly, and a recruiter sees a record with fields missing. You are competing against candidates whose records came through complete.",
+    ],
+    [
+      "PDF or Word?",
+      "Send what the posting asks for. If it does not say, PDF is safer because it carries its own fonts and cannot reflow. Both export cleanly here, and both are checked the same way.",
+    ],
+    [
+      "Is one page still the rule?",
+      "Under roughly ten years of experience, yes in the US and UK. Beyond that two pages is normal. In Germany and much of Asia longer is expected. This is convention, not a parser constraint, so it is flagged as a suggestion.",
+    ],
+    [
+      "Do keywords from the job posting help?",
+      "Matching real terms helps, since recruiters search on them. Stuffing does not — it is obvious to a human reader and to modern matching, and it costs you the interview.",
+    ],
+    [
+      "What happens if I clear my browser?",
+      "Your resume is gone, because it was only ever stored on your machine. Export the JSON if you want a backup. That is the trade for never uploading anything.",
+    ],
+    [
+      "How will you make money?",
+      "Currently there is no plan to. The core will stay free. If that ever changes it will not be by paywalling the download, because that is the thing this exists to avoid.",
+    ],
+  ].map(([q, a]) => ({
+    "@type": "Question",
+    name: q,
+    acceptedAnswer: { "@type": "Answer", text: a },
+  })),
+};
+
+const APP_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: site.name,
+  url: url("/"),
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Any browser",
+  description: site.description,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  featureList: [
+    "Resume editor with live preview",
+    "PDF and Word export with no watermark",
+    "Parser check on an existing resume",
+    "Browser-only storage, no account",
+  ],
+};
+
 /** Baked at build time. A static export has no request to read a clock on. */
 const YEAR = new Date().getFullYear();
 
@@ -69,6 +139,16 @@ const CAPABILITIES = [
 export default function HomePage() {
   return (
     <div className={css.page} data-scroller>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(APP_JSONLD) }}
+      />
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }}
+      />
       <SiteNav current="home" />
 
       {/* ---------- hero ---------- */}

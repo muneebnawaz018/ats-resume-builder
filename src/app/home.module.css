@@ -120,7 +120,7 @@
 .navLink {
   position: relative;
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-2);
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-sm);
@@ -153,6 +153,104 @@
 
 .navLinkActive {
   color: var(--accent);
+}
+
+/* ---------- nav: narrow screens ---------- */
+
+.navMenu {
+  display: none;
+  margin-left: auto;
+  position: relative;
+}
+
+.navMenuButton {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px is the smallest reliable touch target. */
+  width: 44px;
+  height: 44px;
+  margin-right: -0.5rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.navMenuButton::-webkit-details-marker {
+  display: none;
+}
+
+.navMenuButton:hover {
+  background: var(--surface-2);
+}
+
+.navBurger {
+  display: grid;
+  gap: 4px;
+  width: 20px;
+}
+
+.navBurger span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text-1);
+  transition: transform var(--dur-base) var(--ease);
+}
+
+/* Two strokes cross, the third fades: the control says what it will do. */
+.navMenu[open] .navBurger span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.navMenu[open] .navBurger span:nth-child(2) {
+  opacity: 0;
+}
+.navMenu[open] .navBurger span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.navMenuPanel {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  min-width: min(17rem, calc(100vw - 2.5rem));
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.625rem;
+  background: var(--surface-0);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: menuIn var(--dur-base) var(--ease);
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.navMenuLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.navMenuLink:hover {
+  background: var(--surface-1);
+  color: var(--text-1);
+}
+
+.navMenuCta {
+  justify-content: center;
+  margin: 0.5rem 0 0;
+  height: 44px;
 }
 
 /*
@@ -237,17 +335,35 @@
   align-items: center;
 }
 
+/*
+ * Matches the MUI button in the editor: same radius, height, weight and
+ * pressed feedback, without the runtime.
+ */
 .btn {
   display: inline-flex;
   align-items: center;
-  padding: 0.6875rem 1.25rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.9375rem;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: -0.005em;
   border: 1px solid transparent;
   transition:
     background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-base) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
 }
 
 .btnPrimary {
@@ -257,16 +373,18 @@
 
 .btnPrimary:hover {
   background: var(--accent-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .btnGhost {
   border-color: var(--line-2);
-  color: var(--text-1);
+  color: var(--accent);
+  background: var(--surface-0);
 }
 
 .btnGhost:hover {
-  border-color: var(--text-3);
-  background: var(--surface-1);
+  border-color: var(--accent);
+  background: var(--accent-wash);
 }
 
 .note {
@@ -500,7 +618,6 @@
   gap: 0.75rem;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
-  font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
@@ -572,7 +689,6 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 1.375rem;
   color: var(--accent);
-  font-weight: 500;
   letter-spacing: -0.02em;
   margin: 0 0 0.75rem;
 }
@@ -612,6 +728,8 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9375rem;
+  /* Three prose columns cannot compress below this; the wrapper scrolls. */
+  min-width: 44rem;
 }
 
 .table th {
@@ -652,6 +770,14 @@
 
 .good {
   color: var(--pass);
+}
+
+/* ---------- feature grid ---------- */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
 }
 
 /* ---------- cards ---------- */
@@ -758,7 +884,7 @@
 }
 
 .ctaName {
-  font-weight: 650;
+  font-weight: 600;
   font-size: 1.0625rem;
   color: var(--text-1);
 }
@@ -842,12 +968,12 @@
 }
 
 .footFactName {
-  font-weight: 650;
+  font-weight: 600;
   color: var(--text-2);
 }
 
 .footFactNote {
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .footColTitle {
@@ -889,7 +1015,7 @@
 }
 
 .footLinksRich a {
-  font-weight: 650;
+  font-weight: 600;
   color: var(--text-1);
 }
 
@@ -898,7 +1024,7 @@
   margin-top: 0.1875rem;
   font-size: 0.875rem;
   line-height: 1.55;
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .footBar {
@@ -910,7 +1036,7 @@
   padding-top: 1.5rem;
   border-top: 1px solid var(--line-1);
   font-size: 0.875rem;
-  color: var(--text-4);
+  color: var(--text-3);
 }
 
 .foot a:hover {
@@ -918,6 +1044,12 @@
 }
 
 /* ---------- responsive ---------- */
+
+/*
+ * Ladder: 1440 is the design width, 1180 drops to two columns, 1000 hands the
+ * nav to the disclosure menu, 760 goes single column, 480 and 380 tighten
+ * type and padding. Tested down to 320.
+ */
 
 @media (max-width: 1180px) {
   .hero {
@@ -935,15 +1067,35 @@
   .footTop {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-  .cta {
-    grid-template-columns: 1fr;
+}
+
+/* The six section links stop fitting alongside the wordmark here. */
+@media (max-width: 1000px) {
+  .navLinks {
+    display: none;
+  }
+  .navMenu {
+    display: block;
+  }
+  .nav {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .features {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 760px) {
+  .section {
+    padding-block: 2.5rem;
+  }
   .steps,
   .cols,
   .faq,
+  .features,
   .demoBody,
   .cta,
   .footTop {
@@ -956,89 +1108,72 @@
   .ctaNote {
     grid-column: 2;
   }
-  .navLinks {
-    gap: 0;
-  }
-  .navLink {
-    padding-inline: 0.5rem;
-  }
-}
-
-/* ---------- feature grid: what you can actually do here ---------- */
-
-.features {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-}
-
-.feature {
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  background: var(--surface-0);
-  transition:
-    box-shadow var(--dur-base) var(--ease),
-    transform var(--dur-base) var(--ease),
-    border-color var(--dur-base) var(--ease);
-}
-
-.feature:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-border);
-  transform: translateY(-3px);
-}
-
-.featureIcon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
-  background: var(--accent-wash);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  margin-bottom: 1rem;
-}
-
-.featureTitle {
-  font-size: 1.1875rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 0.5rem;
-}
-
-.featureBody {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  color: var(--text-2);
-  margin: 0;
-}
-
-.featureTag {
-  display: inline-block;
-  margin-top: 0.9rem;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  color: var(--text-3);
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-pill);
-  padding: 0.2rem 0.6rem;
-}
-
-.featureTagLive {
-  color: var(--pass);
-  border-color: var(--pass);
-  background: var(--pass-wash);
-}
-
-@media (max-width: 1180px) {
-  .features {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 760px) {
-  .features {
+  .footFact {
     grid-template-columns: 1fr;
+    gap: 0.125rem;
+  }
+  /* A wrapped 3-column grid loses the 1px lines that separated the steps. */
+  .steps {
+    gap: 1px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-block: 2rem 2.5rem;
+  }
+  .headline {
+    font-size: clamp(2.125rem, 9vw, 2.75rem);
+    letter-spacing: -0.03em;
+  }
+  .intro {
+    font-size: 1.125rem;
+  }
+  .leadBody,
+  .sectionIntro {
+    font-size: 1rem;
+  }
+  .h2 {
+    font-size: clamp(1.5rem, 6.5vw, 2rem);
+  }
+  .btn {
+    /* Full-width buttons: a 44px target is easier to hit than a 44px word. */
+    flex: 1 1 100%;
+  }
+  .actions {
+    gap: 0.625rem;
+  }
+  .brandName {
+    font-size: 1rem;
+  }
+  .footBar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .wrap {
+    padding-inline: 1rem;
+  }
+  .feature,
+  .demoPane {
+    padding: 1.125rem;
+  }
+  .step {
+    padding: 1.125rem;
+  }
+  .trust {
+    font-size: 0.8125rem;
+  }
+  .trustItem + .trustItem::before {
+    margin: 0 0.5rem;
+  }
+  .miniPaper {
+    padding: 0.875rem 0.9375rem;
+  }
+  /* The wordmark alone overflows a 320px bar next to the menu button. */
+  .brandName {
+    font-size: 0.9375rem;
   }
 }

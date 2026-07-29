@@ -32,7 +32,7 @@ export const palette = {
   slate200: "#DFE5EB",
   slate300: "#C9D2DB",
   slate400: "#9AA6B2",
-  slate500: "#6A7784",
+  slate500: "#626E7B",
   slate600: "#48535F",
   slate700: "#333C46",
   slate900: "#1A1F26",

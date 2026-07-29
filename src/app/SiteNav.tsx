@@ -32,6 +32,8 @@ const AWAY_LINKS = [
  * Drawn inline as SVG so the header costs no extra request and stays crisp.
  */
 export function SiteNav({ current }: { current: "home" | "check" }) {
+  const links = current === "home" ? HOME_LINKS : AWAY_LINKS;
+
   return (
     <div className={css.navBar}>
       <div className={css.wrap}>
@@ -66,7 +68,7 @@ export function SiteNav({ current }: { current: "home" | "check" }) {
           </Link>
 
           <div className={css.navLinks}>
-            {(current === "home" ? HOME_LINKS : AWAY_LINKS).map((l) => (
+            {links.map((l) => (
               <Link
                 key={l.key}
                 href={l.href}
@@ -83,6 +85,39 @@ export function SiteNav({ current }: { current: "home" | "check" }) {
               Build a resume
             </Link>
           </div>
+
+          {/*
+            Narrow screens get the same links inside a disclosure. <details> is
+            a native control, so the menu opens, closes and is keyboard and
+            screen-reader operable with no JavaScript — which matters on the
+            two routes that are meant to be fast.
+          */}
+          <details className={css.navMenu}>
+            <summary className={css.navMenuButton} aria-label="Menu">
+              <span className={css.navBurger} aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </summary>
+            <div className={css.navMenuPanel}>
+              {links.map((l) => (
+                <Link
+                  key={l.key}
+                  href={l.href}
+                  className={css.navMenuLink}
+                >
+                  {l.label}
+                </Link>
+              ))}
+              <Link
+                href="/resume-builder"
+                className={`${css.navCta} ${css.navMenuCta}`}
+              >
+                Build a resume
+              </Link>
+            </div>
+          </details>
         </nav>
       </div>
     </div>

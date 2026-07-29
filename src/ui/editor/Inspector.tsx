@@ -64,9 +64,14 @@ export function Inspector({
       aria-label="Inspector"
       data-chrome
       sx={{
-        width: 320,
+        /*
+         * On a phone the inspector is the editor — the preview is what gets
+         * hidden, not the controls. It takes the full width there and becomes
+         * a fixed side panel from tablet up.
+         */
+        width: { xs: "100%", sm: 320 },
         flexShrink: 0,
-        borderLeft: `1px solid ${tone.line1}`,
+        borderLeft: { xs: "none", sm: `1px solid ${tone.line1}` },
         bgcolor: tone.surface0,
         display: "flex",
         flexDirection: "column",

@@ -67,14 +67,23 @@ function StatusBarInner({
       <Metric label="saved" value={saved} />
       <Box sx={{ flex: 1 }} />
       {/* Stated once, then never explained again. */}
-      <Typography sx={{ fontSize: 11, color: tone.line2 }}>
+      <Typography
+        sx={{ fontSize: 11, color: tone.line2, display: { xs: "none", md: "block" } }}
+      >
         guides never print
       </Typography>
       {/*
         The privacy claim belongs here, where the work actually happens and
         the reassurance is worth something — not in a marketing footer.
       */}
-      <Typography sx={{ fontSize: 11, color: tone.line2 }}>
+      <Typography
+        sx={{
+          fontSize: 11,
+          color: tone.line2,
+          display: { xs: "none", sm: "block" },
+          whiteSpace: "nowrap",
+        }}
+      >
         your resume stays in this browser · no account, ever
       </Typography>
     </Box>

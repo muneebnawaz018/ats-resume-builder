@@ -1,40 +1,37 @@
-"use client";
-
-import Button from "@mui/material/Button";
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import css from "./home.module.css";
 
 /**
- * MUI Button wired to Next's Link, so the site's calls to action use the same
- * component and theme as the editor.
+ * The site's call to action.
  *
- * Note the cost: MUI is a client component library, so any content route that
- * renders this ships the MUI and Emotion runtime. That is a deliberate trade
- * for one design system across the whole product — see docs/03-architecture.md.
+ * Deliberately not MUI. This used to wrap MUI's Button so the marketing pages
+ * and the editor shared one component — but MUI is a client library, so every
+ * content route that rendered it shipped the MUI and Emotion runtime for what
+ * is, in the end, a styled anchor. The editor keeps MUI; these pages do not.
+ *
+ * The styling reads the same tokens the MUI theme does, so the two cannot
+ * drift apart visually.
  */
 export function SiteButton({
   href,
   children,
   variant = "contained",
-  size = "large",
-  startIcon,
 }: {
-  href: string;
+  // typedRoutes: a typo in a href is a build error rather than a 404.
+  href: Route;
   children: ReactNode;
-  variant?: "contained" | "outlined" | "text";
-  size?: "small" | "medium" | "large";
-  startIcon?: ReactNode;
+  variant?: "contained" | "outlined";
 }) {
   return (
-    <Button
-      component={Link}
+    <Link
       href={href}
-      variant={variant}
-      size={size}
-      startIcon={startIcon}
-      disableElevation={variant !== "contained"}
+      className={`${css.btn} ${
+        variant === "contained" ? css.btnPrimary : css.btnGhost
+      }`}
     >
       {children}
-    </Button>
+    </Link>
   );
 }

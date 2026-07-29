@@ -73,7 +73,7 @@ function TopBarInner({
             border: "1px solid transparent",
             "&:hover": { borderColor: tone.line2 },
             "&.Mui-focused": { borderColor: tone.line2, bgcolor: tone.surface1 },
-            width: 200,
+            width: { xs: 120, sm: 200 },
           }}
         />
       </Tooltip>
@@ -103,6 +103,7 @@ function TopBarInner({
       <ToggleButtonGroup
         exclusive
         size="small"
+        sx={{ display: { xs: "none", sm: "inline-flex" } }}
         value={view}
         onChange={(_, v: ViewMode | null) => v && onView(v)}
         aria-label="Document view"
@@ -115,7 +116,10 @@ function TopBarInner({
         </Tooltip>
       </ToggleButtonGroup>
 
-      <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
+      {/* Both control the preview, which is hidden on phones. */}
+      <Box
+        sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", ml: 1 }}
+      >
         <Tooltip title="Zoom out">
           <IconButton
             onClick={() => onZoom(zoom - 0.1)}

@@ -7,6 +7,17 @@
 }
 
 /*
+ * On a phone the inspector takes the whole width and the preview steps aside.
+ * A 816px sheet scaled to fit a 360px screen is unreadable and unclickable, so
+ * showing it would be worse than not showing it.
+ */
+@media (max-width: 599px) {
+  .stage {
+    display: none;
+  }
+}
+
+/*
  * Zoom wrapper.
  *
  * `transform: scale()` does not change layout size, so a zoomed-in page used

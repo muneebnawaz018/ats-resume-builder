@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { url } from "@/lib/site";
 import css from "../home.module.css";
 import { SiteButton } from "../SiteButton";
 import { SiteNav } from "../SiteNav";
@@ -11,10 +12,38 @@ import { Words } from "../Words";
  *
  * Static shell here; the client tool mounts inside it from Phase 3.
  */
+const DESC =
+  "Upload nothing. Read your resume back the way hiring software does and see exactly which fields survived extraction.";
+
 export const metadata: Metadata = {
-  title: "Check whether your resume survives ATS parsing",
-  description:
-    "Upload nothing. Read your resume back the way hiring software does and see exactly which fields survived extraction.",
+  title: "ATS Resume Checker — does your resume survive parsing?",
+  description: DESC,
+  alternates: { canonical: "/resume-checker" },
+  openGraph: {
+    url: "/resume-checker",
+    title: "ATS Resume Checker — does your resume survive parsing?",
+    description: DESC,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ATS Resume Checker",
+    description: DESC,
+  },
+};
+
+/** Breadcrumbs give the SERP entry a path instead of a bare URL. */
+const CRUMBS = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: url("/") },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Resume checker",
+      item: url("/resume-checker"),
+    },
+  ],
 };
 
 /** Baked at build time. A static export has no request to read a clock on. */
@@ -23,6 +52,11 @@ const YEAR = new Date().getFullYear();
 export default function CheckPage() {
   return (
     <div className={css.page} data-scroller>
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(CRUMBS) }}
+      />
       <SiteNav current="check" />
 
       <div className={css.band}>
