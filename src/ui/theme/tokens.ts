@@ -71,37 +71,3 @@ export const font = {
   serif: "var(--font-plex-serif), Georgia, serif",
 } as const;
 
-/**
- * Emitted into a <style> tag in the root layout so plain-CSS routes and the
- * editor share literally the same values.
- */
-export function cssVarBlock(): string {
-  const vars: Record<string, string> = {
-    "--surface-0": tone.surface0,
-    "--surface-1": tone.surface1,
-    "--surface-2": tone.surface2,
-    "--surface-3": tone.surface3,
-    "--line-1": tone.line1,
-    "--line-2": tone.line2,
-    "--text-1": tone.text1,
-    "--text-2": tone.text2,
-    "--text-3": tone.text3,
-    "--guide-mark": blue.guideMark,
-    "--guide-wash": blue.guideWash,
-    "--accent": blue.accent,
-    "--accent-hover": blue.accentHover,
-    "--accent-wash": blue.accentWash,
-    "--flag": severity.flag,
-    "--flag-wash": severity.flagWash,
-    "--caution": severity.caution,
-    "--caution-wash": severity.cautionWash,
-    "--pass": severity.pass,
-    "--pass-wash": severity.passWash,
-    "--radius-sm": `${radius.sm}px`,
-    "--radius-md": `${radius.md}px`,
-  };
-  const body = Object.entries(vars)
-    .map(([k, v]) => `${k}:${v}`)
-    .join(";");
-  return `:root{${body};color-scheme:light}`;
-}

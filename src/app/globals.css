@@ -1,9 +1,11 @@
+@import "./tokens.generated.css";
+
 /*
  * Reset only.
  *
- * Colour and radius tokens are injected from src/ui/theme/tokens.ts by the
- * root layout, so this file never hard-codes a value. One source, read by
- * both the MUI theme and the plain-CSS routes.
+ * Colour and radius tokens come from tokens.generated.css, written from
+ * src/ui/theme/tokens.ts by scripts/gen-tokens.mjs. The MUI theme reads the
+ * same TypeScript source, so chrome and content routes cannot drift.
  *
  * Document styles live in src/render/document.module.css and share nothing
  * with the chrome.

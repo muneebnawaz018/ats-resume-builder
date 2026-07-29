@@ -74,13 +74,16 @@ export function PaperStage({
   return (
     <div className={css.stage}>
       <div className={css.zoomer} style={{ transform: `scale(${zoom})` }}>
+        <p className={css.hint}>
+          Click any part of the page to edit it.
+        </p>
         <div ref={sheetRef} className={css.sheet}>
           <ResumeDocument resume={resume} theme={theme} onSelect={onSelect} />
 
-          <div className={css.guides} aria-hidden="true" />
           <div
             className={css.guidesInner}
             aria-hidden="true"
+            title="Margin guide — never printed"
             style={{
               top: lengthToCss(t.marginTop),
               right: lengthToCss(t.marginRight),

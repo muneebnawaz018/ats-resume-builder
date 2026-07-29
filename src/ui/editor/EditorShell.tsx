@@ -6,7 +6,8 @@ import Typography from "@mui/material/Typography";
 import { plainText } from "@/schema/common";
 import type { ThemeTokens } from "@/schema/theme";
 import { useAppStore } from "@/store/useAppStore";
-import { ink } from "../theme/palette";
+import { tone } from "../theme/tokens";
+import { AddSectionDialog } from "./AddSectionDialog";
 import { Inspector } from "./Inspector";
 import { OutlineRail } from "./OutlineRail";
 import { PaperStage } from "./PaperStage";
@@ -32,6 +33,14 @@ export function EditorShell() {
   const lastSavedAt = useAppStore((s) => s.lastSavedAt);
 
   const [pages, setPages] = useState(1);
+  const [addOpen, setAddOpen] = useState(false);
+
+  /** Clicking the page opens that part in the Content tab, not just a highlight. */
+  const selectAndEdit = useCallback((path: string) => {
+    const s = useAppStore.getState();
+    s.select(path);
+    s.setPanel("content");
+  }, []);
 
   useEffect(() => {
     void hydrate();
@@ -94,10 +103,10 @@ export function EditorShell() {
           height: "100dvh",
           display: "grid",
           placeItems: "center",
-          bgcolor: ink[900],
+          bgcolor: tone.surface1,
         }}
       >
-        <Typography sx={{ fontSize: 13, color: ink[500] }}>
+        <Typography sx={{ fontSize: 13, color: tone.text3 }}>
           Loading your documents from this browser…
         </Typography>
       </Box>
@@ -123,11 +132,9 @@ export function EditorShell() {
         <OutlineRail
           resume={resume}
           selectedPath={ui.selectedPath}
-          onSelect={useAppStore.getState().select}
+          onSelect={selectAndEdit}
           onToggleVisible={useAppStore.getState().toggleSectionVisible}
-          onAddSection={() =>
-            useAppStore.getState().addSection("text", "New section")
-          }
+          onAddSection={() => setAddOpen(true)}
         />
 
         {ui.view === "reading" ? (
@@ -136,7 +143,7 @@ export function EditorShell() {
             theme={theme}
             zoom={ui.zoom}
             selectedPath={ui.selectedPath}
-            onSelect={useAppStore.getState().select}
+            onSelect={selectAndEdit}
             onPageCount={setPages}
           />
         ) : (
@@ -146,6 +153,8 @@ export function EditorShell() {
         <Inspector
           tab={ui.panel}
           onTab={useAppStore.getState().setPanel}
+          resume={resume}
+          selectedPath={ui.selectedPath}
           theme={theme}
           safeMode={ui.safeMode}
           onToken={setToken}
@@ -158,6 +167,20 @@ export function EditorShell() {
         words={words}
         saveState={saveState}
         lastSavedAt={lastSavedAt}
+      />
+
+      <AddSectionDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onAdd={(type, title) => {
+          const s = useAppStore.getState();
+          s.addSection(type, title);
+          const r = s.activeResume();
+          if (r) {
+            s.select(`sections[${r.sections.length - 1}]`);
+            s.setPanel("content");
+          }
+        }}
       />
     </Box>
   );

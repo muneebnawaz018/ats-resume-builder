@@ -14,7 +14,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import type { Resume } from "@/schema/resume";
-import { ink } from "../theme/palette";
+import { tone } from "../theme/tokens";
 
 /**
  * Structure at a glance, not a form. Selecting a section here focuses it on
@@ -40,8 +40,8 @@ export function OutlineRail({
       sx={{
         width: 220,
         flexShrink: 0,
-        borderRight: `1px solid ${ink[700]}`,
-        bgcolor: ink[800],
+        borderRight: `1px solid ${tone.line1}`,
+        bgcolor: tone.surface0,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -49,7 +49,7 @@ export function OutlineRail({
     >
       <Typography
         variant="overline"
-        sx={{ px: 1.75, pt: 1.75, pb: 1, color: ink[500] }}
+        sx={{ px: 1.75, pt: 1.75, pb: 1, color: tone.text3 }}
       >
         Outline
       </Typography>
@@ -102,14 +102,14 @@ export function OutlineRail({
                   sx={{ py: 0.5, pl: 0.5, opacity: s.visible ? 1 : 0.45 }}
                 >
                   <DragIndicatorIcon
-                    sx={{ fontSize: 15, color: ink[600], mr: 0.5 }}
+                    sx={{ fontSize: 15, color: tone.line2, mr: 0.5 }}
                   />
                   <ListItemText
                     primary={s.title}
                     secondary={`${s.items.length} item${s.items.length === 1 ? "" : "s"}`}
                     slotProps={{
                       primary: { noWrap: true, sx: { fontSize: 13 } },
-                      secondary: { sx: { fontSize: 11, color: ink[500] } },
+                      secondary: { sx: { fontSize: 11, color: tone.text3 } },
                     }}
                   />
                 </ListItemButton>
@@ -119,7 +119,7 @@ export function OutlineRail({
         </List>
       </Box>
 
-      <Box sx={{ p: 1, borderTop: `1px solid ${ink[700]}` }}>
+      <Box sx={{ p: 1, borderTop: `1px solid ${tone.line1}` }}>
         <Button
           fullWidth
           variant="outlined"

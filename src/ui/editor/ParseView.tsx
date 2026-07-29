@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import { plainText } from "@/schema/common";
 import { formatDateRange } from "@/lib/date";
 import type { ExperienceItem, Resume } from "@/schema/resume";
-import { guide, ink, severity } from "../theme/palette";
+import { blue, severity, tone } from "../theme/tokens";
 
 /**
  * The signature view: the document as an extractor sees it.
@@ -65,7 +65,7 @@ export function ParseView({ resume }: { resume: Resume }) {
       sx={{
         flex: 1,
         overflow: "auto",
-        bgcolor: ink[900],
+        bgcolor: tone.surface1,
         p: 4,
         display: "flex",
         justifyContent: "center",
@@ -74,11 +74,11 @@ export function ParseView({ resume }: { resume: Resume }) {
       <Box sx={{ width: "100%", maxWidth: 760 }}>
         <Typography
           variant="overline"
-          sx={{ color: ink[500], display: "block", mb: 0.5 }}
+          sx={{ color: tone.text3, display: "block", mb: 0.5 }}
         >
           Extracted fields
         </Typography>
-        <Typography sx={{ fontSize: 12, color: ink[500], mb: 2.5 }}>
+        <Typography sx={{ fontSize: 12, color: tone.text3, mb: 2.5 }}>
           {missing === 0
             ? "Every field was recovered."
             : `${missing} field${missing === 1 ? "" : "s"} could not be recovered. A recruiter would see those blank.`}
@@ -106,14 +106,14 @@ export function ParseView({ resume }: { resume: Resume }) {
                 bgcolor: r.value ? "transparent" : "rgba(232,103,76,0.06)",
               }}
             >
-              <Box component="dt" sx={{ color: guide, opacity: 0.8 }}>
+              <Box component="dt" sx={{ color: blue.guideMark, opacity: 0.8 }}>
                 {r.key}
               </Box>
               <Box
                 component="dd"
                 sx={{
                   m: 0,
-                  color: r.value ? ink[100] : severity.flag,
+                  color: r.value ? tone.text1 : severity.flag,
                   overflowWrap: "anywhere",
                 }}
               >
@@ -123,7 +123,7 @@ export function ParseView({ resume }: { resume: Resume }) {
           ))}
         </Box>
 
-        <Typography sx={{ fontSize: 11, color: ink[600], mt: 3 }}>
+        <Typography sx={{ fontSize: 11, color: tone.line2, mt: 3 }}>
           Phase 0 reads these from the document model. From Phase 2 they come
           from a real export round-trip.
         </Typography>

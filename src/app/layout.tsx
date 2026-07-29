@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
-import { cssVarBlock } from "@/ui/theme/tokens";
 import "./globals.css";
 
 /**
@@ -47,10 +46,6 @@ export default function RootLayout({
       lang="en"
       className={`${plexSans.variable} ${plexMono.variable} ${plexSerif.variable}`}
     >
-      <head>
-        {/* Design tokens, emitted from the single source in ui/theme/tokens.ts. */}
-        <style dangerouslySetInnerHTML={{ __html: cssVarBlock() }} />
-      </head>
       <body>{children}</body>
     </html>
   );

@@ -5,7 +5,9 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { DesignPanel } from "../design/DesignPanel";
-import { ink } from "../theme/palette";
+import { tone } from "../theme/tokens";
+import { ContentPanel } from "./ContentPanel";
+import type { Resume } from "@/schema/resume";
 import type { Theme, ThemeTokens } from "@/schema/theme";
 import type { PanelTab } from "@/store/useAppStore";
 
@@ -14,7 +16,7 @@ function Pending({ title, body }: { title: string; body: string }) {
   return (
     <Box sx={{ p: 2.5 }}>
       <Typography sx={{ fontSize: 13, mb: 0.75 }}>{title}</Typography>
-      <Typography sx={{ fontSize: 12, color: ink[500], lineHeight: 1.6 }}>
+      <Typography sx={{ fontSize: 12, color: tone.text3, lineHeight: 1.6 }}>
         {body}
       </Typography>
     </Box>
@@ -24,6 +26,8 @@ function Pending({ title, body }: { title: string; body: string }) {
 export function Inspector({
   tab,
   onTab,
+  resume,
+  selectedPath,
   theme,
   safeMode,
   onToken,
@@ -31,6 +35,8 @@ export function Inspector({
 }: {
   tab: PanelTab;
   onTab: (t: PanelTab) => void;
+  resume: Resume;
+  selectedPath: string | null;
   theme: Theme;
   safeMode: boolean;
   onToken: <K extends keyof ThemeTokens>(key: K, value: ThemeTokens[K]) => void;
@@ -43,8 +49,8 @@ export function Inspector({
       sx={{
         width: 320,
         flexShrink: 0,
-        borderLeft: `1px solid ${ink[700]}`,
-        bgcolor: ink[800],
+        borderLeft: `1px solid ${tone.line1}`,
+        bgcolor: tone.surface0,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -54,7 +60,7 @@ export function Inspector({
         value={tab}
         onChange={(_, v: PanelTab) => onTab(v)}
         variant="fullWidth"
-        sx={{ borderBottom: `1px solid ${ink[700]}` }}
+        sx={{ borderBottom: `1px solid ${tone.line1}` }}
       >
         <Tab label="Content" value="content" />
         <Tab label="Design" value="design" />
@@ -70,10 +76,7 @@ export function Inspector({
             onThemeChange={onThemeChange}
           />
         ) : tab === "content" ? (
-          <Pending
-            title="Content editing arrives in Phase 1."
-            body="Selecting text on the page will open its fields here, and editing a field will highlight the matching text on the page."
-          />
+          <ContentPanel resume={resume} selectedPath={selectedPath} />
         ) : (
           <Pending
             title="Checks arrive in Phase 3."

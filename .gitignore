@@ -42,3 +42,6 @@ next-env.d.ts
 
 # build output
 /out/
+
+/* generated */
+src/app/tokens.generated.css

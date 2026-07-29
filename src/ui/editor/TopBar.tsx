@@ -11,7 +11,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { ink } from "../theme/palette";
+import { tone } from "../theme/tokens";
 import type { ViewMode } from "@/store/useAppStore";
 
 export function TopBar({
@@ -47,8 +47,8 @@ export function TopBar({
         display: "flex",
         alignItems: "center",
         gap: 1,
-        borderBottom: `1px solid ${ink[700]}`,
-        bgcolor: ink[800],
+        borderBottom: `1px solid ${tone.line1}`,
+        bgcolor: tone.surface0,
       }}
     >
       <Typography sx={{ fontSize: 13, fontWeight: 500, mr: 1 }}>
@@ -101,7 +101,7 @@ export function TopBar({
           sx={{
             fontFamily: "var(--font-plex-mono), monospace",
             fontSize: 11,
-            color: ink[300],
+            color: tone.text2,
             width: 38,
             textAlign: "center",
           }}
