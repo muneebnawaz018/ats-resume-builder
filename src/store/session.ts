@@ -4,7 +4,7 @@
  * localStorage, not IndexedDB. This is a handful of bytes read once during
  * hydration, and reading it synchronously means the editor opens on the right
  * document instead of opening on one and swapping to another a frame later.
- * The documents themselves stay in IndexedDB — see db.ts for why.
+ * The documents themselves stay in IndexedDB, see db.ts for why.
  *
  * Everything here is a preference, never content. A cleared store costs you
  * the view state and nothing else.

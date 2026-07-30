@@ -2,7 +2,7 @@
  * Resume document styles.
  *
  * Every appearance value comes from a CSS custom property emitted by
- * render/tokens.ts. Nothing in this tree may import from @mui/* — the DOCX
+ * render/tokens.ts. Nothing in this tree may import from @mui/*, the DOCX
  * serialiser reads these resolved styles and maps them onto OOXML, so they
  * must stay declared and stable. See docs/03-architecture.md.
  */
@@ -18,7 +18,7 @@
   line-height: var(--r-line-height);
   color: var(--r-color-text);
 
-  /* Paper is white in every theme — this is a document, not a UI surface. */
+  /* Paper is white in every theme, this is a document, not a UI surface. */
   background: #ffffff;
   text-size-adjust: none;
   -webkit-text-size-adjust: none;
@@ -102,7 +102,7 @@
 }
 
 /*
- * A full-width rule is a border on the heading, never a separate element —
+ * A full-width rule is a border on the heading, never a separate element,
  * an empty decorative node would surface as noise in extracted text.
  */
 .ruleFull {

@@ -2,7 +2,7 @@
 
 Phases, not dates. Each phase ends in something shippable.
 
-## Phase 0 — Foundation
+## Phase 0. Foundation
 
 - Next.js App Router + TS strict, `output: 'export'`, path aliases
 - Route skeleton: static `/` and `/resume-checker` shells, client-only `/resume-builder` with `noindex`
@@ -16,7 +16,7 @@ Exit: a hardcoded resume object renders at `/resume-builder`, editing a token in
 
 Settling the route split now, rather than retrofitting it in Phase 5, is the point of doing this first. Extracting an editor from a finished SPA into a framework later is the expensive version of this work.
 
-## Phase 1 — Editor and preview
+## Phase 1. Editor and preview
 
 - Section renderers for all built-in types
 - Content editing forms per section type
@@ -29,7 +29,7 @@ Settling the route split now, rather than retrofitting it in Phase 5, is the poi
 
 Exit: a resume can be built from scratch entirely in the UI.
 
-## Phase 2 — Export
+## Phase 2. Export
 
 - Print stylesheet, `@page`, break control, pre-print settings modal
 - DOCX serialiser: styles part, numbering part, tab-stop-based date alignment, package assembly
@@ -41,7 +41,7 @@ Exit: PDF and DOCX both export and both survive text extraction with correct rea
 
 This is the phase most likely to overrun. DOCX failures are opaque; budget accordingly.
 
-## Phase 3 — ATS linter
+## Phase 3. ATS linter
 
 - Rule engine and `Finding` plumbing
 - All rules from the catalogue
@@ -52,7 +52,7 @@ This is the phase most likely to overrun. DOCX failures are opaque; budget accor
 
 Exit: `/resume-checker` is usable as a standalone product.
 
-## Phase 4 — Import
+## Phase 4. Import
 
 - `Block[]` intermediate and the shared classifier
 - DOCX import via mammoth
@@ -61,7 +61,7 @@ Exit: `/resume-checker` is usable as a standalone product.
 
 Exit: a conventional DOCX resume imports into an editable document with most structure intact.
 
-## Phase 5 — Site and launch
+## Phase 5. Site and launch
 
 Routes exist from Phase 0; this phase fills them.
 
@@ -74,7 +74,7 @@ Routes exist from Phase 0; this phase fills them.
 
 Exit: publicly launched, and `curl` on every indexed route returns its content in the initial HTML.
 
-## Phase 6 — Depth
+## Phase 6. Depth
 
 - Version snapshots and diff view
 - Per-job tailoring workflow
@@ -97,10 +97,10 @@ Exit: publicly launched, and `curl` on every indexed route returns its content i
 
 Ranked by risk of overrun:
 
-1. DOCX correctness — opaque failures, slow iteration
-2. Import classification — accuracy ceiling is inherent, not a bug to fix
+1. DOCX correctness, opaque failures, slow iteration
+2. Import classification, accuracy ceiling is inherent, not a bug to fix
 3. Pagination fidelity between preview and print
-4. Rule catalogue breadth — each rule is small, but there are forty of them
-5. Content and SEO — ongoing, not a phase that ends
+4. Rule catalogue breadth, each rule is small, but there are forty of them
+5. Content and SEO, ongoing, not a phase that ends
 
 Everything else is routine.

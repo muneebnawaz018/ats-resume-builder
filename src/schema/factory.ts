@@ -21,7 +21,7 @@ export const ADDABLE_SECTIONS: {
   {
     type: "skills",
     title: "Skills",
-    hint: "Grouped lists — languages, tools, methods.",
+    hint: "Grouped lists: languages, tools, methods.",
   },
   {
     type: "projects",
@@ -110,7 +110,7 @@ export const SECTION_HELP: Partial<Record<SectionType, string>> = {
   experience:
     "List roles newest first. Parsers read the dates to work out how long you have been working, so give a month and a year for each one.",
   education:
-    "Degrees, newest first. Dates are optional here — many people leave them off.",
+    "Degrees, newest first. Dates are optional here, and many people leave them off.",
   skills:
     "Group related skills under a label. Keep them as plain comma-separated words; a recruiter search matches on the exact term.",
   projects: "Work that is not a job. Same shape as experience.",

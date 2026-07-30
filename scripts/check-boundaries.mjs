@@ -5,7 +5,7 @@
  * The DOCX serialiser reads the document's resolved styles and maps them onto
  * OOXML, so those styles must stay declared and stable. Emotion's hashed class
  * names and runtime injection would make them opaque. The boundary is easy to
- * cross by accident, and the failure surfaces later — in export — rather than
+ * cross by accident, and the failure surfaces later, in export, rather than
  * at the point of the mistake.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -17,12 +17,12 @@ const RULES = [
   {
     dir: "src/render",
     forbid: /from\s+["']@mui\//,
-    message: "must not import from @mui/* — the document uses plain CSS",
+    message: "must not import from @mui/*, the document uses plain CSS",
   },
   {
     dir: "src/render",
     forbid: /from\s+["']@emotion\//,
-    message: "must not import from @emotion/* — styles must stay declared",
+    message: "must not import from @emotion/*, styles must stay declared",
   },
   {
     dir: "src/schema",
@@ -40,7 +40,7 @@ const RULES = [
     skip: /^src[\\/]app[\\/]resume-builder[\\/]/,
     forbid: /from\s+["'](@mui\/|@emotion\/|@\/ui\/theme|@\/ui\/editor|@\/ui\/design)/,
     message:
-      "content routes must not import MUI or editor chrome — only /resume-builder may",
+      "content routes must not import MUI or editor chrome, only /resume-builder may",
   },
   {
     dir: "src/ui/tokens",
@@ -50,7 +50,30 @@ const RULES = [
   {
     dir: "src/ui/site",
     forbid: /from\s+["'](@mui\/|@emotion\/)/,
-    message: "site chrome is plain CSS — MUI belongs to the editor",
+    message: "site chrome is plain CSS. MUI belongs to the editor",
+  },
+  {
+    /*
+     * Document readers stay framework-free: they run in a Node test process
+     * with no DOM, which is why the XML scanner exists instead of DOMParser.
+     */
+    dir: "src/extract",
+    forbid: /from\s+["'](@mui\/|@emotion\/|react|next\/|@\/ui\/)/,
+    message: "extractors must run without a DOM or a framework",
+  },
+  {
+    /*
+     * The readers are loaded on demand from src/extract/index.ts. A static
+     * import anywhere else drags the zip inflater and pdf.js onto every page,
+     * which is exactly the regression this rule exists to catch.
+     */
+    dir: "src",
+    // Tests name a reader on purpose: they exercise one at a time, and they
+    // ship nothing.
+    skip: /^src[\\/]extract[\\/]|\.test\.tsx?$/,
+    forbid: /from\s+["']@\/extract\/(docx|odt|pdf|rtf|html|text|zip|xml)/,
+    message:
+      "import a reader through @/extract so it stays lazily loaded, not directly",
   },
 ];
 

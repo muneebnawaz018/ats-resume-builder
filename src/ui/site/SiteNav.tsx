@@ -7,7 +7,7 @@ import { NavMenu } from "./NavMenu";
  * contents: what it is, how the machine works, what goes wrong, questions.
  *
  * Four, not six. Both tool buttons have to fit alongside these at 1024, and
- * the two that went — "Check yours" and "Why free" — are the ones the buttons
+ * the two that went, "Check yours" and "Why free", are the ones the buttons
  * and the footer already cover.
  *
  * These are anchors into the landing page, so they only belong in the bar
@@ -27,7 +27,7 @@ const AWAY_LINKS = [{ href: "/", label: "Home", key: "home" }] as const;
 /**
  * Shared site header.
  *
- * The mark is a page with a scan line through it — the product in one glyph.
+ * The mark is a page with a scan line through it, the product in one glyph.
  * Drawn inline as SVG so the header costs no extra request and stays crisp.
  *
  * Mark only, no wordmark: the name was the widest thing in the bar and the
@@ -83,7 +83,7 @@ export function SiteNav({
 
           {/*
             The tool buttons sit outside the link list so they survive when the
-            links collapse into the menu — the actions stay reachable in one
+            links collapse into the menu, the actions stay reachable in one
             tap at every width.
           */}
           <div className={css.navActions}>

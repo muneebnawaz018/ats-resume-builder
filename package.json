@@ -4,17 +4,20 @@
   "private": true,
   "scripts": {
     "gen:tokens": "node scripts/gen-tokens.mjs",
-    "predev": "npm run gen:tokens",
+    "predev": "npm run gen:tokens && npm run copy:worker",
     "dev": "next dev",
-    "prebuild": "npm run gen:tokens",
+    "prebuild": "npm run gen:tokens && npm run copy:worker",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check": "npm run typecheck && npm run check:boundaries && npm run knip",
+    "check": "npm run typecheck && npm run check:boundaries && npm run knip && npm run test",
     "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#out\"",
     "analyze": "ANALYZE=true next build --webpack",
-    "knip": "knip"
+    "knip": "knip",
+    "fixtures": "node scripts/make-fixtures.mjs",
+    "test": "vitest run",
+    "copy:worker": "node scripts/copy-pdf-worker.mjs"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -23,9 +26,11 @@
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "@mui/material-nextjs": "^9.1.1",
+    "fflate": "^0.8.3",
     "idb": "^8.0.3",
     "immer": "^11.1.15",
     "next": "16.2.12",
+    "pdfjs-dist": "^6.2.108",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zod": "^4.4.3",
@@ -37,6 +42,7 @@
     "@types/react-dom": "^19",
     "knip": "^6.29.0",
     "sonda": "^0.14.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

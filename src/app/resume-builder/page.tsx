@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   /*
    * Without this the page inherits the root layout's canonical and declares
-   * itself a duplicate of the home page — a contradiction next to noindex.
+   * itself a duplicate of the home page, a contradiction next to noindex.
    */
   alternates: { canonical: "/resume-builder" },
 };

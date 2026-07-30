@@ -11,7 +11,7 @@ import "./globals.css";
  * Plus Jakarta Sans has open apertures and generous counters, which is what
  * makes long stretches of text comfortable rather than tiring. It carries
  * enough character to not read as a default, and it stays legible down to the
- * 11px labels in the editor — a display serif could not do both jobs.
+ * 11px labels in the editor, a display serif could not do both jobs.
  */
 const sans = Plus_Jakarta_Sans({
   variable: "--font-ui",
@@ -26,7 +26,7 @@ const sans = Plus_Jakarta_Sans({
 const mono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  // Mono appears only in small labels and measured values — one weight.
+  // Mono appears only in small labels and measured values, one weight.
   weight: ["400"],
   display: "swap",
 });
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
    */
   metadataBase: new URL(site.url),
   title: {
-    default: "Free ATS Resume Builder — see what the parser recovered",
+    default: "Free ATS Resume Builder: see what the parser reads",
     template: `%s · ${site.name}`,
   },
   description: site.description,
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     locale: site.locale,
     url: "/",
-    title: "Free ATS Resume Builder — see what the parser recovered",
+    title: "Free ATS Resume Builder: see what the parser reads",
     description: site.description,
   },
   twitter: {
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
 
 /** Drives the browser chrome colour on mobile. */
 export const viewport = {
-  // From the palette, not a copy of it — see src/ui/theme/tokens.ts.
+  // From the palette, not a copy of it, see src/ui/theme/tokens.ts.
   themeColor: palette.blue600,
   width: "device-width",
   initialScale: 1,

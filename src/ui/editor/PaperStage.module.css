@@ -21,7 +21,7 @@
  * Zoom wrapper.
  *
  * `transform: scale()` does not change layout size, so a zoomed-in page used
- * to overflow its scroll container and clip on the left — the centring
+ * to overflow its scroll container and clip on the left, the centring
  * flexbox had nothing wider to centre against. The inner element is scaled
  * and the outer one is given the resulting width, so scrollbars appear and
  * the page stays reachable at any zoom.
@@ -56,7 +56,7 @@
 /*
  * Margin guides in non-photo blue: in printing, the blue a process camera
  * does not reproduce, used for marks that guide the person doing the work and
- * never appear in the result. Here that is literally true — none of this is
+ * never appear in the result. Here that is literally true, none of this is
  * in the exported file. See docs/09-design.md.
  */
 .guidesInner {

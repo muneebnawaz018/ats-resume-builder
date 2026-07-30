@@ -91,4 +91,4 @@ export function overridesToCssVars(overrides: ThemeOverrides): CssVars {
   return vars;
 }
 
-/** Imperative application — the hot path used while dragging a control. */
+/** Imperative application, the hot path used while dragging a control. */

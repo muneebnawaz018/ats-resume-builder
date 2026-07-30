@@ -8,7 +8,7 @@
  * Rules for this file:
  *   1. Every colour is declared once, as a hex, in `palette`.
  *   2. Nothing else hardcodes a colour. Translucent variants are derived with
- *      `alpha()`, never written out as another rgba string — otherwise the
+ *      `alpha()`, never written out as another rgba string, otherwise the
  *      same colour drifts as literals get copied around.
  *   3. Semantic names (`accent`, `flag`) point at palette entries. Components
  *      use the semantic name, so a palette change lands everywhere at once.
@@ -18,7 +18,7 @@
  */
 
 /* ------------------------------------------------------------------ *
- * 1. Raw palette — the only place a colour literal is allowed
+ * 1. Raw palette, the only place a colour literal is allowed
  * ------------------------------------------------------------------ */
 
 export const palette = {
@@ -85,13 +85,13 @@ export function alpha(hex: string, amount: number): string {
 }
 
 /* ------------------------------------------------------------------ *
- * 3. Semantic tokens — what components actually use
+ * 3. Semantic tokens, what components actually use
  * ------------------------------------------------------------------ */
 
 export const tone = {
   /** Panels, inputs, the document itself. */
   surface0: palette.white,
-  /** Application background — one step below paper. */
+  /** Application background, one step below paper. */
   surface1: palette.slate50,
   /** Hover, selected rows, inset wells. */
   surface2: palette.slate150,
@@ -107,7 +107,7 @@ export const tone = {
   text1: palette.slate900,
   /** Secondary text and labels. */
   text2: palette.slate600,
-  /** Muted help text — still passes AA on surface0. */
+  /** Muted help text, still passes AA on surface0. */
   text3: palette.slate500,
   /** Faint and decorative only. Never load-bearing text. */
   text4: palette.slate400,
@@ -144,7 +144,7 @@ export const severity = {
 /** Softer than a precision instrument. Rounded enough to feel approachable. */
 export const radius = { sm: 8, md: 12, lg: 18, pill: 999 } as const;
 
-/** Layered, low-opacity shadows — depth without a hard edge. All derived from
+/** Layered, low-opacity shadows, depth without a hard edge. All derived from
  *  one ink colour so they tint consistently. */
 const ink = palette.slate900;
 export const shadow = {

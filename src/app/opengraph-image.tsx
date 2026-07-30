@@ -6,13 +6,13 @@ import { ImageResponse } from "next/og";
  * A link with no image is a grey box in every feed and chat client it is
  * pasted into, which costs clicks that the page has already earned.
  */
-/** Static export has no server to render this on request — bake the PNG. */
+/** Static export has no server to render this on request, bake the PNG. */
 export const dynamic = "force-static";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt =
-  "ATS Resume Builder — see your resume the way the software does";
+  "ATS Resume Builder: see your resume the way the software does";
 
 export default function OgImage() {
   return new ImageResponse(

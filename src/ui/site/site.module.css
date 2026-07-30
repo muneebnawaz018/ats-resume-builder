@@ -1,5 +1,5 @@
 /*
- * Content-route styles. Plain CSS, no MUI — these pages ship almost no JS.
+ * Content-route styles. Plain CSS, no MUI, these pages ship almost no JS.
  *
  * No `composes:` here. It is a CSS Modules feature that plain CSS tooling
  * (including the editor's language server) reports as an unknown property, so
@@ -136,7 +136,7 @@
     background-color var(--dur-fast) var(--ease);
 }
 
-/* Underline grows from the centre out — scaleX is composited, width is not. */
+/* Underline grows from the centre out, scaleX is composited, width is not. */
 .navLink::after {
   content: "";
   position: absolute;
@@ -309,7 +309,7 @@
 
 /*
  * Sized to the bar, not to the page. Same shape language as the page buttons,
- * no icon and no resting shadow — it should be the one thing to click without
+ * no icon and no resting shadow, it should be the one thing to click without
  * announcing itself as a separate object floating in the header.
  */
 .navCta {
@@ -353,7 +353,7 @@
   background: var(--accent-wash);
 }
 
-/* You are already on the checker — the button says so rather than lying. */
+/* You are already on the checker, the button says so rather than lying. */
 .navCtaGhostActive {
   border-color: var(--accent);
   background: var(--accent-wash);
@@ -419,7 +419,7 @@
 /*
  * One line, not a checklist. Three ticked items wrapped 2 + 1 and read as a
  * feature list competing with the buttons above it; this is a footnote, so it
- * is set like one — single row, dot-separated, aligned to the button edge.
+ * is set like one, single row, dot-separated, aligned to the button edge.
  */
 .trust {
   list-style: none;
@@ -530,7 +530,7 @@
 
 /*
  * The example is a real resume rendered small, so it uses the same ATS-safe
- * serif and proportions the document renderer uses — not the site's UI font.
+ * serif and proportions the document renderer uses, not the site's UI font.
  * It was previously set too small to read, which made the whole comparison
  * pointless.
  */
@@ -624,7 +624,7 @@
 }
 
 /*
- * Full width. Only the paragraph inside needs a measure — a heading is two or
+ * Full width. Only the paragraph inside needs a measure, a heading is two or
  * three lines read once, so long lines cost it nothing.
  */
 .sectionHead {
@@ -715,7 +715,7 @@
   background: var(--accent-wash);
 }
 
-/* Centred to match the feature cards — same grid-of-equals reading. */
+/* Centred to match the feature cards, same grid-of-equals reading. */
 .stepNum {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 1.375rem;
@@ -857,7 +857,7 @@
 }
 
 /*
- * Mark and title centred at every width. The body copy stays ranged left —
+ * Mark and title centred at every width. The body copy stays ranged left,
  * centred paragraphs cost the reader the line-to-line rhythm.
  */
 
@@ -921,7 +921,7 @@
 
 /*
  * Copy beside a card. Used by the checker section, where the report card is
- * the evidence for the claim next to it — so the pairing holds down to tablet
+ * the evidence for the claim next to it, so the pairing holds down to tablet
  * portrait rather than stacking early like the row-list layout below.
  */
 .split {
@@ -1212,7 +1212,7 @@
 }
 
 /*
- * The hero keeps its card on the right longer — that pairing is the argument
+ * The hero keeps its card on the right longer, that pairing is the argument
  * the page opens with, and it survives a narrower column.
  */
 @media (max-width: 900px) {
@@ -1323,4 +1323,632 @@
   .miniPaper {
     padding: 0.875rem 0.9375rem;
   }
+}
+
+/* ---------- resume picker ---------- */
+
+/*
+ * The one interactive object on the checker page, so it is the loudest thing
+ * in its column: solid surface, real border, and a dashed well inside it that
+ * reads as a place to put something rather than as another card.
+ */
+.pickerCard {
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-md);
+  padding: 1.25rem;
+}
+
+.pickerLabel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 0 0.75rem;
+}
+
+.pickerZone {
+  position: relative;
+  border: 1.5px dashed var(--line-2);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.pickerZone:hover {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+/* Dragging over gives the same affirmative state as hover, a drop and a
+   click land in the same place, so they should look the same on the way in. */
+.pickerZoneOver {
+  border-color: var(--accent);
+  border-style: solid;
+  background: var(--accent-wash);
+}
+
+.pickerZoneBad {
+  border-color: var(--flag);
+}
+
+/*
+ * Kept in the layout rather than display:none, a hidden input is unreachable
+ * by keyboard, and the label needs a real control to point at.
+ */
+.pickerInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The whole well is the target: 44px is the floor, this is far past it. */
+.pickerPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.pickerInput:focus-visible + .pickerPrompt {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+.pickerIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-border);
+  margin-bottom: 0.15rem;
+}
+
+.pickerPromptText {
+  font-size: 1rem;
+  color: var(--text-2);
+}
+
+.pickerHint {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+/* ---- chosen state ---- */
+
+.pickerFile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+}
+
+.pickerFileIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-border);
+}
+
+.pickerFileText {
+  display: grid;
+  /* Without this the filename refuses to shrink and pushes Remove out. */
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.pickerFileName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickerFileMeta {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.pickerClear {
+  flex: none;
+  margin-left: auto;
+  height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.pickerClear:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pickerNote,
+.pickerError {
+  font-size: 0.8125rem;
+  margin: 0.75rem 0 0;
+}
+
+.pickerNote {
+  color: var(--text-3);
+}
+
+/* Colour is not the only signal, the well takes a red border at the same
+   time, and the message says what to do next. */
+.pickerError {
+  color: var(--flag);
+  font-weight: 500;
+}
+
+
+/* ---------- checker: layout ---------- */
+
+/*
+ * Summary beside detail, once there is room for both.
+ *
+ * The report lived in a 46rem column, which read fine on a laptop and left
+ * half a desktop empty. It is not set in columns, the columns a resume gets
+ * wrecked by are columns of *running text*, and nothing here is. This is a
+ * summary rail (what the file is, what it scored) next to the body (what was
+ * found, what to change). Below 1080px it is one column, in that order.
+ */
+.tool {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+@media (min-width: 1080px) {
+  .toolWide {
+    grid-template-columns: 23rem minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .toolAside {
+    /* Clears the 68px sticky header, plus a little air. */
+    position: sticky;
+    top: 92px;
+  }
+}
+
+/* Before a file is chosen there is only the picker, so do not strand it. */
+.toolNarrow {
+  width: min(100%, 46rem);
+}
+
+.toolAside,
+.toolMain {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.toolStatus,
+.toolFailed {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9375rem;
+}
+
+.toolStatus {
+  border: 1px solid var(--line-1);
+  background: var(--surface-1);
+  color: var(--text-2);
+}
+
+.toolFailed {
+  border: 1px solid var(--flag-border);
+  background: var(--flag-wash);
+  color: var(--flag);
+}
+
+/* ---------- checker: panels ---------- */
+
+.panel {
+  display: grid;
+  gap: 0.875rem;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-md);
+  padding: 1.25rem;
+  min-width: 0;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.panelCount {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.panelNote {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--text-3);
+}
+
+/* ---------- checker: score ---------- */
+
+/*
+ * The rail's lead object, so it carries the tint. One custom property drives
+ * the number, the bar and the border, they cannot disagree about the band.
+ */
+.scoreCard {
+  border: 1px solid var(--score-line);
+  border-radius: var(--radius-lg);
+  background: var(--score-wash);
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scoreTop {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.scoreNumber {
+  display: flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  color: var(--score);
+}
+
+.scoreNumber strong {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
+  /* Digits must not shift width when the number changes. */
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreNumber span {
+  font-size: 0.9375rem;
+  color: var(--text-3);
+}
+
+.scoreVerdict {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.scoreBar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--score-line);
+  overflow: hidden;
+}
+
+.scoreBar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--score);
+  transition: width var(--dur-slow, 600ms) var(--ease);
+}
+
+.scoreCaveat {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.score-clean {
+  --score: #1B6E45;
+  --score-wash: rgba(27, 110, 69, 0.06);
+  --score-line: rgba(27, 110, 69, 0.2);
+}
+
+.score-minor {
+  --score: #7D6318;
+  --score-wash: rgba(125, 99, 24, 0.06);
+  --score-line: rgba(125, 99, 24, 0.2);
+}
+
+.score-risky {
+  --score: #A64F17;
+  --score-wash: rgba(166, 79, 23, 0.06);
+  --score-line: rgba(166, 79, 23, 0.2);
+}
+
+.score-broken {
+  --score: var(--flag);
+  --score-wash: var(--flag-wash);
+  --score-line: var(--flag-border);
+}
+
+/* ---------- checker: key/value rows ---------- */
+
+.facts {
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.factRow {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-1);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.factRowMissing {
+  background: var(--flag-wash);
+}
+
+.factKey {
+  color: var(--accent);
+}
+
+.factVal {
+  margin: 0;
+  color: var(--text-1);
+  /* A long filename or URL wraps rather than widening the panel. */
+  overflow-wrap: anywhere;
+}
+
+.factMissing {
+  margin: 0;
+  color: var(--flag);
+}
+
+/* ---------- checker: findings ---------- */
+
+.findingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+/*
+ * Cost in a fixed gutter, so the numbers line up down the left edge and the
+ * worst problem is findable without reading a word.
+ */
+.finding {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 0 0.875rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--line-1);
+  border-left: 2px solid var(--flag-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+}
+
+.findingCost {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--flag);
+}
+
+.findingKind {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.findingBody {
+  grid-column: 2;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-2);
+  /* Prose stops at a readable measure even when the panel is wider. */
+  max-width: 62ch;
+}
+
+/* ---------- checker: what to do next ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.actionPrimary {
+  height: 40px;
+  padding: 0 1.125rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--c-white);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.actionPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.actionPrimary:disabled,
+.actionGhost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Its own row: five formats plus a label do not belong beside a 40px button. */
+.actionSaves {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line-1);
+  padding-top: 0.875rem;
+}
+
+.actionLabel {
+  font-size: 0.875rem;
+  color: var(--text-3);
+  margin-right: 0.125rem;
+}
+
+.actionGhost {
+  height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.actionGhost:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.actionNote {
+  flex: 1 0 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* ---------- checker: the raw text ---------- */
+
+.rawText {
+  font-size: 0.875rem;
+}
+
+.rawText summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.rawText pre {
+  margin: 0.75rem 0 0;
+  padding: 0.875rem;
+  max-height: 24rem;
+  overflow: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+  border: 1px solid var(--line-1);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  /* Extracted text has no wrapping of its own and a resume line can be long. */
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-2);
+}
+
+@media (max-width: 560px) {
+  .panel,
+  .scoreCard {
+    padding: 1.125rem;
+  }
+  .factRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
+  .finding {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+  }
+  .findingBody {
+    grid-column: 1;
+  }
+}
+
+/* ---------- checker hero ---------- */
+
+/*
+ * Compact and left-aligned. This page is a tool, not a pitch: the headline
+ * earns one screen-third at most, and the picker should be reachable without
+ * scrolling on a laptop.
+ */
+.checkHero {
+  display: grid;
+  gap: 1.5rem;
+  padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+/* Copy stops at a readable measure; the tool below it uses the full width. */
+.checkIntro {
+  max-width: 46rem;
+}
+
+.checkHero .headline {
+  font-size: clamp(2.1rem, 4vw, 2.875rem);
+  margin-bottom: 0.875rem;
+}
+
+.checkHero .intro {
+  font-size: 1.125rem;
+  margin-bottom: 0.625rem;
 }

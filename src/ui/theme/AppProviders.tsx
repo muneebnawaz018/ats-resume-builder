@@ -9,7 +9,7 @@ import { muiTheme } from "./muiTheme";
  * MUI's Emotion cache, wired for the App Router.
  *
  * Only routes that mount this pay for the MUI runtime. Content routes must
- * never import it — that is the per-route budget the CI check protects.
+ * never import it, that is the per-route budget the CI check protects.
  */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (

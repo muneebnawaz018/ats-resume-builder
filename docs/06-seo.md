@@ -7,7 +7,7 @@ A pure client-side SPA is a weak SEO vehicle. Content pages must have real HTML 
 **Decided: Next.js App Router with `output: 'export'`.** See `03-architecture.md` for the routing table and the reasoning. In short:
 
 - Content and landing pages prerender to static HTML at build time. No client JS is required to read them.
-- The editor is a client-only route, `noindex` — a stateful tool page has nothing to rank on.
+- The editor is a client-only route, `noindex`, a stateful tool page has nothing to rank on.
 - Everything deploys as static files. No server, no runtime cost.
 
 Everything below assumes that setup.
@@ -18,7 +18,7 @@ Everything below assumes that setup.
 
 Head terms ("resume builder", "free resume builder", "cv maker") are not winnable. Do not spend on them.
 
-**Tier 1 — tool intent, low competition, high conversion.** These are queries where the searcher wants a tool, not an article, and the incumbents have published articles.
+**Tier 1, tool intent, low competition, high conversion.** These are queries where the searcher wants a tool, not an article, and the incumbents have published articles.
 
 - ats resume checker free
 - check if resume is ats friendly
@@ -29,7 +29,7 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 - ats friendly resume template word free
 - does my resume pass ats
 
-**Tier 2 — problem/format queries.** Article intent, but each one can host a working widget, which is the differentiator.
+**Tier 2: problem/format queries.** Article intent, but each one can host a working widget, which is the differentiator.
 
 - why does ats reject my resume
 - resume date format for ats
@@ -38,7 +38,7 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 - ats resume keywords for [role]
 - resume margins and font size ats
 
-**Tier 3 — programmatic, role and region.** Only build these where the page carries a real prefilled document and role-specific rules. A page per role with spun text is worse than not shipping it.
+**Tier 3, programmatic, role and region.** Only build these where the page carries a real prefilled document and role-specific rules. A page per role with spun text is worse than not shipping it.
 
 - ats resume for software engineer / data analyst / nurse / accountant …
 - resume format pakistan / uae / canada …
@@ -48,13 +48,13 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 | URL | Type | Purpose |
 | --- | --- | --- |
 | `/` | static | positioning: free, local, unlocked |
-| `/resume-checker` | static shell + client tool | the linter — primary acquisition page |
+| `/resume-checker` | static shell + client tool | the linter, primary acquisition page |
 | `/resume-builder` | client, `noindex` | the editor |
 | `/templates` | static index | theme gallery, each with its own page |
 | `/templates/[slug]` | static | one per theme; preview image, description, "use this" |
 | `/guides/[slug]` | static MDX | Tier 2 content, each embedding a relevant widget |
 | `/roles/[slug]` | static | Tier 3, only where real content exists |
-| `/methodology` | static | how the score works, honest limitations — also earns links |
+| `/methodology` | static | how the score works, honest limitations, also earns links |
 | `/privacy` | static | the local-only claim, stated precisely |
 | `/terms` | static | plain terms; no ATS-outcome promise |
 
@@ -85,13 +85,13 @@ Publishing cadence matters less than each page being the best available answer t
 
 1. Ship `/resume-checker` and `/resume-builder`. Nothing else matters until the tool is good.
 2. Open-source the repository. Makes the privacy claim verifiable.
-3. Post to r/resumes, r/EngineeringResumes, r/cscareerquestions, Hacker News, Product Hunt. Lead with "free, no signup, data never leaves your browser" — that framing is the hook, not the feature list.
+3. Post to r/resumes, r/EngineeringResumes, r/cscareerquestions, Hacker News, Product Hunt. Lead with "free, no signup, data never leaves your browser", that framing is the hook, not the feature list.
 4. Publish the comparison study. Pitch it to career newsletters and to the subreddits as data rather than promotion.
 5. Then, and only then, Tier 2 guides. Roughly one strong page per week beats ten thin ones.
 6. Tier 3 programmatic pages last, and only where each page carries genuine role-specific content.
 
 ## Measurement
 
-Search Console for queries and impressions. A privacy-respecting analytics tool (Plausible, Umami — self-hostable) for behaviour. **No analytics may ever touch resume content**; instrument events only, never payloads. Breaking that would destroy the one claim the product is built on.
+Search Console for queries and impressions. A privacy-respecting analytics tool (Plausible, Umami, self-hostable) for behaviour. **No analytics may ever touch resume content**; instrument events only, never payloads. Breaking that would destroy the one claim the product is built on.
 
 Track: `/resume-checker` completions, check → builder conversion, export completions by format, import success rate. Traffic is a means; exports are the outcome.

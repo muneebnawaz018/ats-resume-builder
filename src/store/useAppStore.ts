@@ -8,7 +8,7 @@ import {
   enablePatches,
   setAutoFreeze,
 } from "immer";
-import { newId } from "@/lib";
+import { newId, takeHandoff } from "@/lib";
 import { BUILTIN_THEMES, DEFAULT_THEME_ID, createItem, createSampleResume, tryLoadResume, tryLoadTheme, type Resume, type Section, type Theme, type ThemeTokens } from "@/schema";
 import { db, isDbAvailable } from "./db";
 import { readSession, writeSession } from "./session";
@@ -18,7 +18,7 @@ enablePatches();
 // measurable work for no benefit, since all writes go through immer anyway.
 setAutoFreeze(false);
 
-/** Undo/redo stores immer patches, not snapshots — bounded history, and the
+/** Undo/redo stores immer patches, not snapshots, bounded history, and the
  *  same patches feed the version-diff view later. */
 type HistoryEntry = { undo: Patch[]; redo: Patch[]; key?: string; at: number };
 const HISTORY_LIMIT = 100;
@@ -129,8 +129,8 @@ export const useAppStore = create<State & Actions>((set, get) => {
   }
 
   /*
-   * A debounce means there is always a window — up to half a second of typing
-   * — that exists only in memory. Closing the tab inside it lost the edit
+   * A debounce means there is always a window, up to half a second of typing,
+   *that exists only in memory. Closing the tab inside it lost the edit
    * silently, which for a resume is the worst kind of bug. Run the pending
    * write immediately when the page is being hidden or torn down.
    */
@@ -150,7 +150,7 @@ export const useAppStore = create<State & Actions>((set, get) => {
    *
    * `coalesceKey` identifies the field being edited. Consecutive edits to the
    * same key merge into the previous history entry instead of pushing a new
-   * one — without this, undo steps backwards one character at a time.
+   * one, without this, undo steps backwards one character at a time.
    */
   function commit(recipe: (s: State) => void, coalesceKey?: string) {
     const undoPatches: Patch[] = [];
@@ -246,6 +246,21 @@ export const useAppStore = create<State & Actions>((set, get) => {
         if (isDbAvailable()) void db.putResume(resumes[id]);
       }
 
+      /*
+       * A document handed over from the checker takes precedence over the
+       * session: the person just chose a file and pressed a button, so that
+       * is what they expect to be looking at.
+       */
+      const handed = takeHandoff();
+      if (handed) {
+        const res = tryLoadResume(handed);
+        if (res.ok) {
+          resumes[res.resume.id] = res.resume;
+          activeResumeId = res.resume.id;
+          if (isDbAvailable()) void db.putResume(res.resume);
+        }
+      }
+
       set((s) => ({
         themes,
         resumes,
@@ -331,7 +346,7 @@ export const useAppStore = create<State & Actions>((set, get) => {
 
     /*
      * Import goes through the same migration and validation path as a document
-     * read from IndexedDB — an edited or hand-written file cannot put invalid
+     * read from IndexedDB, an edited or hand-written file cannot put invalid
      * state into the store, and an older export is migrated forward.
      *
      * The document arrives with a new id so importing never overwrites what

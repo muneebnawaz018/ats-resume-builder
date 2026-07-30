@@ -73,7 +73,7 @@ export function ItemEditor({
             value={it.tech ?? []}
             onChange={(tech) => onPatch({ tech })}
             placeholder="Go, PostgreSQL, Kafka"
-            help="Optional. Separate with commas — a recruiter search matches the exact word."
+            help="Optional. Separate with commas. A recruiter search matches the exact word."
           />
         </>
       );
@@ -116,7 +116,7 @@ export function ItemEditor({
             label="Details"
             bullets={it.detail}
             onChange={(detail) => onPatch({ detail })}
-            help="Optional — honours, a thesis title, relevant coursework."
+            help="Optional: honours, a thesis title, relevant coursework."
           />
         </>
       );

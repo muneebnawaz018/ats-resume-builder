@@ -22,7 +22,7 @@ A distinction the rule set depends on, and the most common design error in tools
 type RuleScope = 'native' | 'foreign' | 'both'
 ```
 
-Rules declare their scope. Score denominators only count rules that were actually applicable, so a native document is never credited for avoiding something it could not have done. On a native document the structural category is displayed as "guaranteed by the editor" rather than as a passed check — accurate, and a better sales argument than a fake tick.
+Rules declare their scope. Score denominators only count rules that were actually applicable, so a native document is never credited for avoiding something it could not have done. On a native document the structural category is displayed as "guaranteed by the editor" rather than as a passed check, accurate, and a better sales argument than a fake tick.
 
 ## Evidence tiers
 
@@ -33,7 +33,7 @@ type Evidence =
   | { tier: 'measured'; note: string }   // we test it: round-trip through our own extractor, Tika, poppler
   | { tier: 'documented'; url: string }  // vendor or standards documentation states it
   | { tier: 'convention'; note: string } // recruiter/industry norm, not a parser behaviour
-  | { tier: 'folklore'; note: string }   // widely repeated, unverified — must not be 'critical'
+  | { tier: 'folklore'; note: string }   // widely repeated, unverified, must not be 'critical'
 ```
 
 Hard constraint: **`folklore` may never carry `critical` severity.** If a rule matters enough to be critical, it must be demonstrable by the round-trip harness in `08-scoring.md`. That harness is what converts a folklore rule into a measured one, and moving rules up the tiers is ongoing work, not a one-time setup.
@@ -57,11 +57,11 @@ type Jurisdiction = 'US' | 'UK' | 'CA' | 'AU' | 'DE' | 'JP' | 'PK' | 'AE' | 'IN'
 type Rule = { /* … */ jurisdictions?: Jurisdiction[] }   // undefined = universal
 ```
 
-The user picks a target region; region-scoped rules only run when they apply. Where a convention conflicts with machine parsing — a photo is unparseable regardless of local norms — the finding states both: "expected in this market, but not extractable; keep it, and make sure nothing important is inside the image."
+The user picks a target region; region-scoped rules only run when they apply. Where a convention conflicts with machine parsing (a photo is unparseable regardless of local norms), the finding states both: "expected in this market, but not extractable; keep it, and make sure nothing important is inside the image."
 
 ## Rule engine
 
-Rules are pure functions over the document. No DOM access — testable, and runnable on imported documents before they are ever rendered.
+Rules are pure functions over the document. No DOM access, testable, and runnable on imported documents before they are ever rendered.
 
 ```ts
 type Severity = 'critical' | 'warning' | 'suggestion'
@@ -95,7 +95,7 @@ type Finding = {
   ruleId: string
   severity: Severity
   message: string           // states the specific instance, not the rule name
-  path: string              // "sections[2].items[0].bullets[3]" — click-to-focus
+  path: string              // "sections[2].items[0].bullets[3]", click-to-focus
   fix?: Autofix
 }
 
@@ -117,7 +117,7 @@ Forty rules against a half-finished resume produces an unusable wall of red. Thi
 
 ## Rule catalogue
 
-### Structure — foreign documents only
+### Structure, foreign documents only
 
 Native documents cannot violate these. On import or `/resume-checker` they are the highest-value checks in the product.
 
@@ -133,7 +133,7 @@ Native documents cannot violate these. On import or `/resume-checker` they are t
 
 Note on `layout-tables`: modern parsers handle simple two-column tables better than the folklore suggests, but nested and merged cells still fail routinely, and the failure is silent. Critical is justified because the round-trip harness demonstrates it, not because it is traditional to say so.
 
-### Output — measured, requires an export
+### Output, measured, requires an export
 
 These cannot be evaluated from the document model. They run after an export round-trip and are reported through the same panel.
 
@@ -173,7 +173,7 @@ These cannot be evaluated from the document model. They run after an export roun
 | `reverse-chronological` | most recent role first | warning | both | convention |
 | `gap-detection` | unexplained gaps over ~6 months are surfaced to the user | suggestion | both | convention |
 
-`gap-detection` reports to the user only. It is never scored and never framed as a defect — employment gaps are normal, and a tool that penalises them is doing harm.
+`gap-detection` reports to the user only. It is never scored and never framed as a defect, employment gaps are normal, and a tool that penalises them is doing harm.
 
 ### Typography
 
@@ -191,7 +191,7 @@ These cannot be evaluated from the document model. They run after an export roun
 
 ### Content
 
-Quality signals for the human reader. Reported separately and never folded into the parse-readiness figure — conflating "a machine can read this" with "this is well written" is precisely what makes competitor scores meaningless.
+Quality signals for the human reader. Reported separately and never folded into the parse-readiness figure, conflating "a machine can read this" with "this is well written" is precisely what makes competitor scores meaningless.
 
 | id | Check | Severity | Evidence |
 | --- | --- | --- | --- |
@@ -206,11 +206,11 @@ Quality signals for the human reader. Reported separately and never folded into 
 | `duplicate-bullets` | near-identical bullets across roles | suggestion | convention |
 | `personal-data` | DOB, marital status, gender, nationality | varies | jurisdictional |
 
-`personal-data` severity is region-dependent: `warning` in US/UK/CA/AU where it invites discrimination-screening problems, silent in DE/JP/PK/AE where it is conventional. Never `critical` anywhere — it is a judgement call belonging to the user.
+`personal-data` severity is region-dependent: `warning` in US/UK/CA/AU where it invites discrimination-screening problems, silent in DE/JP/PK/AE where it is conventional. Never `critical` anywhere, it is a judgement call belonging to the user.
 
 Spell-checking is deliberately absent. Doing it properly needs a dictionary, proper-noun handling, and multi-language support; doing it badly means flagging every technology name on a developer's resume. The browser's native spellcheck already covers the editor fields. Revisit only if users ask.
 
-### Keywords — informational, never scored
+### Keywords, informational, never scored
 
 `keyword-coverage` runs only when a job description is pasted. Terms are extracted from the posting (n-grams filtered against a stopword list and a skills dictionary), matched with light stemming, and reported as a present/missing checklist.
 
@@ -220,13 +220,13 @@ Paired with an explicit warning against keyword stuffing. It is transparent to h
 
 When enabled, controls that would produce a `critical` violation are disabled with an inline explanation naming the rule and the reason. The user can switch it off; the linter keeps reporting.
 
-Because native documents cannot produce most structural violations, Safe Mode governs a smaller surface than the previous draft implied — chiefly font selection, contrast, and any future layout options that would introduce columns. It should be framed as "these options are hidden because they break parsing", not as a mode that fixes something.
+Because native documents cannot produce most structural violations, Safe Mode governs a smaller surface than the previous draft implied, chiefly font selection, contrast, and any future layout options that would introduce columns. It should be framed as "these options are hidden because they break parsing", not as a mode that fixes something.
 
 ## Approved fonts
 
 Arial, Helvetica, Calibri, Verdana, Tahoma, Trebuchet MS, Georgia, Cambria, Garamond, Times New Roman, Book Antiqua.
 
-The list is not folklore — each entry has been round-tripped through the extraction harness. Any font that extracts cleanly qualifies; the list is short because it has been tested, not because other fonts are forbidden. Say that in the UI.
+The list is not folklore, each entry has been round-tripped through the extraction harness. Any font that extracts cleanly qualifies; the list is short because it has been tested, not because other fonts are forbidden. Say that in the UI.
 
 DOCX rendering depends on fonts installed on the reader's machine, so ship metrically-compatible webfonts for preview fidelity. PDF embeds, so it is unaffected.
 
@@ -244,7 +244,7 @@ Full model in `08-scoring.md`. Constraints this catalogue imposes on it:
 The rules above are a starting hypothesis, not a finding. The plan for making them real:
 
 1. Assemble a fixture corpus: resumes built in this tool plus exports from every major competitor.
-2. Run each through the round-trip harness — own extractor, Apache Tika, poppler `pdftotext`.
+2. Run each through the round-trip harness, own extractor, Apache Tika, poppler `pdftotext`.
 3. For each rule, construct a violating and a clean variant, then measure whether the violation actually degrades extraction.
 4. Promote rules that show an effect to `measured`. Demote rules that do not to `convention`, or delete them.
 5. Publish the results.

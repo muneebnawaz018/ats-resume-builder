@@ -4,7 +4,7 @@ import { LegalView } from "@/ui/views";
 
 /**
  * Plain terms for a free tool that holds none of your data. Written to be read
- * rather than skipped — anything a normal person would care about is stated in
+ * rather than skipped, anything a normal person would care about is stated in
  * a sentence, not buried in a clause.
  *
  * This is not legal advice and has not been reviewed by a lawyer. Before
@@ -30,7 +30,7 @@ export function TermsContent() {
         <h2>What you own</h2>
         <p>
           Your resume is yours. We claim no rights over anything you write or
-          export, and we could not use it if we wanted to — it never reaches
+          export, and we could not use it if we wanted to, because it never reaches
           us. See the <Link href="/privacy">privacy page</Link>.
         </p>
 
@@ -61,7 +61,7 @@ export function TermsContent() {
         <p>
           The site is provided as it is, without warranty of any kind. To the
           extent the law allows, we are not liable for any loss arising from
-          using it — including lost documents, missed applications, or an
+          using it, including lost documents, missed applications, or an
           outcome in a hiring process.
         </p>
 
@@ -69,7 +69,7 @@ export function TermsContent() {
         <p>
           This is an early project. Features may change or be removed, and the
           site may be unavailable at times. Because everything runs locally, a
-          site outage does not put your documents at risk — but it does mean
+          site outage does not put your documents at risk, but it does mean
           you cannot reach the editor until it is back.
         </p>
 

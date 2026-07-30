@@ -21,7 +21,7 @@ Never mutate an existing version's shape. Add a version and a migration.
 type Resume = {
   schemaVersion: number
   id: string                  // uuid
-  name: string                // user-facing label, e.g. "Backend — Series B startups"
+  name: string                // user-facing label, e.g. "Backend. Series B startups"
   createdAt: string           // ISO
   updatedAt: string           // ISO
   themeId: string             // ref into theme store
@@ -39,7 +39,7 @@ type Basics = {
   headline?: string           // "Senior Backend Engineer"
   email?: string
   phone?: string
-  location?: string           // "Karachi, PK" — city/country only, never street
+  location?: string           // "Karachi, PK", city/country only, never street
   links: Link[]               // LinkedIn, GitHub, portfolio
   summary?: RichText
 }
@@ -138,7 +138,7 @@ type CustomItem = {
 
 ### DateValue
 
-Stored structured, formatted at render time by a theme token. Never store display strings — that would break reformatting and locale changes.
+Stored structured, formatted at render time by a theme token. Never store display strings; that would break reformatting and locale changes.
 
 ```ts
 type DateValue = { year: number; month?: number }  // month 1-12
@@ -239,7 +239,7 @@ type Color  = string          // hex
 sectionOverride ?? theme.tokens ?? builtinDefault
 ```
 
-Implemented as a nested CSS custom property scope — the section element re-declares only the overridden properties. No cascade gymnastics in JS.
+Implemented as a nested CSS custom property scope: the section element re-declares only the overridden properties. No cascade gymnastics in JS.
 
 ## Application state (not persisted as document)
 

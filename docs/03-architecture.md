@@ -9,7 +9,7 @@ No backend. Static bundle on a CDN. All state in the browser.
 A plain Vite SPA was rejected. Its initial response is an empty `<div id="root">`, which fails in the exact places this product's distribution plan depends on:
 
 - Social and link unfurlers (Reddit, LinkedIn, X, Slack, Discord) never execute JS. Launch posts would render blank cards.
-- Non-Google crawlers — Bing, DuckDuckGo, and AI crawlers (GPTBot, PerplexityBot, ClaudeBot) — render JS poorly or not at all.
+- Non-Google crawlers. Bing, DuckDuckGo, and AI crawlers (GPTBot, PerplexityBot, ClaudeBot), render JS poorly or not at all.
 - Googlebot does render, but in a deferred second pass, so indexing is slow and partial.
 - LCP suffers: blank → download → parse → paint.
 
@@ -30,7 +30,7 @@ Static export keeps every advantage of the SPA (free static hosting, no server, 
 
 The editor is an ordinary client component tree. Zustand, dnd-kit, `docx`, `mammoth` and `pdfjs-dist` are loaded through `next/dynamic` with `ssr: false` so they are excluded from the server build and from every content route's bundle.
 
-`output: 'export'` disables API routes, ISR, and server actions. None are needed — the product is local-only by design. If accounts are ever added, dropping static export and deploying to a runtime is a config change, not a rewrite.
+`output: 'export'` disables API routes, ISR, and server actions. None are needed, the product is local-only by design. If accounts are ever added, dropping static export and deploying to a runtime is a config change, not a rewrite.
 
 ```text
 ┌─────────────────────────────────────────────────────┐
@@ -111,10 +111,10 @@ Section overrides declare the same variables on the section element.
 
 Zustand + immer. Chosen over Redux for the boilerplate and over Context for the re-render behaviour. Slices:
 
-- `resumeSlice` — CRUD on resume/sections/items
-- `themeSlice` — token edits, presets, fork-on-edit for built-ins
-- `uiSlice` — selection, zoom, panels, safe mode
-- `historySlice` — patch-based undo/redo, subscribed to the two document slices
+- `resumeSlice`. CRUD on resume/sections/items
+- `themeSlice`, token edits, presets, fork-on-edit for built-ins
+- `uiSlice`, selection, zoom, panels, safe mode
+- `historySlice`, patch-based undo/redo, subscribed to the two document slices
 
 Selectors are granular so an edit to one bullet does not re-render the whole document.
 
@@ -124,7 +124,7 @@ IndexedDB via `idb`, not localStorage. Reasons: localStorage is synchronous (jan
 
 - Autosave debounced 500ms.
 - Object stores: `resumes`, `themes`, `snapshots`.
-- Snapshots on every export and on manual "save version" — enables the version diff feature.
+- Snapshots on every export and on manual "save version", enables the version diff feature.
 - JSON file export/import as the portability escape hatch.
 
 No data ever leaves the browser. Analytics, if added, must be aggregate and must never include resume content.
@@ -182,18 +182,18 @@ src/
 ```
 
 Every folder exposes an `index.ts` barrel, and imports use the `@/` alias
-rather than relative hops — `@/schema` rather than `../../schema`. Siblings
+rather than relative hops, `@/schema` rather than `../../schema`. Siblings
 inside a folder still import each other directly (`./TopBar`), because routing
 those through the folder's own barrel is a cycle.
 
 Barrels export what other folders consume, not everything a folder contains.
-`ui/editor` exports `EditorShell` alone — an earlier version re-exported all
+`ui/editor` exports `EditorShell` alone, an earlier version re-exported all
 thirteen parts, which meant reaching for one component would have pulled the
 whole editor and the MUI runtime with it.
 
 `ui/tokens` is separate from `ui/theme` on purpose. The MUI theme reads the
 tokens, so a single barrel exporting both meant that importing one colour on a
-static page pulled in Emotion — 33KB on every content route. `check-boundaries`
+static page pulled in Emotion, 33KB on every content route. `check-boundaries`
 now fails the build if a content route imports MUI, editor chrome, or
 `@/ui/theme`, and if anything in `ui/tokens` grows an import.
 
@@ -204,7 +204,7 @@ now fails the build if a content route imports MUI, editor chrome, or
 | `npm run typecheck` | type errors |
 | `npm run check:boundaries` | the styling and route boundaries above |
 | `npm run knip` | unused files, exports, types and dependencies |
-| `npm run check` | all three — run this before a commit |
+| `npm run check` | all three, run this before a commit |
 | `npm run analyze` | writes `.sonda/sonda.html`, a treemap of what each route ships |
 
 `knip` is configured to treat unused exports as errors rather than warnings.
@@ -212,7 +212,7 @@ A barrel makes it cheap to export something nobody imports, and that surface
 accumulates silently; this makes it fail instead.
 
 `analyze` builds with webpack (`--webpack`), because Sonda instruments the
-bundler and the default build uses Turbopack. It is a diagnostic build only —
+bundler and the default build uses Turbopack. It is a diagnostic build only,
 what ships is the normal Turbopack one.
 
 ## Tech stack
@@ -224,7 +224,7 @@ what ships is the normal Turbopack one.
 | UI | React 19 | ecosystem for dnd, forms |
 | Content | MDX via `@next/mdx` | guides live in the repo, versioned with the code |
 | Editor UI | MUI (Material UI) + Emotion | the editor is form-heavy; replaces Tailwind, an icon set, and four or five headless control libraries |
-| Document styling | plain CSS + custom properties, no MUI | export depends on styles being readable and predictable — see below |
+| Document styling | plain CSS + custom properties, no MUI | export depends on styles being readable and predictable, see below |
 | State | Zustand + immer | small, granular, patch-friendly |
 | Validation | Zod | schema is the product; runtime validation on load |
 | Drag/drop | dnd-kit | accessible, no legacy HTML5 DnD quirks |
@@ -242,9 +242,9 @@ All MIT/Apache. No paid services anywhere in the critical path.
 
 The application has two visual surfaces with opposite requirements, and they must not share a styling system.
 
-**Editor chrome** — panels, forms, sliders, dialogs, menus. Built with MUI.
+**Editor chrome**, panels, forms, sliders, dialogs, menus. Built with MUI.
 
-**The resume document** — the thing that becomes a PDF or a DOCX. Plain CSS driven by custom properties. No MUI, no Emotion, no `sx`.
+**The resume document**: the thing that becomes a PDF or a DOCX. Plain CSS driven by custom properties. No MUI, no Emotion, no `sx`.
 
 The reason is the export pipeline. The DOCX serialiser reads the document's resolved styles and maps them onto OOXML:
 
@@ -262,7 +262,7 @@ Practical rule: **nothing under `src/render/` imports from `@mui/*`.** Worth enf
 
 ### MUI and route budgets
 
-MUI components are client components, so any route importing them ships the runtime. Next code-splits per route, so `/resume-builder` carrying MUI costs the content routes nothing — provided no shared module static-imports from `@mui/*`. That is the specific regression the per-route bundle check in CI exists to catch.
+MUI components are client components, so any route importing them ships the runtime. Next code-splits per route, so `/resume-builder` carrying MUI costs the content routes nothing, provided no shared module static-imports from `@mui/*`. That is the specific regression the per-route bundle check in CI exists to catch.
 
 Content routes use plain CSS modules. They are mostly text and need no component library.
 
@@ -272,19 +272,19 @@ MUI's Emotion runtime requires a cache provider configured for the App Router. A
 
 Two options were considered.
 
-**Browser print (`window.print()`) — chosen.** A print stylesheet plus `@page` rules. The browser produces a real text-layer PDF with correct font shaping, unicode, and pagination.
+**Browser print (`window.print()`), chosen.** A print stylesheet plus `@page` rules. The browser produces a real text-layer PDF with correct font shaping, unicode, and pagination.
 
 - ATS-safe by construction: the text layer is genuine, selectable, and in reading order.
 - Zero bundle cost.
 - Cost: the user goes through the OS print dialog, cannot be given a filename automatically, and Safari's margin handling differs from Chrome's. Some users will produce a PDF with browser headers/footers unless instructed. Mitigate with a pre-print modal showing the exact settings to use.
 
-**`pdf-lib` / client-side generation — rejected for v1.** Full control over filename and bytes, but requires embedding and subsetting fonts, computing text metrics for wrapping, and implementing pagination manually. That is a large amount of work to arrive at output that is, at best, equal to what the print engine already produces.
+**`pdf-lib` / client-side generation, rejected for v1.** Full control over filename and bytes, but requires embedding and subsetting fonts, computing text metrics for wrapping, and implementing pagination manually. That is a large amount of work to arrive at output that is, at best, equal to what the print engine already produces.
 
 Revisit if the print dialog proves to be a real conversion problem. The renderer is separate from the exporter, so swapping is contained.
 
 ## DOCX export: the actual risk
 
-This is the part most likely to consume unplanned time. Word is strict and fails opaquely — a malformed part produces "Word found unreadable content" with no indication of which part.
+This is the part most likely to consume unplanned time. Word is strict and fails opaquely: a malformed part produces "Word found unreadable content" with no indication of which part.
 
 Rules:
 
@@ -314,7 +314,7 @@ type Block = {
 
 Classifier heuristics, in order: detect section headings (all-caps or larger or bold, short, matched against a synonym dictionary of ~200 known heading names), then partition blocks under headings, then within each partition detect item boundaries (date pattern present, or bold run at line start), then assign bullets.
 
-Expect roughly 80% accuracy on conventional single-column resumes and considerably worse on two-column or heavily designed ones. Design the UX around that: import lands the user in a review screen showing what was detected and what was dropped, not straight into a finished document. Under-promise in the copy — "import as a starting point".
+Expect roughly 80% accuracy on conventional single-column resumes and considerably worse on two-column or heavily designed ones. Design the UX around that: import lands the user in a review screen showing what was detected and what was dropped, not straight into a finished document. Under-promise in the copy, "import as a starting point".
 
 DOCX first, since `mammoth` preserves structure. PDF import in v2.
 
@@ -322,12 +322,12 @@ DOCX first, since `mammoth` preserves structure. PDF import in v2.
 
 - Keystroke to preview update: under 16ms. Achieved by rendering from the store with granular selectors and keeping tokens out of props.
 - Token slider drag: no content re-render at all (CSS vars only).
-- Cold load to interactive: under 1.5s on 4G. Code-split the DOCX exporter, the importers, and `pdfjs-dist` — none are needed on first paint.
+- Cold load to interactive: under 1.5s on 4G. Code-split the DOCX exporter, the importers, and `pdfjs-dist`, none are needed on first paint.
 - **Content routes: framework floor + under 10KB.** Measured on the current build, the Next 16 App Router baseline is ~182KB gzipped and a content route adds ~2KB on top. The absolute figure is fixed by the framework; the number worth defending is the delta, because that is what regresses.
 - **Editor: floor + under 200KB.** Currently ~181KB for MUI, Emotion, and the store.
 - The editor bundle must never be reachable from `/`, `/resume-checker`, or a guide page. Enforce per-route in CI: an accidental static import from a shared module is the usual way this breaks, and it fails silently.
 
-An earlier draft of this document set a sub-30KB absolute target for content routes. That is not achievable on the App Router — it is an Astro-class number, and reaching it would mean giving up the single-framework benefit that motivated choosing Next. If content-route weight ever becomes the binding constraint, moving the content site to Astro is the lever, not shaving the Next baseline.
+An earlier draft of this document set a sub-30KB absolute target for content routes. That is not achievable on the App Router. It is an Astro-class number, and reaching it would mean giving up the single-framework benefit that motivated choosing Next. If content-route weight ever becomes the binding constraint, moving the content site to Astro is the lever, not shaving the Next baseline.
 
 For SEO the relevant fact is that content is in the initial HTML and the page paints without executing any of it. Verified: `curl` on `/` and `/resume-checker` returns the copy, and no external resource is requested (fonts are self-hosted by `next/font`).
 

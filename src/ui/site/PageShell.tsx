@@ -4,7 +4,7 @@ import { SiteNav } from "@/ui/site/SiteNav";
 import css from "@/ui/site/site.module.css";
 
 /**
- * Scroll container, header, footer — the frame every content page sits in.
+ * Scroll container, header, footer, the frame every content page sits in.
  *
  * `data-scroller` marks this as the element that scrolls: the page is not the
  * window, which the sticky-header and anchor-offset code both depend on.
@@ -44,7 +44,7 @@ export function Band({
   );
 }
 
-/** Kicker, heading and intro — the block that opens a section. */
+/** Kicker, heading and intro, the block that opens a section. */
 export function SectionHead({
   kicker,
   title,

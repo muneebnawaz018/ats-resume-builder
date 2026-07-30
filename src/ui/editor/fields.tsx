@@ -61,7 +61,7 @@ const YEARS = Array.from({ length: 60 }, (_, i) => new Date().getFullYear() + 2 
  * Month and year, stored structured.
  *
  * Free text would let people type "summer 2021", which no parser can turn into
- * a date range — and employment duration is one of the main things an ATS
+ * a date range, and employment duration is one of the main things an ATS
  * tries to compute. See docs/04-ats-rules.md.
  */
 export function DateField({

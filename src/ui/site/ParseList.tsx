@@ -7,7 +7,7 @@ import css from "@/ui/site/site.module.css";
  * Seventeen of these rows were written out by hand across two pages, which
  * meant the missing-state classes had to be repeated correctly every time.
  *
- * `data-scan` opts the list into the read-through animation — each row lights
+ * `data-scan` opts the list into the read-through animation, each row lights
  * in turn when the list first appears. See ScrollReveal.
  */
 export type ParseField = {

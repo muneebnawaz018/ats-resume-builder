@@ -4,7 +4,7 @@ import { LegalView } from "@/ui/views";
 
 /**
  * Short because there is little to disclose. Every claim here is a fact about
- * how the app is built — no server receives a resume, so no policy is needed
+ * how the app is built, no server receives a resume, so no policy is needed
  * to describe what happens to one after it arrives.
  *
  * Keep this file honest: if analytics or a backend is ever added, this page
@@ -66,15 +66,15 @@ export function PrivacyContent() {
         <h2>Hosting</h2>
         <p>
           The site is a set of static files served by a hosting provider. Like
-          any web host, it records standard request logs — IP address, time,
+          any web host, it records standard request logs: IP address, time,
           and which file was requested. That is a property of the internet,
           not something the app collects or has access to.
         </p>
 
         <h2>Cookies</h2>
         <p>
-          None are set. The app stores a small amount of local data — your
-          documents and which one you had open — using browser storage, which
+          None are set. The app stores a small amount of local data, your
+          documents and which one you had open, using browser storage, which
           never travels to a server the way a cookie does.
         </p>
 

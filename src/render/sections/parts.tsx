@@ -51,7 +51,7 @@ export function ItemHead({
     return (
       <div className={css.itemHeadInline}>
         <span className={css.itemTitle}>{title}</span>
-        {subtitle ? <span className={css.itemSub}> — {subtitle}</span> : null}
+        {subtitle ? <span className={css.itemSub}> · {subtitle}</span> : null}
         {meta ? <span className={css.itemMetaInline}> ({meta})</span> : null}
       </div>
     );

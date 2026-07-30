@@ -72,7 +72,7 @@ push("spring", mod.motion.spring);
 writeFileSync(
   outPath,
   "/* Generated from src/ui/tokens/tokens.ts by scripts/gen-tokens.mjs.\n" +
-    "   Do not edit — run `npm run gen:tokens`. */\n\n" +
+    "   Do not edit, run `npm run gen:tokens`. */\n\n" +
     `:root {\n${lines.join("\n")}\n  color-scheme: light;\n}\n`,
 );
 

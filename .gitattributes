@@ -1,0 +1,16 @@
+# Line endings are content here, not formatting.
+#
+# The extractors are tested against files whose CRLF endings and byte order
+# marks are the thing under test. Git's autocrlf is on by default on Windows
+# and would rewrite them on checkout, so a suite that passes on Linux would
+# fail on a colleague's laptop for a reason nothing in the diff explains.
+* text=auto
+
+*.txt   -text
+*.rtf   -text
+*.md    -text eol=lf
+*.docx  binary
+*.odt   binary
+*.pdf   binary
+*.pages binary
+*.doc   binary

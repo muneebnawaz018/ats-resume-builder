@@ -66,7 +66,7 @@ a {
  * Print.
  *
  * Exporting a PDF prints this page, so everything that is not the document
- * must be removed from the printed flow — otherwise the panels, toolbar and
+ * must be removed from the printed flow, otherwise the panels, toolbar and
  * status bar land in the exported file. Chrome elements carry data-chrome.
  */
 @media print {
@@ -114,7 +114,7 @@ a {
  *
  * Scroll-driven reveals use `animation-timeline: view()`, which needs no
  * JavaScript and therefore costs the content routes nothing. Browsers
- * without support simply show the content — the @supports guard means the
+ * without support simply show the content, since the @supports guard means the
  * starting state is never applied where it could not be animated away.
  * ------------------------------------------------------------------ */
 
@@ -129,7 +129,7 @@ a {
   }
 }
 
-/* The document tilts flat as it settles — the page "landing" on the desk. */
+/* The document tilts flat as it settles, the page "landing" on the desk. */
 @keyframes settleIn {
   from {
     opacity: 0;
@@ -141,7 +141,7 @@ a {
   }
 }
 
-/* A scan line sweeping down — the parser reading the page. */
+/* A scan line sweeping down, the parser reading the page. */
 @keyframes scanSweep {
   from {
     transform: translateY(-8%);
@@ -198,7 +198,7 @@ a {
 /*
  * Headline words rise out of a mask, one after another. Each word is a clipped
  * box with the text sliding up inside it, so it reads as type being set rather
- * than a block fading in. Server-rendered spans — no JS.
+ * than a block fading in. Server-rendered spans, no JS.
  */
 .words {
   display: inline;

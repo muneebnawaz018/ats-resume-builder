@@ -17,7 +17,7 @@ const LONG_BULLET = 220;
 
 /**
  * Bullets are edited as plain text. The rich text model allows bold, italic
- * and links, but a toolbar per bullet would be noise — inline marks arrive in
+ * and links, but a toolbar per bullet would be noise, inline marks arrive in
  * a later pass and the stored shape already supports them.
  */
 export function BulletEditor({
@@ -69,7 +69,7 @@ export function BulletEditor({
               placeholder="Start with a verb, and include a number where you can."
               helperText={
                 tooLong
-                  ? `${text.length} characters — long bullets get skimmed. Two lines is the usual limit.`
+                  ? `${text.length} characters. Long bullets get skimmed. Two lines is the usual limit.`
                   : undefined
               }
               slotProps={{

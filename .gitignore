@@ -48,3 +48,12 @@ src/app/tokens.generated.css
 
 # Bundle analysis reports — regenerate with `npm run analyze`.
 .sonda/
+
+# Sample documents — regenerate with `npm run fixtures`. Committing them would
+# put binaries in review diffs, and a Windows checkout with autocrlf on would
+# rewrite the text ones and break the tests that assert their line endings.
+/testing/
+
+# pdf.js worker — copied from node_modules by prebuild so its version cannot
+# drift from the library.
+/public/pdf.worker.min.mjs

@@ -8,7 +8,7 @@ A free, browser-local resume builder that exports genuinely ATS-safe PDF and DOC
 
 Existing builders (Zety, Resume.io, Novoresume, Kickresume, Enhancv, Rezi, Teal, FlowCV) are subscription funnels. Their constraints:
 
-- Download is paywalled — the near-universal complaint.
+- Download is paywalled, the near-universal complaint.
 - Templates are locked presets. Deep customization is withheld to protect a house style.
 - Data lives on their servers because the email address is the product.
 - DOCX exports frequently use tables for layout, which ATS parsers mangle.

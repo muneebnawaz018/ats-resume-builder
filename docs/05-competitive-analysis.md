@@ -36,11 +36,11 @@ An independent, free tool has none of these constraints. That is the opening. It
 
 ## Honest risk assessment
 
-**Technical risk: low.** Everything in the v1 scope is well-trodden. The two genuinely hard parts are DOCX correctness (slow, opaque debugging — budget a week, not a day) and import classification (accuracy ceiling around 80% on conventional resumes, materially worse on designed ones). Neither threatens the project; both threaten the schedule.
+**Technical risk: low.** Everything in the v1 scope is well-trodden. The two genuinely hard parts are DOCX correctness (slow, opaque debugging, budget a week, not a day) and import classification (accuracy ceiling around 80% on conventional resumes, materially worse on designed ones). Neither threatens the project; both threaten the schedule.
 
 **Distribution risk: high, and this is the real constraint.**
 
-Search terms in this category — "resume builder", "free resume builder", "ats resume" — are among the most commercially contested on the web. The incumbents run large content operations and buy the ads. Ranking on head terms is not realistic for a new site.
+Search terms in this category, "resume builder", "free resume builder", "ats resume", are among the most commercially contested on the web. The incumbents run large content operations and buy the ads. Ranking on head terms is not realistic for a new site.
 
 What is realistic:
 
@@ -49,7 +49,7 @@ What is realistic:
 - **Community distribution.** r/resumes, r/EngineeringResumes, r/cscareerquestions, Hacker News, Product Hunt, Dev.to. The "free, no signup, data never leaves your browser" framing performs well in these venues specifically because it reads as a reaction against the incumbents.
 - **Open source.** Publishing the source makes the privacy claim verifiable rather than asserted, and GitHub is a distribution channel in its own right.
 
-**Monetisation reality.** Display advertising on this traffic pays roughly $2–8 RPM. At 50,000 monthly pageviews — an achievement, not a baseline — that is $100–400/month. Resume traffic is also structurally hostile to ad models: users arrive once, complete a task, and leave. Return visits are rare, session depth is low.
+**Monetisation reality.** Display advertising on this traffic pays roughly $2–8 RPM. At 50,000 monthly pageviews (an achievement, not a baseline) that is $100–400/month. Resume traffic is also structurally hostile to ad models: users arrive once, complete a task, and leave. Return visits are rare, session depth is low.
 
 If revenue matters, ads are the wrong instrument. Better options, in order:
 

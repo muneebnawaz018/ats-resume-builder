@@ -54,7 +54,7 @@ const icons = {
 };
 
 /*
- * Structured data. The FAQ block mirrors the questions rendered further down —
+ * Structured data. The FAQ block mirrors the questions rendered further down,
  * Google requires the answer text to match what a visitor sees, so these are
  * the same strings, not a summary of them.
  */
@@ -76,7 +76,7 @@ const FAQ_JSONLD = {
     ],
     [
       "Do keywords from the job posting help?",
-      "Matching real terms helps, since recruiters search on them. Stuffing does not — it is obvious to a human reader and to modern matching, and it costs you the interview.",
+      "Matching real terms helps, since recruiters search on them. Stuffing does not, and it is obvious to a human reader and to modern matching, and it costs you the interview.",
     ],
     [
       "What happens if I clear my browser?",
@@ -124,13 +124,13 @@ const CAPABILITIES = [
   ["Full editor", "Sections, items and bullets, with undo on every change."],
   ["Live preview", "The page you are editing is the page that exports."],
   ["Themes", "Fonts, spacing, rules and colour, saved with the document."],
-  ["PDF export", "Real text, selectable and extractable — not an image."],
+  ["PDF export", "Real text, selectable and extractable, not an image."],
   ["Autosave", "Saves as you type, in your browser, without an account."],
   ["Portable data", "The whole resume exports as JSON and imports back."],
 ] as const;
 
 /**
- * Static. No MUI, no client components — this route ships almost no JS and
+ * Static. No MUI, no client components, this route ships almost no JS and
  * carries its content in the initial HTML response. Verify with `curl`.
  *
  * The page explains rather than advertises: what an applicant tracking system
@@ -268,8 +268,8 @@ export function HomeView() {
                 <h3 className={css.featureTitle}>See what a parser reads</h3>
                 <p className={css.featureBody}>
                   Switch the page into Parse view and the document turns into
-                  the list of fields an extractor recovered — your name, each
-                  job title, each employer, each date. Anything missing is
+                  the list of fields an extractor reads: your name, each job
+                  title, each employer, each date. Anything missing is
                   marked in red.
                 </p>
               </div>
@@ -279,7 +279,7 @@ export function HomeView() {
                 <h3 className={css.featureTitle}>Fix what is flagged</h3>
                 <p className={css.featureBody}>
                   Checks name the specific place in your document and what to
-                  change — a missing end date on a particular job, not a rule
+                  change. A missing end date on a particular job, not a rule
                   number. Where a fix is mechanical, one click applies it.
                 </p>
               </div>
@@ -308,8 +308,8 @@ export function HomeView() {
                 Four steps, and three of them can lose your data
               </h2>
               <p className={css.sectionIntro}>
-                Applicant tracking systems — Workday, Taleo, Greenhouse, Lever,
-                iCIMS and others — all follow roughly this sequence. They differ
+                Applicant tracking systems (Workday, Taleo, Greenhouse, Lever,
+                iCIMS and others) all follow roughly this sequence. They differ
                 in the details, and none of them publish how they work.
               </p>
             </div>
@@ -427,7 +427,7 @@ export function HomeView() {
                   </tr>
                   <tr>
                     <td>
-                      Mixed date formats — <span className={css.mono}>2021</span>{" "}
+                      Mixed date formats: <span className={css.mono}>2021</span>{" "}
                       here, <span className={css.mono}>03/21</span> there
                     </td>
                     <td>
@@ -570,7 +570,7 @@ export function HomeView() {
               </h2>
               <p className={css.sectionIntro}>
                 The established builders are subscription products. Nothing
-                below is difficult to build — it is that a company selling
+                below is difficult to build. It is that a company selling
                 monthly access has reasons not to.
               </p>
             </div>
@@ -606,8 +606,8 @@ export function HomeView() {
                 <h3 className={css.cardTitle}>Every setting is exposed</h3>
                 <p className={css.cardBody}>
                   Font, size, line height, margins, section spacing, heading
-                  case, rule weight, date alignment, bullet character and indent
-                  — all editable, all live.
+                  case, rule weight, date alignment, bullet character and
+                  indent, all editable and all live.
                 </p>
                 <p className={css.cardBody}>
                   Templates are locked elsewhere because a fixed template
@@ -624,7 +624,7 @@ export function HomeView() {
                 </p>
                 <p className={css.cardBody}>
                   The plan here is to publish the basis for every check, and to
-                  cap the score at 98 — because no parser is guaranteed and
+                  cap the score at 98, because no parser is guaranteed and
                   claiming otherwise would be a lie.
                 </p>
               </div>
@@ -695,7 +695,7 @@ export function HomeView() {
                 </dt>
                 <dd className={css.faqA}>
                   Matching real terms helps, since recruiters search on them.
-                  Stuffing does not — it is obvious to a human reader and to
+                  Stuffing does not. It is obvious to a human reader and to
                   modern matching, and it costs you the interview.
                 </dd>
               </div>

@@ -11,7 +11,7 @@ import { blue, severity, tone } from "@/ui/tokens";
  *
  * Phase 0 derives fields directly from the model so the interface exists and
  * can be designed against. From Phase 2 the rows come from a real export
- * round-trip — export, extract, re-parse, diff — as described in
+ * round-trip, export, extract, re-parse, diff, as described in
  * docs/08-scoring.md. The row shape is already the shape that produces.
  */
 type FieldRow = {

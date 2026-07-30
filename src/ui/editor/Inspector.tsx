@@ -64,7 +64,7 @@ export function Inspector({
       data-chrome
       sx={{
         /*
-         * On a phone the inspector is the editor — the preview is what gets
+         * On a phone the inspector is the editor, the preview is what gets
          * hidden, not the controls. It takes the full width there and becomes
          * a fixed side panel from tablet up.
          */
@@ -101,7 +101,7 @@ export function Inspector({
         ) : (
           <Pending
             title="Checks arrive in Phase 3."
-            body="Each finding will name the specific instance and what to do about it — not a rule id, and not a score on its own."
+            body="Each finding will name the specific instance and what to do about it, not a rule id and not a score on its own."
           />
         )}
       </Box>

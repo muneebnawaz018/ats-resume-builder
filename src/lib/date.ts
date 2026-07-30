@@ -43,7 +43,7 @@ export function formatDateEnd(
   return formatDate(d, format);
 }
 
-/** En dash, not em dash — em dash extracts inconsistently across parsers. */
+/** En dash, not em dash, em dash extracts inconsistently across parsers. */
 export const DATE_SEPARATOR = "–";
 
 export function formatDateRange(

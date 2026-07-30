@@ -1,7 +1,7 @@
 import type { RichText as RichTextValue } from "@/schema";
 
 /**
- * Renders the constrained rich text model. Bold, italic and link only —
+ * Renders the constrained rich text model. Bold, italic and link only,
  * the same three marks the DOCX serialiser can express as run properties.
  */
 export function RichText({ value }: { value: RichTextValue }) {

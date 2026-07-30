@@ -6,12 +6,12 @@ const DESC =
   "Upload nothing. Read your resume back the way hiring software does and see exactly which fields survived extraction.";
 
 export const metadata: Metadata = {
-  title: "ATS Resume Checker — does your resume survive parsing?",
+  title: "ATS Resume Checker: does your resume survive parsing?",
   description: DESC,
   alternates: { canonical: "/resume-checker" },
   openGraph: {
     url: "/resume-checker",
-    title: "ATS Resume Checker — does your resume survive parsing?",
+    title: "ATS Resume Checker: does your resume survive parsing?",
     description: DESC,
   },
   twitter: {

@@ -17,7 +17,7 @@ type Props = { section: Section; tokens: ThemeTokens; path: string };
 
 /**
  * Dispatches on section type. Each branch is a plain function of data and
- * tokens — no store access, so the same renderer serves preview, print, and
+ * tokens, no store access, so the same renderer serves preview, print, and
  * any future export that walks the tree.
  */
 export function SectionBody({ section, tokens, path }: Props) {

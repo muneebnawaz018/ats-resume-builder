@@ -66,7 +66,7 @@ const theme = (
 });
 
 /**
- * Built-in themes are ordinary token sets — a "template" here is nothing more
+ * Built-in themes are ordinary token sets, a "template" here is nothing more
  * than saved JSON, which is what makes theme sharing possible.
  */
 export const BUILTIN_THEMES: Theme[] = [

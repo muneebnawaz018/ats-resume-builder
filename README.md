@@ -27,12 +27,12 @@ npm run check   # typecheck + module boundary check
 
 ## Core decisions
 
-- **Next.js App Router, static export.** No backend, no server runtime — but content routes prerender to real HTML. A plain Vite SPA was rejected: link unfurlers and non-Google crawlers do not execute JS, which would break the community-launch distribution plan outright.
+- **Next.js App Router, static export.** No backend, no server runtime, but content routes prerender to real HTML. A plain Vite SPA was rejected: link unfurlers and non-Google crawlers do not execute JS, which would break the community-launch distribution plan outright.
 - **Client-only data.** No backend in v1. IndexedDB for storage, JSON files for portability.
 - **Content and presentation are separate documents.** `Resume` and `Theme` never mix. Any resume renders under any theme.
 - **Theme tokens become CSS custom properties.** Editing a token is a style recalc, not a React re-render.
 - **MUI builds the editor; the resume document uses plain CSS.** The DOCX serialiser reads resolved styles and maps them onto OOXML, so those styles must be declared and stable. Emotion's hashed class names and runtime injection would make them opaque. Nothing under `src/render/` imports from `@mui/*`.
-- **PDF via the browser print engine.** Real text layer, correct pagination, zero bundle cost. Client-side PDF generation was rejected for v1 — font subsetting and manual pagination are a large amount of work for output no better than what the print engine already produces.
+- **PDF via the browser print engine.** Real text layer, correct pagination, zero bundle cost. Client-side PDF generation was rejected for v1, font subsetting and manual pagination are a large amount of work for output no better than what the print engine already produces.
 - **DOCX is paragraph-based, never table-based.** Right-aligned dates use tab stops. Layout tables are the main reason DOCX exports parse badly, including in most competing products.
 - **Import produces a review screen, not a finished document.** Classification accuracy tops out around 80% on conventional resumes and is worse on designed ones. The UX is built around that rather than pretending otherwise.
 

@@ -2,7 +2,7 @@
  * MUI theme and its provider.
  *
  * Importing from here pulls the MUI runtime, which is why design tokens live
- * in @/ui/tokens instead — a content route can read a colour without paying
+ * in @/ui/tokens instead, a content route can read a colour without paying
  * for Emotion. `check-boundaries` fails the build if a content route imports
  * this folder.
  *

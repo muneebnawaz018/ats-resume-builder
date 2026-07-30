@@ -5,7 +5,7 @@ type Migration = (doc: Record<string, unknown>) => Record<string, unknown>;
 
 /**
  * Keyed by the version being migrated *from*. Never change an existing
- * version's shape — add a version and a migration.
+ * version's shape, add a version and a migration.
  */
 const resumeMigrations: Record<number, Migration> = {};
 const themeMigrations: Record<number, Migration> = {};

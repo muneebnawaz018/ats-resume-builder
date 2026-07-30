@@ -8,7 +8,7 @@ import css from "./PaperStage.module.css";
 /**
  * Page height in CSS pixels at 96dpi. Used only to draw page-break guides.
  *
- * The browser paginates for real at print time — see the pagination decision
+ * The browser paginates for real at print time, see the pagination decision
  * in docs/03-architecture.md. These guides are an approximation shown to the
  * user, which is why they are drawn in the non-printing guide colour.
  */

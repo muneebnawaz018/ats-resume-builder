@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
+import type { ExportFormat } from "@/export";
 import { downloadJson, readJsonFile, slugify } from "@/lib";
 import { plainText, type ThemeTokens } from "@/schema";
 import { useAppStore } from "@/store";
@@ -24,7 +25,7 @@ function countWords(text: string): number {
 export function EditorShell() {
   const hydrate = useAppStore((s) => s.hydrate);
   const hydrated = useAppStore((s) => s.hydrated);
-  // Subscribe to the active document, not the whole map — otherwise every
+  // Subscribe to the active document, not the whole map, otherwise every
   // keystroke notifies on an object identity nothing here reads.
   const resume = useAppStore((s) =>
     s.activeResumeId ? (s.resumes[s.activeResumeId] ?? null) : null,
@@ -59,7 +60,7 @@ export function EditorShell() {
    * Export always prints the document, never the parse list.
    *
    * Parse view replaces the page in the layout, so printing from it produced a
-   * PDF of recovered field names — a broken file, silently. Flip back to the
+   * PDF of recovered field names, a broken file, silently. Flip back to the
    * page first and let it paint before handing off to the print engine.
    */
   const doPrint = useCallback(() => {
@@ -70,6 +71,18 @@ export function EditorShell() {
     }
     window.print();
   }, []);
+  /*
+   * Word, OpenDocument, rich text, plain text, Markdown. The writers are
+   * imported here rather than at module scope so the editor loads without
+   * the zip encoder, most sessions end in a print, not a download.
+   */
+  const doExportFile = useCallback(async (format: ExportFormat) => {
+    const resume = useAppStore.getState().activeResume();
+    if (!resume) return;
+    const { download } = await import("@/export");
+    await download(resume, format);
+  }, []);
+
   const doExportJson = useCallback(() => {
     const doc = useAppStore.getState().exportDocument();
     if (!doc) return;
@@ -197,6 +210,7 @@ export function EditorShell() {
         onUndo={handlers.undo}
         onRedo={handlers.redo}
         onExport={doPrint}
+        onExportFile={doExportFile}
         onExportJson={doExportJson}
         onImportJson={doImportJson}
       />

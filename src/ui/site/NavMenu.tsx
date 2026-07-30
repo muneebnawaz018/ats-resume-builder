@@ -14,7 +14,7 @@ import css from "./site.module.css";
  * state here makes dismissal a property of the component instead of a global
  * side effect that has to find its own target.
  *
- * A real backdrop element does the outside-click work — nothing outside can
+ * A real backdrop element does the outside-click work, nothing outside can
  * swallow the event, because the backdrop is what receives it.
  */
 export function NavMenu({

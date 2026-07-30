@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { url } from "@/lib";
 
 /**
- * Written to /sitemap.xml at build time. The builder is deliberately absent —
+ * Written to /sitemap.xml at build time. The builder is deliberately absent,
  * a stateful tool page has nothing to rank on and only dilutes the crawl.
  */
 export const dynamic = "force-static";

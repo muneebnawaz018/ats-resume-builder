@@ -45,7 +45,7 @@ function StatusBarInner({
               hour: "2-digit",
               minute: "2-digit",
             })
-          : "—";
+          : "not yet";
 
   return (
     <Box
@@ -74,7 +74,7 @@ function StatusBarInner({
       </Typography>
       {/*
         The privacy claim belongs here, where the work actually happens and
-        the reassurance is worth something — not in a marketing footer.
+        the reassurance is worth something, not in a marketing footer.
       */}
       <Typography
         sx={{

@@ -6,18 +6,18 @@ import { useEffect } from "react";
 /**
  * Scroll reveals.
  *
- * This started as pure CSS `animation-timeline: view()`, which costs no JS —
+ * This started as pure CSS `animation-timeline: view()`, which costs no JS,
  * but support is Chromium-only and silently does nothing everywhere else, so
  * the page read as completely static. An IntersectionObserver is ~1KB and
  * behaves identically in every browser, which is worth more than the saving.
  *
- * The hiding rule is gated on `html.js` — the class is only added once this
+ * The hiding rule is gated on `html.js`, the class is only added once this
  * runs, so if the script never executes the content is simply visible rather
  * than stuck at opacity 0.
  */
 export function ScrollReveal() {
   /*
-   * This lives in the root layout, which survives client-side navigation — so
+   * This lives in the root layout, which survives client-side navigation, so
    * without re-running per route, a second page's elements were never observed
    * and stayed at opacity 0. That looked like a blank band, not a missing
    * animation.
@@ -64,7 +64,7 @@ export function ScrollReveal() {
     /*
      * The parse list plays a read-through once when it first appears: each row
      * lights in turn, top to bottom, the way an extractor walks the fields.
-     * Once only — a looping animation next to body copy is an irritation.
+     * Once only, a looping animation next to body copy is an irritation.
      */
     const scanIo = new IntersectionObserver(
       (entries) => {
@@ -86,7 +86,7 @@ export function ScrollReveal() {
 
     /*
      * The bar tightens once you leave the top of the page. Scroll lives on the
-     * page container, not the window — `.page` is the scroller.
+     * page container, not the window, `.page` is the scroller.
      */
     const scroller =
       document.querySelector<HTMLElement>("[data-scroller]") ?? window;

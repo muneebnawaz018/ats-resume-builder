@@ -18,8 +18,8 @@ export const site = {
 } as const;
 
 /*
- * `trailingSlash: true` means the served URL — and therefore the canonical
- * Next emits — always ends in a slash. The sitemap has to agree, or every
+ * `trailingSlash: true` means the served URL, and therefore the canonical
+ * Next emits, always ends in a slash. The sitemap has to agree, or every
  * entry points at a URL that redirects to the canonical one.
  */
 export function url(path: string): string {

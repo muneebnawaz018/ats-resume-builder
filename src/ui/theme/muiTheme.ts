@@ -81,7 +81,7 @@ export const muiTheme = createTheme({
       },
     },
 
-    // Panels are surfaces, not floating cards — hairlines, never shadows.
+    // Panels are surfaces, not floating cards, hairlines, never shadows.
     MuiPaper: {
       defaultProps: { elevation: 0 },
       styleOverrides: {

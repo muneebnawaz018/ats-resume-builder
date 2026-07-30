@@ -9,6 +9,7 @@ import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -16,6 +17,7 @@ import Tooltip from "@mui/material/Tooltip";
 import InputBase from "@mui/material/InputBase";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import { EXPORT_FORMATS, type ExportFormat } from "@/export";
 import { tone } from "@/ui/tokens";
 import type { ViewMode } from "@/store";
 
@@ -31,6 +33,7 @@ function TopBarInner({
   onUndo,
   onRedo,
   onExport,
+  onExportFile,
   onExportJson,
   onImportJson,
 }: {
@@ -45,6 +48,7 @@ function TopBarInner({
   onUndo: () => void;
   onRedo: () => void;
   onExport: () => void;
+  onExportFile: (format: ExportFormat) => void;
   onExportJson: () => void;
   onImportJson: (file: File) => void;
 }) {
@@ -69,7 +73,7 @@ function TopBarInner({
         bgcolor: tone.surface0,
       }}
     >
-      {/* The document name is editable in place — there was no other way to
+      {/* The document name is editable in place, there was no other way to
           rename a resume. */}
       <Tooltip title="Rename this resume">
         <InputBase
@@ -117,7 +121,7 @@ function TopBarInner({
 
       {/*
         The signature control. Flipping to Parse shows what an extractor
-        recovered from the document — the product's argument, on the user's
+        recovered from the document, the product's argument, on the user's
         own file. See docs/09-design.md.
       */}
       <ToggleButtonGroup
@@ -190,8 +194,9 @@ function TopBarInner({
       </Tooltip>
 
       {/*
-        JSON in and out. This is what makes the document portable: it can leave
-        as a file you own and come back later, or on another machine.
+        Every other format, plus JSON in and out. PDF keeps its own button
+        because it is what most people came for; the rest are one click deeper
+        rather than five buttons wide.
       */}
       <Tooltip title="More">
         <IconButton
@@ -208,6 +213,18 @@ function TopBarInner({
         open={Boolean(menuAt)}
         onClose={() => setMenuAt(null)}
       >
+        {EXPORT_FORMATS.map((f) => (
+          <MenuItem
+            key={f.ext}
+            onClick={() => {
+              setMenuAt(null);
+              onExportFile(f);
+            }}
+          >
+            Save as {f.label} ({f.ext})
+          </MenuItem>
+        ))}
+        <Divider />
         <MenuItem
           onClick={() => {
             setMenuAt(null);

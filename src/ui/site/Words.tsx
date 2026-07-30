@@ -4,7 +4,7 @@ import { Fragment, type CSSProperties } from "react";
  * Splits a headline into per-word masked spans so the line sets itself on
  * load, word by word, instead of fading in as one block.
  *
- * Server component — the split happens in the HTML, so the animation starts on
+ * Server component, the split happens in the HTML, so the animation starts on
  * first paint with no hydration wait and no layout shift. Screen readers still
  * read one continuous string because the spaces are preserved between words.
  *

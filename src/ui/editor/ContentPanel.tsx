@@ -130,7 +130,7 @@ function BasicsEditor({ resume }: { resume: Resume }) {
 
       <PanelHeading
         title="Summary"
-        help="Two or three sentences. Concrete beats aspirational — what you have built, at what scale."
+        help="Two or three sentences. Concrete beats aspirational: what you have built, at what scale."
       />
       <Field
         label="Summary"
@@ -181,7 +181,7 @@ function SectionEditor({
           label="Heading"
           value={section.title}
           onChange={(title) => s.renameSection(section.id, title)}
-          help="Stick to the words parsers know — Experience, Education, Skills. An inventive heading may not be matched to a field."
+          help="Stick to the words parsers know: Experience, Education, Skills. An inventive heading may not be matched to a field."
         />
       </Box>
 
