@@ -1,4 +1,4 @@
-import { AppProviders } from "@/ui/theme/AppProviders";
+import { AppProviders } from "@/ui/theme";
 
 /**
  * MUI is mounted here, not in the root layout.

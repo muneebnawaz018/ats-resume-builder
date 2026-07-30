@@ -56,6 +56,7 @@ Head terms ("resume builder", "free resume builder", "cv maker") are not winnabl
 | `/roles/[slug]` | static | Tier 3, only where real content exists |
 | `/methodology` | static | how the score works, honest limitations — also earns links |
 | `/privacy` | static | the local-only claim, stated precisely |
+| `/terms` | static | plain terms; no ATS-outcome promise |
 
 ## Technical checklist
 

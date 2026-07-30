@@ -7,8 +7,8 @@ import Slider from "@mui/material/Slider";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { Length } from "@/schema/common";
-import { tone } from "../theme/tokens";
+import type { Length } from "@/schema";
+import { tone } from "@/ui/tokens";
 
 /** Label left, control right, measured value in mono. */
 function Row({

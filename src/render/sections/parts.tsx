@@ -1,5 +1,5 @@
-import type { RichText as RichTextValue } from "@/schema/common";
-import { RichText } from "../RichText";
+import type { RichText as RichTextValue } from "@/schema";
+import { RichText } from "@/render/RichText";
 import css from "../document.module.css";
 
 /** Bullet list. The glyph is real text in the flow so extractors see a marker. */

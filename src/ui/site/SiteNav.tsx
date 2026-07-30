@@ -1,5 +1,6 @@
 import Link from "next/link";
-import css from "./home.module.css";
+import css from "./site.module.css";
+import { NavMenu } from "./NavMenu";
 
 /*
  * Order follows the page, top to bottom, so the bar doubles as a table of
@@ -100,44 +101,7 @@ export function SiteNav({
             </Link>
           </div>
 
-          {/*
-            Narrow screens get the same links inside a disclosure. <details> is
-            a native control, so the menu opens, closes and is keyboard and
-            screen-reader operable with no JavaScript — which matters on the
-            two routes that are meant to be fast.
-          */}
-          <details className={css.navMenu} data-nav-menu>
-            <summary className={css.navMenuButton} aria-label="Menu">
-              <span className={css.navBurger} aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
-            </summary>
-            <div className={css.navMenuPanel}>
-              {links.map((l) => (
-                <Link key={l.key} href={l.href} className={css.navMenuLink}>
-                  {l.label}
-                </Link>
-              ))}
-              {/*
-                Both actions again, because the bar hands them over rather than
-                crowding them once the links collapse.
-              */}
-              <Link
-                href="/resume-checker"
-                className={`${css.navCtaGhost} ${css.navMenuCta}`}
-              >
-                Check a resume
-              </Link>
-              <Link
-                href="/resume-builder"
-                className={`${css.navCta} ${css.navMenuCta}`}
-              >
-                Build a resume
-              </Link>
-            </div>
-          </details>
+          <NavMenu links={links} />
         </nav>
       </div>
     </div>

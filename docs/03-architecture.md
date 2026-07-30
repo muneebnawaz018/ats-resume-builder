@@ -24,7 +24,8 @@ Static export keeps every advantage of the SPA (free static hosting, no server, 
 | `/templates`, `/templates/[slug]` | static, generated from theme JSON | yes |
 | `/guides/[slug]` | static MDX | yes |
 | `/roles/[slug]` | static | yes |
-| `/methodology`, `/privacy` | static | yes |
+| `/methodology` | static | yes |
+| `/terms`, `/privacy` | static | yes |
 | `/resume-builder` | client-only | no (`noindex`) |
 
 The editor is an ordinary client component tree. Zustand, dnd-kit, `docx`, `mammoth` and `pdfjs-dist` are loaded through `next/dynamic` with `ssr: false` so they are excluded from the server build and from every content route's bundle.
@@ -170,14 +171,49 @@ src/
     rules/              one file per rule
     engine.ts           runs rules, returns Finding[]
     keywords.ts         job-description matcher
-  ui/                   MUI lives here and nowhere else
+  ui/
+    tokens/             design tokens; imports nothing, safe on any route
+    theme/              MUI theme + provider (pulls the MUI runtime)
+    site/               header, menu, motion for the content routes
     editor/             content forms, dnd
     design/             token controls
     ats/                findings panel
-    theme/              MUI theme (app chrome — unrelated to resume Theme)
-    components/         primitives
-  lib/                  ids, dates, download, debounce
+  lib/                  ids, dates, files, site metadata
 ```
+
+Every folder exposes an `index.ts` barrel, and imports use the `@/` alias
+rather than relative hops — `@/schema` rather than `../../schema`. Siblings
+inside a folder still import each other directly (`./TopBar`), because routing
+those through the folder's own barrel is a cycle.
+
+Barrels export what other folders consume, not everything a folder contains.
+`ui/editor` exports `EditorShell` alone — an earlier version re-exported all
+thirteen parts, which meant reaching for one component would have pulled the
+whole editor and the MUI runtime with it.
+
+`ui/tokens` is separate from `ui/theme` on purpose. The MUI theme reads the
+tokens, so a single barrel exporting both meant that importing one colour on a
+static page pulled in Emotion — 33KB on every content route. `check-boundaries`
+now fails the build if a content route imports MUI, editor chrome, or
+`@/ui/theme`, and if anything in `ui/tokens` grows an import.
+
+## Checks
+
+| Command | Catches |
+| --- | --- |
+| `npm run typecheck` | type errors |
+| `npm run check:boundaries` | the styling and route boundaries above |
+| `npm run knip` | unused files, exports, types and dependencies |
+| `npm run check` | all three — run this before a commit |
+| `npm run analyze` | writes `.sonda/sonda.html`, a treemap of what each route ships |
+
+`knip` is configured to treat unused exports as errors rather than warnings.
+A barrel makes it cheap to export something nobody imports, and that surface
+accumulates silently; this makes it fail instead.
+
+`analyze` builds with webpack (`--webpack`), because Sonda instruments the
+bundler and the default build uses Turbopack. It is a diagnostic build only —
+what ships is the normal Turbopack one.
 
 ## Tech stack
 
@@ -288,7 +324,7 @@ DOCX first, since `mammoth` preserves structure. PDF import in v2.
 - Token slider drag: no content re-render at all (CSS vars only).
 - Cold load to interactive: under 1.5s on 4G. Code-split the DOCX exporter, the importers, and `pdfjs-dist` — none are needed on first paint.
 - **Content routes: framework floor + under 10KB.** Measured on the current build, the Next 16 App Router baseline is ~182KB gzipped and a content route adds ~2KB on top. The absolute figure is fixed by the framework; the number worth defending is the delta, because that is what regresses.
-- **Editor: floor + under 200KB.** Currently ~171KB for MUI, Emotion, and the store.
+- **Editor: floor + under 200KB.** Currently ~181KB for MUI, Emotion, and the store.
 - The editor bundle must never be reachable from `/`, `/resume-checker`, or a guide page. Enforce per-route in CI: an accidental static import from a shared module is the usual way this breaks, and it fails silently.
 
 An earlier draft of this document set a sub-30KB absolute target for content routes. That is not achievable on the App Router — it is an Astro-class number, and reaching it would mean giving up the single-framework benefit that motivated choosing Next. If content-route weight ever becomes the binding constraint, moving the content site to Astro is the lever, not shaving the Next baseline.

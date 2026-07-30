@@ -167,7 +167,10 @@
 }
 
 .navMenuButton {
-  list-style: none;
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,10 +180,6 @@
   margin-right: -0.5rem;
   border-radius: var(--radius-md);
   cursor: pointer;
-}
-
-.navMenuButton::-webkit-details-marker {
-  display: none;
 }
 
 .navMenuButton:hover {
@@ -196,25 +195,38 @@
 .navBurger span {
   display: block;
   height: 2px;
+  width: 100%;
   border-radius: 2px;
   background: var(--text-1);
   transition: transform var(--dur-base) var(--ease);
 }
 
 /* Two strokes cross, the third fades: the control says what it will do. */
-.navMenu[open] .navBurger span:nth-child(1) {
+.navBurgerOpen span:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
-.navMenu[open] .navBurger span:nth-child(2) {
+.navBurgerOpen span:nth-child(2) {
   opacity: 0;
 }
-.navMenu[open] .navBurger span:nth-child(3) {
+.navBurgerOpen span:nth-child(3) {
   transform: translateY(-6px) rotate(-45deg);
+}
+
+/*
+ * A real element catches the outside click. Nothing between it and the page
+ * can swallow the event, which is what kept going wrong with a document-level
+ * listener. Transparent, but it is there.
+ */
+.navBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
 }
 
 .navMenuPanel {
   transform-origin: top right;
   position: absolute;
+  z-index: 2;
   top: calc(100% + 0.625rem);
   right: 0;
   min-width: min(17rem, calc(100vw - 2.5rem));

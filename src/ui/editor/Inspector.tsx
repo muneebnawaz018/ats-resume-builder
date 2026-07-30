@@ -5,7 +5,7 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import dynamic from "next/dynamic";
-import { tone } from "../theme/tokens";
+import { tone } from "@/ui/tokens";
 import { ContentPanel } from "./ContentPanel";
 
 /*
@@ -13,7 +13,7 @@ import { ContentPanel } from "./ContentPanel";
  * it is split out of the initial editor bundle rather than paid for up front.
  */
 const DesignPanel = dynamic(
-  () => import("../design/DesignPanel").then((m) => m.DesignPanel),
+  () => import("@/ui/design").then((m) => m.DesignPanel),
   {
     ssr: false,
     loading: () => (
@@ -23,9 +23,8 @@ const DesignPanel = dynamic(
     ),
   },
 );
-import type { Resume } from "@/schema/resume";
-import type { Theme, ThemeTokens } from "@/schema/theme";
-import type { PanelTab } from "@/store/useAppStore";
+import { type Resume, type Theme, type ThemeTokens } from "@/schema";
+import type { PanelTab } from "@/store";
 
 /** Placeholder that directs rather than decorates. */
 function Pending({ title, body }: { title: string; body: string }) {

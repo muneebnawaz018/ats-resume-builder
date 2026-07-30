@@ -2,9 +2,8 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { BUILTIN_THEMES } from "@/schema/builtinThemes";
-import { SAFE_FONTS, type Theme, type ThemeTokens } from "@/schema/theme";
-import { tone } from "../theme/tokens";
+import { BUILTIN_THEMES, SAFE_FONTS, type Theme, type ThemeTokens } from "@/schema";
+import { tone } from "@/ui/tokens";
 import {
   ColorControl,
   GroupTitle,

@@ -17,6 +17,14 @@ export const site = {
     "Build a resume, export it, then read it back the way hiring software does. Free, unlimited PDF and Word exports, and your resume never leaves your browser.",
 } as const;
 
+/*
+ * `trailingSlash: true` means the served URL — and therefore the canonical
+ * Next emits — always ends in a slash. The sitemap has to agree, or every
+ * entry points at a URL that redirects to the canonical one.
+ */
 export function url(path: string): string {
-  return `${site.url}${path}`;
+  if (path === "/") return `${site.url}/`;
+  // Files keep their own name: /sitemap.xml is not a directory.
+  if (path.split("/").pop()?.includes(".")) return `${site.url}${path}`;
+  return `${site.url}${path}/`;
 }

@@ -4,8 +4,8 @@ import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { DateEnd, DateValue } from "@/schema/common";
-import { tone } from "../theme/tokens";
+import type { DateEnd, DateValue } from "@/schema";
+import { tone } from "@/ui/tokens";
 
 /** Labelled text input. `help` explains why the field matters, not what it is. */
 export function Field({

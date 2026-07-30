@@ -1,5 +1,4 @@
-import type { Length } from "@/schema/common";
-import type { ThemeOverrides, ThemeTokens } from "@/schema/theme";
+import { type Length, type ThemeOverrides, type ThemeTokens } from "@/schema";
 
 /**
  * Token name -> CSS custom property name.
@@ -93,8 +92,3 @@ export function overridesToCssVars(overrides: ThemeOverrides): CssVars {
 }
 
 /** Imperative application — the hot path used while dragging a control. */
-export function applyCssVars(el: HTMLElement, vars: CssVars): void {
-  for (const [name, value] of Object.entries(vars)) {
-    el.style.setProperty(name, value);
-  }
-}

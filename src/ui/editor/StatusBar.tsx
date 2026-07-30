@@ -4,7 +4,7 @@ import { memo } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { tone } from "../theme/tokens";
+import { tone } from "@/ui/tokens";
 
 /** Anything the machine measured is set in mono. */
 function Metric({ label, value }: { label: string; value: string }) {

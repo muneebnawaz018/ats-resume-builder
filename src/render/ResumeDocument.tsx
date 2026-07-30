@@ -1,8 +1,7 @@
-import type { Resume } from "@/schema/resume";
-import type { Theme, ThemeOverrides } from "@/schema/theme";
+import { type Resume, type Theme, type ThemeOverrides } from "@/schema";
 import css from "./document.module.css";
 import { RichText } from "./RichText";
-import { SectionBody } from "./sections/SectionBody";
+import { SectionBody } from "./sections";
 import { overridesToCssVars, tokensToCssVars, type CssVars } from "./tokens";
 
 /**

@@ -83,7 +83,6 @@ export const zThemeTokens = z.object({
   density: z.enum(["compact", "normal", "relaxed", "custom"]),
 });
 export type ThemeTokens = z.infer<typeof zThemeTokens>;
-export type ThemeTokenKey = keyof ThemeTokens;
 
 export const zTheme = z.object({
   schemaVersion: z.number().int(),

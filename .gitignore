@@ -45,3 +45,6 @@ next-env.d.ts
 
 /* generated */
 src/app/tokens.generated.css
+
+# Bundle analysis reports — regenerate with `npm run analyze`.
+.sonda/

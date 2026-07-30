@@ -1,4 +1,4 @@
-import type { DateEnd, DateValue } from "@/schema/common";
+import type { DateEnd, DateValue } from "@/schema";
 
 const MONTHS_SHORT = [
   "Jan",
@@ -57,11 +57,4 @@ export function formatDateRange(
   if (!a) return b;
   if (!b) return a;
   return `${a} ${DATE_SEPARATOR} ${b}`;
-}
-
-/** Sort key for reverse-chronological checks. `present` sorts newest. */
-export function dateSortKey(d: DateEnd | undefined): number {
-  if (d === "present") return Number.MAX_SAFE_INTEGER;
-  if (!d) return -1;
-  return d.year * 12 + (d.month ?? 12);
 }

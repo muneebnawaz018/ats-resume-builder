@@ -1,6 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
-import type { Resume } from "@/schema/resume";
-import type { Theme } from "@/schema/theme";
+import { type Resume, type Theme } from "@/schema";
 
 /**
  * IndexedDB rather than localStorage: localStorage is synchronous (autosave

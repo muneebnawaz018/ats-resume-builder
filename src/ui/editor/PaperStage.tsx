@@ -1,10 +1,8 @@
 "use client";
 
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ResumeDocument } from "@/render/ResumeDocument";
-import { lengthToCss } from "@/render/tokens";
-import type { Resume } from "@/schema/resume";
-import type { Theme } from "@/schema/theme";
+import { ResumeDocument, lengthToCss } from "@/render";
+import { type Resume, type Theme } from "@/schema";
 import css from "./PaperStage.module.css";
 
 /**

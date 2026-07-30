@@ -91,7 +91,6 @@ export type SkillGroup = z.infer<typeof zSkillGroup>;
 export type ProjectItem = z.infer<typeof zProjectItem>;
 export type SimpleItem = z.infer<typeof zSimpleItem>;
 export type TextItem = z.infer<typeof zTextItem>;
-export type CustomItem = z.infer<typeof zCustomItem>;
 export type SectionItem = z.infer<typeof zSectionItem>;
 
 export const zCustomField = z.object({
@@ -100,7 +99,6 @@ export const zCustomField = z.object({
   label: z.string(),
   kind: z.enum(["text", "richtext", "date", "daterange", "url", "list"]),
 });
-export type CustomField = z.infer<typeof zCustomField>;
 
 export const zSection = z.object({
   id: z.string(),
@@ -124,7 +122,6 @@ export const zLink = z.object({
   url: z.string(),
   displayAs: z.enum(["url", "label", "both"]),
 });
-export type Link = z.infer<typeof zLink>;
 
 export const zBasics = z.object({
   fullName: z.string(),
@@ -136,7 +133,6 @@ export const zBasics = z.object({
   links: z.array(zLink),
   summary: zRichText.optional(),
 });
-export type Basics = z.infer<typeof zBasics>;
 
 export const JURISDICTIONS = [
   "generic",
@@ -151,7 +147,6 @@ export const JURISDICTIONS = [
   "IN",
 ] as const;
 export const zJurisdiction = z.enum(JURISDICTIONS);
-export type Jurisdiction = z.infer<typeof zJurisdiction>;
 
 export const zResume = z.object({
   schemaVersion: z.number().int(),

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Writes src/app/tokens.generated.css from src/ui/theme/tokens.ts.
+ * Writes src/app/tokens.generated.css from src/ui/tokens/tokens.ts.
  *
  * Tokens stay defined once in TypeScript (where the MUI theme reads them) but
  * reach plain CSS as a real stylesheet rather than an injected <style> tag.
@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
-const srcPath = join(root, "src/ui/theme/tokens.ts");
+const srcPath = join(root, "src/ui/tokens/tokens.ts");
 const outPath = join(root, "src/app/tokens.generated.css");
 
 /**
@@ -71,7 +71,7 @@ push("spring", mod.motion.spring);
 
 writeFileSync(
   outPath,
-  "/* Generated from src/ui/theme/tokens.ts by scripts/gen-tokens.mjs.\n" +
+  "/* Generated from src/ui/tokens/tokens.ts by scripts/gen-tokens.mjs.\n" +
     "   Do not edit — run `npm run gen:tokens`. */\n\n" +
     `:root {\n${lines.join("\n")}\n  color-scheme: light;\n}\n`,
 );

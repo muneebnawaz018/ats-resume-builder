@@ -10,7 +10,7 @@ import {
   severity,
   shadow,
   tone,
-} from "./tokens";
+} from "@/ui/tokens";
 
 /**
  * MUI's defaults are the templated Material look and are overridden wholesale.
@@ -94,6 +94,16 @@ export const muiTheme = createTheme({
     },
 
     MuiDialog: {
+      /*
+       * Dialogs portal to <body>, outside the editor tree, so they miss the
+       * data-chrome sweep that keeps the UI out of an exported PDF. Marking
+       * every dialog at the theme level means a new one cannot forget.
+       */
+      defaultProps: {
+        slotProps: {
+          root: { "data-chrome": true } as Record<string, unknown>,
+        },
+      },
       styleOverrides: {
         paper: { borderRadius: radius.lg, boxShadow: shadow.lg },
       },

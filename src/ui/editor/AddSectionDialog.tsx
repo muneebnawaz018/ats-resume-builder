@@ -7,9 +7,8 @@ import DialogTitle from "@mui/material/DialogTitle";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import Typography from "@mui/material/Typography";
-import { ADDABLE_SECTIONS } from "@/schema/factory";
-import type { SectionType } from "@/schema/resume";
-import { tone } from "../theme/tokens";
+import { ADDABLE_SECTIONS, type SectionType } from "@/schema";
+import { tone } from "@/ui/tokens";
 
 export function AddSectionDialog({
   open,

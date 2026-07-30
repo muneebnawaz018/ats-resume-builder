@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { url } from "@/lib/site";
+import { url } from "@/lib";
 
 export const dynamic = "force-static";
 

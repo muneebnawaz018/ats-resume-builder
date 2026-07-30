@@ -15,8 +15,8 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import type { Resume } from "@/schema/resume";
-import { tone } from "../theme/tokens";
+import type { Resume } from "@/schema";
+import { tone } from "@/ui/tokens";
 
 /**
  * Structure at a glance, not a form. Selecting a section here focuses it on

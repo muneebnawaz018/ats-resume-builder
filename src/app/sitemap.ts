@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { url } from "@/lib/site";
+import { url } from "@/lib";
 
 /**
  * Written to /sitemap.xml at build time. The builder is deliberately absent —

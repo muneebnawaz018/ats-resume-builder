@@ -1,0 +1,30 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,route,default,not-found,error,loading,template}.{ts,tsx}",
+    "src/app/{robots,sitemap,manifest}.ts",
+    "src/app/**/{opengraph-image,twitter-image,icon,apple-icon}.tsx",
+    "scripts/*.mjs"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "scripts/**/*.mjs"
+  ],
+  "ignoreBinaries": [
+    "markdownlint-cli2"
+  ],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "binaries": "error",
+    "unresolved": "error",
+    "exports": "error",
+    "types": "error",
+    "duplicates": "error",
+    "enumMembers": "warn"
+  },
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": false
+}

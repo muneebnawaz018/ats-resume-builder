@@ -1,7 +1,8 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useRef, useState } from "react";
 
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import RedoIcon from "@mui/icons-material/Redo";
 import UndoIcon from "@mui/icons-material/Undo";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
@@ -13,8 +14,10 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import InputBase from "@mui/material/InputBase";
-import { tone } from "../theme/tokens";
-import type { ViewMode } from "@/store/useAppStore";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import { tone } from "@/ui/tokens";
+import type { ViewMode } from "@/store";
 
 function TopBarInner({
   name,
@@ -28,6 +31,8 @@ function TopBarInner({
   onUndo,
   onRedo,
   onExport,
+  onExportJson,
+  onImportJson,
 }: {
   name: string;
   onRename: (name: string) => void;
@@ -40,7 +45,12 @@ function TopBarInner({
   onUndo: () => void;
   onRedo: () => void;
   onExport: () => void;
+  onExportJson: () => void;
+  onImportJson: (file: File) => void;
 }) {
+  const [menuAt, setMenuAt] = useState<HTMLElement | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   return (
     <Box
       component="header"
@@ -49,6 +59,9 @@ function TopBarInner({
         height: 44,
         flexShrink: 0,
         px: 1.5,
+        // Nothing in the bar may widen the editor past the viewport.
+        minWidth: 0,
+        overflow: "hidden",
         display: "flex",
         alignItems: "center",
         gap: 1,
@@ -73,7 +86,14 @@ function TopBarInner({
             border: "1px solid transparent",
             "&:hover": { borderColor: tone.line2 },
             "&.Mui-focused": { borderColor: tone.line2, bgcolor: tone.surface1 },
-            width: { xs: 120, sm: 200 },
+            /*
+             * Flexible, not fixed. At 320px a fixed 120px name field plus the
+             * buttons added up to more than the viewport and scrolled the
+             * editor sideways.
+             */
+            flex: { xs: 1, sm: "none" },
+            minWidth: 0,
+            width: { xs: "auto", sm: 200 },
           }}
         />
       </Tooltip>
@@ -156,10 +176,67 @@ function TopBarInner({
       </Box>
 
       <Tooltip title="Opens your browser's print dialog. Choose “Save as PDF”.">
-        <Button variant="contained" onClick={onExport} sx={{ ml: 1 }}>
-          Export PDF
+        <Button
+          variant="contained"
+          onClick={onExport}
+          sx={{ ml: 1, flexShrink: 0, px: { xs: 1.5, sm: 2 } }}
+        >
+          {/* "PDF" alone on a phone bar; the tooltip carries the rest. */}
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            Export&nbsp;
+          </Box>
+          PDF
         </Button>
       </Tooltip>
+
+      {/*
+        JSON in and out. This is what makes the document portable: it can leave
+        as a file you own and come back later, or on another machine.
+      */}
+      <Tooltip title="More">
+        <IconButton
+          aria-label="More actions"
+          aria-haspopup="menu"
+          onClick={(e) => setMenuAt(e.currentTarget)}
+          sx={{ ml: 0.25, flexShrink: 0 }}
+        >
+          <MoreVertIcon sx={{ fontSize: 18 }} />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        anchorEl={menuAt}
+        open={Boolean(menuAt)}
+        onClose={() => setMenuAt(null)}
+      >
+        <MenuItem
+          onClick={() => {
+            setMenuAt(null);
+            onExportJson();
+          }}
+        >
+          Save a JSON backup
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setMenuAt(null);
+            fileRef.current?.click();
+          }}
+        >
+          Open a JSON backup
+        </MenuItem>
+      </Menu>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          // Reset so choosing the same file twice still fires a change event.
+          e.target.value = "";
+          if (file) onImportJson(file);
+        }}
+      />
     </Box>
   );
 }

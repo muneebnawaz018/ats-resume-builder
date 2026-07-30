@@ -29,6 +29,29 @@ const RULES = [
     forbid: /from\s+["'](@mui|react|next)\//,
     message: "must stay framework-free so it can run in tests and workers",
   },
+  {
+    /*
+     * Content routes must not pull the MUI runtime. This regressed once by
+     * accident: a barrel that exported both design tokens and the MUI theme
+     * meant importing a colour put 33KB of Emotion on every static page.
+     * Tokens live in @/ui/tokens, which imports nothing.
+     */
+    dir: "src/app",
+    skip: /^src[\\/]app[\\/]resume-builder[\\/]/,
+    forbid: /from\s+["'](@mui\/|@emotion\/|@\/ui\/theme|@\/ui\/editor|@\/ui\/design)/,
+    message:
+      "content routes must not import MUI or editor chrome — only /resume-builder may",
+  },
+  {
+    dir: "src/ui/tokens",
+    forbid: /^\s*import\s/m,
+    message: "must import nothing, so any route can read a token cheaply",
+  },
+  {
+    dir: "src/ui/site",
+    forbid: /from\s+["'](@mui\/|@emotion\/)/,
+    message: "site chrome is plain CSS — MUI belongs to the editor",
+  },
 ];
 
 function walk(dir) {
@@ -51,6 +74,7 @@ let failures = 0;
 
 for (const rule of RULES) {
   for (const file of walk(join(root, rule.dir))) {
+    if (rule.skip?.test(relative(root, file))) continue;
     const source = readFileSync(file, "utf8");
     source.split("\n").forEach((line, i) => {
       if (rule.forbid.test(line)) {

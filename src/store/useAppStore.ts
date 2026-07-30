@@ -8,13 +8,8 @@ import {
   enablePatches,
   setAutoFreeze,
 } from "immer";
-import { newId } from "@/lib/id";
-import { BUILTIN_THEMES, DEFAULT_THEME_ID } from "@/schema/builtinThemes";
-import { tryLoadResume, tryLoadTheme } from "@/schema/migrate";
-import { createItem } from "@/schema/factory";
-import { createSampleResume } from "@/schema/sample";
-import type { Resume, Section } from "@/schema/resume";
-import type { Theme, ThemeTokens } from "@/schema/theme";
+import { newId } from "@/lib";
+import { BUILTIN_THEMES, DEFAULT_THEME_ID, createItem, createSampleResume, tryLoadResume, tryLoadTheme, type Resume, type Section, type Theme, type ThemeTokens } from "@/schema";
 import { db, isDbAvailable } from "./db";
 import { readSession, writeSession } from "./session";
 
@@ -68,6 +63,11 @@ type Actions = {
   editTheme: (recipe: (t: ThemeTokens) => void, coalesceKey?: string) => void;
   setThemeById: (themeId: string) => void;
 
+  /** The active document and its theme, as a plain object safe to serialise. */
+  exportDocument: () => { version: 1; resume: Resume; theme: Theme } | null;
+  /** Loads a previously exported file. Returns an error message on failure. */
+  importDocument: (raw: unknown) => { ok: true } | { ok: false; error: string };
+
   addSection: (type: Section["type"], title: string) => void;
   removeSection: (id: string) => void;
   moveSection: (from: number, to: number) => void;
@@ -104,6 +104,8 @@ const themeMap = (list: Theme[]): Record<string, Theme> =>
   Object.fromEntries(list.map((t) => [t.id, t]));
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+/** Set by the store so a page-hide can force the pending write through. */
+let flushSave: (() => void) | null = null;
 
 export const useAppStore = create<State & Actions>((set, get) => {
   /** Debounced write. Persistence must never sit on the input path. */
@@ -125,6 +127,23 @@ export const useAppStore = create<State & Actions>((set, get) => {
         .catch(() => set({ saveState: "error" }));
     }, 500);
   }
+
+  /*
+   * A debounce means there is always a window — up to half a second of typing
+   * — that exists only in memory. Closing the tab inside it lost the edit
+   * silently, which for a resume is the worst kind of bug. Run the pending
+   * write immediately when the page is being hidden or torn down.
+   */
+  flushSave = () => {
+    if (!saveTimer) return;
+    clearTimeout(saveTimer);
+    saveTimer = null;
+    const s = get();
+    const r = s.activeResumeId ? s.resumes[s.activeResumeId] : null;
+    if (r) void db.putResume(r);
+    const t = s.themes[r?.themeId ?? DEFAULT_THEME_ID];
+    if (t && !t.builtin) void db.putTheme(t);
+  };
 
   /**
    * Applies a recipe, records patches for undo, and schedules a save.
@@ -303,6 +322,68 @@ export const useAppStore = create<State & Actions>((set, get) => {
       });
     },
 
+    exportDocument() {
+      const resume = get().activeResume();
+      if (!resume) return null;
+      const theme = get().activeTheme();
+      return { version: 1, resume, theme };
+    },
+
+    /*
+     * Import goes through the same migration and validation path as a document
+     * read from IndexedDB — an edited or hand-written file cannot put invalid
+     * state into the store, and an older export is migrated forward.
+     *
+     * The document arrives with a new id so importing never overwrites what
+     * you already have open.
+     */
+    importDocument(raw) {
+      if (typeof raw !== "object" || raw === null) {
+        return { ok: false, error: "That file is not a resume export." };
+      }
+      const payload = raw as { resume?: unknown; theme?: unknown };
+      const parsed = tryLoadResume(payload.resume ?? raw);
+      if (!parsed.ok) {
+        return {
+          ok: false,
+          error: "That file could not be read as a resume.",
+        };
+      }
+
+      const id = newId("r");
+      const resume: Resume = {
+        ...parsed.resume,
+        id,
+        name: `${parsed.resume.name} (imported)`,
+        updatedAt: new Date().toISOString(),
+      };
+
+      let themeId = resume.themeId;
+      const themeResult = payload.theme
+        ? tryLoadTheme(payload.theme)
+        : { ok: false as const };
+      if (themeResult.ok && !get().themes[themeResult.theme.id]) {
+        const theme = themeResult.theme;
+        themeId = theme.id;
+        set((s) => ({ themes: { ...s.themes, [theme.id]: theme } }));
+        if (isDbAvailable() && !theme.builtin) void db.putTheme(theme);
+      } else if (!get().themes[themeId]) {
+        // The file referenced a theme we do not have; fall back rather than
+        // render a document with no styling at all.
+        themeId = DEFAULT_THEME_ID;
+      }
+
+      set((s) => ({
+        resumes: { ...s.resumes, [id]: { ...resume, themeId } },
+        activeResumeId: id,
+        past: [],
+        future: [],
+      }));
+      writeSession({ activeResumeId: id });
+      if (isDbAvailable()) void db.putResume({ ...resume, themeId });
+      return { ok: true };
+    },
+
     addSection(type, title) {
       get().editResume((r) => {
         r.sections.push({
@@ -477,3 +558,15 @@ export const useAppStore = create<State & Actions>((set, get) => {
     },
   };
 });
+
+/*
+ * `pagehide` fires on tab close, navigation and mobile app-switching, where
+ * `beforeunload` is unreliable; `visibilitychange` covers backgrounding.
+ */
+if (typeof document !== "undefined") {
+  const flush = () => flushSave?.();
+  window.addEventListener("pagehide", flush);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flush();
+  });
+}

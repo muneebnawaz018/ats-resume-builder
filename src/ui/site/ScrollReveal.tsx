@@ -30,56 +30,7 @@ export function ScrollReveal() {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    /*
-     * Menu dismissal is behaviour, not decoration, so it is wired up before
-     * the reduced-motion check. <details> has no dismiss of its own: an open
-     * menu stays open until the button is pressed again. Closing on an outside
-     * click, on Escape, and on choosing a link is what every other menu does.
-     */
-    /*
-     * Looked up per event, not captured once. The header re-renders on route
-     * changes, so a reference taken at mount can point at a detached element —
-     * and then every dismiss check silently reads `open` off the wrong node.
-     */
-    const openMenus = () =>
-      Array.from(
-        document.querySelectorAll<HTMLDetailsElement>("[data-nav-menu][open]"),
-      );
-    const closeMenus = () =>
-      openMenus().forEach((m) => m.removeAttribute("open"));
-
-    const onDocPointerDown = (e: PointerEvent) => {
-      const open = openMenus();
-      if (!open.length) return;
-      // composedPath covers clicks that start inside a shadow root or on a
-      // target that is removed before the event finishes bubbling.
-      const path = e.composedPath();
-      if (!open.some((m) => path.includes(m))) closeMenus();
-    };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMenus();
-    };
-    // Choosing a link inside the panel closes it as well.
-    const onDocClick = (e: MouseEvent) => {
-      const el = e.target as HTMLElement | null;
-      if (el?.closest("[data-nav-menu] a")) closeMenus();
-    };
-    // Scrolling the page behind an open menu should dismiss it too.
-    const onAnyScroll = () => closeMenus();
-
-    document.addEventListener("pointerdown", onDocPointerDown, true);
-    document.addEventListener("click", onDocClick, true);
-    document.addEventListener("keydown", onKeyDown);
-    window.addEventListener("scroll", onAnyScroll, true);
-
-    const detachMenu = () => {
-      document.removeEventListener("pointerdown", onDocPointerDown, true);
-      document.removeEventListener("click", onDocClick, true);
-      document.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("scroll", onAnyScroll, true);
-    };
-
-    if (reduced) return detachMenu;
+    if (reduced) return;
 
     root.classList.add("js");
 
@@ -160,7 +111,6 @@ export function ScrollReveal() {
 
     return () => {
       window.clearTimeout(failsafe);
-      detachMenu();
       io.disconnect();
       scanIo.disconnect();
       scroller.removeEventListener("scroll", onScroll);

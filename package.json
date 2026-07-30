@@ -11,8 +11,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check": "npm run typecheck && npm run check:boundaries",
-    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#out\""
+    "check": "npm run typecheck && npm run check:boundaries && npm run knip",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#out\"",
+    "analyze": "ANALYZE=true next build --webpack",
+    "knip": "knip"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -33,6 +35,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "knip": "^6.29.0",
+    "sonda": "^0.14.0",
     "typescript": "^5"
   }
 }

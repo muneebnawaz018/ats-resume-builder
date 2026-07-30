@@ -1,4 +1,4 @@
-import type { RichText as RichTextValue } from "@/schema/common";
+import type { RichText as RichTextValue } from "@/schema";
 
 /**
  * Renders the constrained rich text model. Bold, italic and link only —

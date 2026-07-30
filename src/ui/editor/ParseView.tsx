@@ -2,10 +2,9 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { plainText } from "@/schema/common";
-import { formatDateRange } from "@/lib/date";
-import type { ExperienceItem, Resume } from "@/schema/resume";
-import { blue, severity, tone } from "../theme/tokens";
+import { plainText, type ExperienceItem, type Resume } from "@/schema";
+import { formatDateRange } from "@/lib";
+import { blue, severity, tone } from "@/ui/tokens";
 
 /**
  * The signature view: the document as an extractor sees it.
@@ -62,6 +61,8 @@ export function ParseView({ resume }: { resume: Resume }) {
 
   return (
     <Box
+      /* Never part of an export: the PDF is the document, not this view. */
+      data-chrome
       sx={{
         flex: 1,
         overflow: "auto",

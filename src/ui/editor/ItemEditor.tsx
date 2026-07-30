@@ -1,6 +1,6 @@
 "use client";
 
-import { plainText, richText } from "@/schema/common";
+import { plainText, richText } from "@/schema";
 import type {
   EducationItem,
   ExperienceItem,
@@ -10,7 +10,7 @@ import type {
   SimpleItem,
   SkillGroup,
   TextItem,
-} from "@/schema/resume";
+} from "@/schema";
 import { BulletEditor } from "./BulletEditor";
 import { DateField, Field, ListField } from "./fields";
 

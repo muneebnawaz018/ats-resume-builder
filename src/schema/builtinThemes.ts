@@ -136,5 +136,3 @@ export const BUILTIN_THEMES: Theme[] = [
 
 export const DEFAULT_THEME_ID = "classic";
 
-export const getBuiltinTheme = (id: string): Theme | undefined =>
-  BUILTIN_THEMES.find((t) => t.id === id);

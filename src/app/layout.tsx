@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { site, url } from "@/lib/site";
-import { ScrollReveal } from "./ScrollReveal";
+import { site, url } from "@/lib";
+import { palette } from "@/ui/tokens";
+import { ScrollReveal } from "@/ui/site";
 import "./globals.css";
 
 /**
@@ -76,7 +77,8 @@ export const metadata: Metadata = {
 
 /** Drives the browser chrome colour on mobile. */
 export const viewport = {
-  themeColor: "#0F6FB8",
+  // From the palette, not a copy of it — see src/ui/theme/tokens.ts.
+  themeColor: palette.blue600,
   width: "device-width",
   initialScale: 1,
 };

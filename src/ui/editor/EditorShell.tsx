@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
+import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
-import { plainText } from "@/schema/common";
-import type { ThemeTokens } from "@/schema/theme";
-import { useAppStore } from "@/store/useAppStore";
-import { tone } from "../theme/tokens";
+import { downloadJson, readJsonFile, slugify } from "@/lib";
+import { plainText, type ThemeTokens } from "@/schema";
+import { useAppStore } from "@/store";
+import { tone } from "@/ui/tokens";
 import { AddSectionDialog } from "./AddSectionDialog";
 import { Inspector } from "./Inspector";
 import { OutlineRail } from "./OutlineRail";
@@ -39,6 +40,7 @@ export function EditorShell() {
 
   const [pages, setPages] = useState(1);
   const [addOpen, setAddOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
 
   /** Clicking the page opens that part in the Content tab, not just a highlight. */
   const selectAndEdit = useCallback((path: string) => {
@@ -53,7 +55,37 @@ export function EditorShell() {
    */
   const openAdd = useCallback(() => setAddOpen(true), []);
   const closeAdd = useCallback(() => setAddOpen(false), []);
-  const doPrint = useCallback(() => window.print(), []);
+  /*
+   * Export always prints the document, never the parse list.
+   *
+   * Parse view replaces the page in the layout, so printing from it produced a
+   * PDF of recovered field names — a broken file, silently. Flip back to the
+   * page first and let it paint before handing off to the print engine.
+   */
+  const doPrint = useCallback(() => {
+    if (useAppStore.getState().ui.view !== "reading") {
+      useAppStore.getState().setView("reading");
+      requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+      return;
+    }
+    window.print();
+  }, []);
+  const doExportJson = useCallback(() => {
+    const doc = useAppStore.getState().exportDocument();
+    if (!doc) return;
+    downloadJson(`${slugify(doc.resume.name)}.json`, doc);
+  }, []);
+
+  const doImportJson = useCallback(async (file: File) => {
+    try {
+      const raw = await readJsonFile(file);
+      const res = useAppStore.getState().importDocument(raw);
+      if (!res.ok) setImportError(res.error);
+    } catch {
+      setImportError("That file is not valid JSON.");
+    }
+  }, []);
+
   const store = useAppStore.getState();
   const handlers = useMemo(
     () => ({
@@ -165,6 +197,8 @@ export function EditorShell() {
         onUndo={handlers.undo}
         onRedo={handlers.redo}
         onExport={doPrint}
+        onExportJson={doExportJson}
+        onImportJson={doImportJson}
       />
 
       <Box sx={{ flex: 1, display: "flex", minHeight: 0 }}>
@@ -209,6 +243,14 @@ export function EditorShell() {
       />
 
       <AddSectionDialog open={addOpen} onClose={closeAdd} onAdd={addSection} />
+
+      {/* Import is the one action that can fail on input the user chose. */}
+      <Snackbar
+        open={Boolean(importError)}
+        autoHideDuration={6000}
+        onClose={() => setImportError(null)}
+        message={importError ?? ""}
+      />
     </Box>
   );
 }

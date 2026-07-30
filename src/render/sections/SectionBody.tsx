@@ -1,4 +1,4 @@
-import { formatDate, formatDateRange } from "@/lib/date";
+import { formatDate, formatDateRange } from "@/lib";
 import type {
   EducationItem,
   ExperienceItem,
@@ -7,9 +7,9 @@ import type {
   SimpleItem,
   SkillGroup,
   TextItem,
-} from "@/schema/resume";
-import type { ThemeTokens } from "@/schema/theme";
-import { RichText } from "../RichText";
+} from "@/schema";
+import type { ThemeTokens } from "@/schema";
+import { RichText } from "@/render/RichText";
 import css from "../document.module.css";
 import { Bullets, ItemHead } from "./parts";
 

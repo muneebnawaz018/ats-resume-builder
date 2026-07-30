@@ -1,4 +1,4 @@
-import { newId } from "@/lib/id";
+import { newId } from "@/lib";
 import { richText } from "./common";
 import type { SectionItem, SectionType } from "./resume";
 

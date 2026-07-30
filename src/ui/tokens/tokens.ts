@@ -53,7 +53,6 @@ export const palette = {
   green600: "#1E7A4F",
 } as const;
 
-export type PaletteKey = keyof typeof palette;
 
 /* ------------------------------------------------------------------ *
  * 2. The formula
@@ -73,33 +72,16 @@ function toRgb(hex: string): [number, number, number] {
 }
 
 /**
- * Translucent variant of a palette colour.
+ * One translucent colour, derived rather than hand-written.
  *
- * `alpha(palette.blue600, 0.08)` rather than a hand-written rgba string, so
- * changing `blue600` updates every wash derived from it. Accepts `#rgb` and
- * `#rrggbb`.
+ * Every wash, border and shadow in the app is `alpha()` of a palette entry, so
+ * changing a palette value moves everything derived from it. A literal
+ * `rgba(...)` anywhere else is drift waiting to happen.
  */
 export function alpha(hex: string, amount: number): string {
   const [r, g, b] = toRgb(hex);
   const a = Math.max(0, Math.min(1, amount));
   return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-/**
- * Flatten one colour onto another and return an opaque hex.
- *
- * Needed anywhere translucency is not available — print output, the DOCX
- * serialiser, and canvas.
- */
-export function mix(fg: string, bg: string, amount: number): string {
-  const [r1, g1, b1] = toRgb(fg);
-  const [r2, g2, b2] = toRgb(bg);
-  const t = Math.max(0, Math.min(1, amount));
-  const channel = (a: number, b: number) =>
-    Math.round(a * t + b * (1 - t))
-      .toString(16)
-      .padStart(2, "0");
-  return `#${channel(r1, r2)}${channel(g1, g2)}${channel(b1, b2)}`;
 }
 
 /* ------------------------------------------------------------------ *

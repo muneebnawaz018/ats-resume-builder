@@ -10,7 +10,6 @@ export type Length = z.infer<typeof zLength>;
 export const zColor = z
   .string()
   .regex(/^#[0-9a-fA-F]{6}$/, "expected a #rrggbb colour");
-export type Color = z.infer<typeof zColor>;
 
 /**
  * Dates are structured, never display strings. Storing "Jan 2021" would make
@@ -39,7 +38,6 @@ export const zSpan = z.object({
   italic: z.boolean().optional(),
   href: z.string().optional(),
 });
-export type Span = z.infer<typeof zSpan>;
 
 export const zRichText = z.object({ spans: z.array(zSpan) });
 export type RichText = z.infer<typeof zRichText>;
