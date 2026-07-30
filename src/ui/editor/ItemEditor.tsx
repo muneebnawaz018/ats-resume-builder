@@ -21,10 +21,14 @@ export function ItemEditor({
   type,
   item,
   onPatch,
+  path,
 }: {
   type: SectionType;
   item: SectionItem;
   onPatch: (patch: Patch) => void;
+  /** This item's path, e.g. `sections[1].items[0]`, so its bullets can be
+   *  matched to the line that was clicked on the page. */
+  path?: string;
 }) {
   switch (type) {
     case "experience": {
@@ -64,6 +68,7 @@ export function ItemEditor({
             help="Choose Present for your current job. Parsers recognise that word more reliably than “Current” or a dash."
           />
           <BulletEditor
+            path={path}
             bullets={it.bullets}
             onChange={(bullets) => onPatch({ bullets })}
             help="What you achieved, not what you were assigned. Three to six per job."
@@ -113,6 +118,7 @@ export function ItemEditor({
             }
           />
           <BulletEditor
+            path={path}
             label="Details"
             bullets={it.detail}
             onChange={(detail) => onPatch({ detail })}
@@ -172,6 +178,7 @@ export function ItemEditor({
             onChange={(end) => onPatch({ end })}
           />
           <BulletEditor
+            path={path}
             bullets={it.bullets}
             onChange={(bullets) => onPatch({ bullets })}
           />

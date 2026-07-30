@@ -1397,8 +1397,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 1.75rem 1.25rem;
+  gap: 0.5rem;
+  /* The primary control on the page. It should read as a target, not a field. */
+  padding: 2.75rem 1.25rem;
   text-align: center;
   cursor: pointer;
 }
@@ -1412,8 +1413,8 @@
 .pickerIcon {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   color: var(--accent);
   background: var(--accent-wash);
@@ -1422,8 +1423,21 @@
 }
 
 .pickerPromptText {
-  font-size: 1rem;
+  font-size: 1.125rem;
   color: var(--text-2);
+}
+
+/*
+ * Once a report is on screen this is no longer a call to action, it is a header
+ * saying which file is being reported on. Same component, less of it.
+ */
+.pickerCompact {
+  padding: 0.75rem;
+}
+
+.pickerCompact .pickerZone {
+  border-style: solid;
+  background: var(--surface-1);
 }
 
 .pickerHint {
@@ -1519,13 +1533,13 @@
 /* ---------- checker: layout ---------- */
 
 /*
- * Summary beside detail, once there is room for both.
+ * A stack, full width, in the order the work happens: choose a file, read the
+ * score, read the detail, act.
  *
- * The report lived in a 46rem column, which read fine on a laptop and left
- * half a desktop empty. It is not set in columns, the columns a resume gets
- * wrecked by are columns of *running text*, and nothing here is. This is a
- * summary rail (what the file is, what it scored) next to the body (what was
- * found, what to change). Below 1080px it is one column, in that order.
+ * The picker spent one revision in a 23rem rail beside the report, which made
+ * the only control on the page the smallest thing on it. It is now first and
+ * full width, and the one place two panels sit side by side is the pair that
+ * genuinely belongs side by side: a short list of fields next to the findings.
  */
 .tool {
   display: grid;
@@ -1533,30 +1547,25 @@
   align-content: start;
 }
 
-@media (min-width: 1080px) {
-  .toolWide {
-    grid-template-columns: 23rem minmax(0, 1fr);
-    gap: 1.25rem;
-  }
-
-  .toolAside {
-    /* Clears the 68px sticky header, plus a little air. */
-    position: sticky;
-    top: 92px;
-  }
+.toolSplit {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
 }
 
-/* Before a file is chosen there is only the picker, so do not strand it. */
-.toolNarrow {
-  width: min(100%, 46rem);
-}
-
-.toolAside,
-.toolMain {
+/* The narrow side: file facts above recovered fields, both compact lists. */
+.toolStack {
   display: grid;
   gap: 1rem;
   align-content: start;
   min-width: 0;
+}
+
+@media (min-width: 1000px) {
+  /* Fields are a fixed-width list of six rows; findings take the rest. */
+  .toolSplit {
+    grid-template-columns: 24rem minmax(0, 1fr);
+  }
 }
 
 .toolStatus,
@@ -1619,33 +1628,35 @@
 /* ---------- checker: score ---------- */
 
 /*
- * The rail's lead object, so it carries the tint. One custom property drives
- * the number, the bar and the border, they cannot disagree about the band.
+ * One strip across the top of the report. One custom property drives the
+ * number, the bar and the border, so they cannot disagree about the band.
  */
 .scoreCard {
   border: 1px solid var(--score-line);
   border-radius: var(--radius-lg);
   background: var(--score-wash);
-  padding: 1.25rem;
+  padding: 1.375rem 1.5rem;
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.scoreTop {
+.scoreMain {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .scoreNumber {
   display: flex;
   align-items: baseline;
-  gap: 0.1rem;
+  gap: 0.15rem;
+  margin: 0;
   color: var(--score);
 }
 
 .scoreNumber strong {
-  font-size: 3.5rem;
+  font-size: 3.75rem;
   font-weight: 800;
   letter-spacing: -0.045em;
   line-height: 0.9;
@@ -1654,19 +1665,25 @@
 }
 
 .scoreNumber span {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: var(--text-3);
+}
+
+.scoreCopy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .scoreVerdict {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.4;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .scoreBar {
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
   background: var(--score-line);
   overflow: hidden;
@@ -1677,14 +1694,15 @@
   height: 100%;
   border-radius: inherit;
   background: var(--score);
-  transition: width var(--dur-slow, 600ms) var(--ease);
+  transition: width 600ms var(--ease);
 }
 
 .scoreCaveat {
   margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.6;
+  font-size: 0.8125rem;
+  line-height: 1.65;
   color: var(--text-3);
+  max-width: 70ch;
 }
 
 .score-clean {
@@ -1770,7 +1788,7 @@
  */
 .finding {
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr);
+  grid-template-columns: 5.5rem minmax(0, 1fr);
   gap: 0 0.875rem;
   padding: 0.75rem 0.875rem;
   border: 1px solid var(--line-1);
@@ -1779,12 +1797,38 @@
   background: var(--surface-0);
 }
 
-.findingCost {
+/*
+ * A severity chip where the point value used to be. Fixed-width column so the
+ * chips align down the left edge and the list reads as a ranking.
+ */
+.findingRank {
+  align-self: start;
+  padding: 0.1rem 0.4rem;
+  border-radius: 5px;
+  border: 1px solid currentColor;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.9375rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rank-blocking,
+.rank-high {
   color: var(--flag);
+  background: var(--flag-wash);
+}
+
+.rank-medium {
+  color: #A64F17;
+  background: rgba(166, 79, 23, 0.07);
+}
+
+.rank-low {
+  color: var(--text-3);
+  background: var(--surface-0);
 }
 
 .findingKind {
@@ -1801,16 +1845,76 @@
   max-width: 62ch;
 }
 
+/*
+ * Every weight names where it came from. The first version of the scoring
+ * invented its numbers, which made the score an opinion; a citation per line
+ * is what makes it checkable.
+ */
+.findingSource {
+  grid-column: 2;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+  text-decoration: underline;
+  text-decoration-color: var(--line-2);
+  text-underline-offset: 2px;
+}
+
+.findingSource:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+.sourceList {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.875rem;
+}
+
+.sourceList a {
+  font-size: 0.8125rem;
+  color: var(--accent);
+}
+
+.sourceClaim {
+  margin: 0 0 0.2rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-2);
+  max-width: 70ch;
+}
+
 /* ---------- checker: what to do next ---------- */
 
-.actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
+.nextRow {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 760px) {
+  .nextRow {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2rem;
+  }
+}
+
+.nextItem {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.nextLabel {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
 }
 
 .actionPrimary {
+  justify-self: start;
   height: 40px;
   padding: 0 1.125rem;
   border: 0;
@@ -1833,25 +1937,23 @@
   cursor: not-allowed;
 }
 
-/* Its own row: five formats plus a label do not belong beside a 40px button. */
+/* Wraps rather than scrolls: five formats do not fit one mobile row. */
 .actionSaves {
-  flex: 1 0 100%;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  border-top: 1px solid var(--line-1);
-  padding-top: 0.875rem;
 }
 
-.actionLabel {
-  font-size: 0.875rem;
-  color: var(--text-3);
-  margin-right: 0.125rem;
-}
-
+/*
+ * The arrow is the point. Labelled "Word" with no icon, these read as a format
+ * switch, and the file appearing in the downloads folder came as a surprise.
+ */
 .actionGhost {
-  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 34px;
   padding: 0 0.75rem;
   border: 1px solid var(--line-2);
   border-radius: 8px;
@@ -1871,11 +1973,23 @@
 }
 
 .actionNote {
-  flex: 1 0 100%;
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.6;
   color: var(--text-3);
+  max-width: 44ch;
+}
+
+/* Says what happened, since a download gives no feedback of its own. */
+.actionSaved {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--score, var(--accent));
+}
+
+.actionSaved strong {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 700;
 }
 
 /* ---------- checker: the raw text ---------- */
@@ -1951,4 +2065,129 @@
 .checkHero .intro {
   font-size: 1.125rem;
   margin-bottom: 0.625rem;
+}
+
+/* ---------- checker: job posting match ---------- */
+
+.jdInput {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-0);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-1);
+  resize: vertical;
+}
+
+.jdInput:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+/*
+ * Chips rather than rows. Twenty-four terms as a table is a wall; as chips it
+ * is scannable, and the only thing a reader needs is which ones are red.
+ */
+.termList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  cursor: default;
+}
+
+.termFound {
+  color: #1B6E45;
+  background: rgba(27, 110, 69, 0.06);
+}
+
+/* Colour is not the only signal: a missing term also carries a dashed edge. */
+.termMissing {
+  color: var(--flag);
+  background: var(--flag-wash);
+  border-style: dashed;
+}
+
+/*
+  Present, but written differently. A third state, because folding it into
+  either of the other two would be a lie: it is not a match the ATS will make,
+  and it is not an absence the person needs to invent experience to fix.
+  Dotted rather than dashed, so the three are told apart without colour.
+*/
+.termNear {
+  color: var(--c-amber-700);
+  background: rgba(138, 90, 0, 0.07);
+  border-style: dotted;
+}
+
+.termCount {
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.nearList {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.nearRow {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  padding-left: 0.85rem;
+  border-left: 2px solid rgba(138, 90, 0, 0.35);
+}
+
+/*
+  Above the score and visually apart from it. This is not a finding with a
+  cost, it is the upload failing, so it must not read as one more row in a
+  list the eye can skim past.
+*/
+.blockerPanel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--flag);
+  background: var(--flag-wash);
+}
+
+.blockerTitle {
+  margin: 0;
+  font-weight: 650;
+  font-size: 0.95rem;
+  color: var(--flag);
+}
+
+.blockerDetail {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink-1);
+}
+
+.blockerNote {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-2);
 }

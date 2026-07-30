@@ -4,14 +4,11 @@
     "src/app/**/{page,layout,route,default,not-found,error,loading,template}.{ts,tsx}",
     "src/app/{robots,sitemap,manifest}.ts",
     "src/app/**/{opengraph-image,twitter-image,icon,apple-icon}.tsx",
-    "scripts/*.mjs"
+    "scripts/*.{mjs,ts}"
   ],
   "project": [
     "src/**/*.{ts,tsx}",
-    "scripts/**/*.mjs"
-  ],
-  "ignoreBinaries": [
-    "markdownlint-cli2"
+    "scripts/**/*.{mjs,ts}"
   ],
   "rules": {
     "files": "error",

@@ -8,16 +8,17 @@
     "dev": "next dev",
     "prebuild": "npm run gen:tokens && npm run copy:worker",
     "build": "next build",
-    "start": "next start",
     "typecheck": "tsc --noEmit",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "check": "npm run typecheck && npm run check:boundaries && npm run knip && npm run test",
-    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#out\"",
+    "check": "npm run typecheck && npm run check:boundaries && npm run lint:md && npm run knip && npm run test",
+    "lint:md": "markdownlint-cli2 \"**/*.md\" \"#node_modules\" \"#out\" \"#testing\"",
     "analyze": "ANALYZE=true next build --webpack",
     "knip": "knip",
     "fixtures": "node scripts/make-fixtures.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "test": "vitest run",
-    "copy:worker": "node scripts/copy-pdf-worker.mjs"
+    "copy:worker": "node scripts/copy-pdf-worker.mjs",
+    "formula": "vite-node --config vitest.config.ts scripts/make-formula.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -41,8 +42,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "knip": "^6.29.0",
+    "markdownlint-cli2": "^0.23.2",
+    "sharp": "^0.35.3",
     "sonda": "^0.14.0",
     "typescript": "^5",
+    "vite-node": "^6.0.0",
     "vitest": "^4.1.10"
   }
 }

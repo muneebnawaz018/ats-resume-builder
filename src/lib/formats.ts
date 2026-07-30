@@ -80,6 +80,27 @@ export const REJECTED: Readonly<Record<string, string>> = {
 };
 
 /**
+ * What a hiring system will take at the upload step.
+ *
+ * Separate from READ_FORMATS on purpose, and the gap between the two is the
+ * point: we can read .odt and .md, and Greenhouse will not accept either. A
+ * file we score at 95 and the portal refuses is worse than no score at all,
+ * so the mismatch is raised before anything else in the report.
+ *
+ * Greenhouse also lists .doc, which is absent here because we cannot read one
+ * (see REJECTED), so it can never reach this check.
+ *
+ * Sourced from Greenhouse only. Other vendors publish less, and guessing on
+ * their behalf is how the first version of this scoring went wrong.
+ */
+export const ATS_ACCEPTED: ReadonlySet<string> = new Set([
+  ".docx",
+  ".pdf",
+  ".rtf",
+  ".txt",
+]);
+
+/**
  * Ten megabytes. A text resume is well under one; anything past this is
  * scanned pages, which have no text layer to read in the first place.
  */

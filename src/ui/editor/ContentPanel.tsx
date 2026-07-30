@@ -128,19 +128,22 @@ function BasicsEditor({ resume }: { resume: Resume }) {
 
       <Divider sx={{ my: 2 }} />
 
-      <PanelHeading
-        title="Summary"
-        help="Two or three sentences. Concrete beats aspirational: what you have built, at what scale."
-      />
-      <Field
-        label="Summary"
-        value={b.summary ? plainText(b.summary) : ""}
-        onChange={(v) =>
-          s.updateBasics({ summary: v ? richText(v) : undefined })
-        }
-        multiline
-        rows={4}
-      />
+      {/* Tagged because the document emits basics.summary as its own path. */}
+      <Box data-path="basics.summary" sx={{ scrollMarginBlock: 12 }}>
+        <PanelHeading
+          title="Summary"
+          help="Two or three sentences. Concrete beats aspirational: what you have built, at what scale."
+        />
+        <Field
+          label="Summary"
+          value={b.summary ? plainText(b.summary) : ""}
+          onChange={(v) =>
+            s.updateBasics({ summary: v ? richText(v) : undefined })
+          }
+          multiline
+          rows={4}
+        />
+      </Box>
     </Box>
   );
 }
@@ -205,6 +208,8 @@ function SectionEditor({
           {section.items.map((item, i) => (
             <Accordion
               key={item.id}
+              data-path={`sections[${sectionIndex}].items[${i}]`}
+              sx={{ scrollMarginBlock: 12 }}
               expanded={open === item.id}
               onChange={(_, isOpen) => setOpen(isOpen ? item.id : false)}
             >
@@ -225,6 +230,7 @@ function SectionEditor({
                 <ItemEditor
                   type={section.type}
                   item={item}
+                  path={`sections[${sectionIndex}].items[${i}]`}
                   onPatch={(patch) => s.updateItem(section.id, item.id, patch)}
                 />
                 <Box

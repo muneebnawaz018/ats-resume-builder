@@ -5,7 +5,9 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import dynamic from "next/dynamic";
+import { useRef } from "react";
 import { tone } from "@/ui/tokens";
+import { useReveal } from "./useReveal";
 import { ContentPanel } from "./ContentPanel";
 
 /*
@@ -57,6 +59,13 @@ export function Inspector({
   onToken: <K extends keyof ThemeTokens>(key: K, value: ThemeTokens[K]) => void;
   onThemeChange: (id: string) => void;
 }) {
+  /*
+   * Clicking a line on the page has to move the panel to the control that
+   * edits it, or the click reads as doing nothing.
+   */
+  const scroller = useRef<HTMLDivElement>(null);
+  useReveal(tab === "content" ? selectedPath : null, scroller);
+
   return (
     <Box
       component="aside"
@@ -88,7 +97,7 @@ export function Inspector({
         <Tab label="Checks" value="checks" />
       </Tabs>
 
-      <Box sx={{ flex: 1, overflowY: "auto" }}>
+      <Box ref={scroller} sx={{ flex: 1, overflowY: "auto" }}>
         {tab === "design" ? (
           <DesignPanel
             theme={theme}

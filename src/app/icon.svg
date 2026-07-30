@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="ATS Resume Builder">
+  <title>ATS Resume Builder</title>
+
+  <!--
+    The brand mark.
+
+    Lines of text with one displaced out of the column. That is what the
+    checker finds: content that will not land where the parser expects it.
+
+    Three lines of uneven width is the most universal "this is text" cue
+    there is, which is why the idea is carried by the same shapes that stay
+    legible at 16px. Nothing here needs a document outline to explain it.
+
+    What this deliberately is not: a checkmark, which would promise an
+    approval we cannot give, or a line struck through a page, which reads as
+    rejection. An earlier version did the second thing by accident.
+
+    Drawn on a 32 unit grid so edges land on whole pixels at 16, 32 and 64.
+    Bars are 3.4 units: below about 3 they break up at 16px. Checked at 16,
+    24, 32, 64 and 128 on both light and dark before it was chosen.
+
+    Contrast, per the icon rules: white on the tile is 5.3:1, the accent is
+    3.1:1, both clear of the 3:1 floor for glyphs this size.
+  -->
+
+  <rect width="32" height="32" rx="7" fill="#0F6FB8"/>
+
+  <!-- The text that parses. -->
+  <g fill="#FFFFFF">
+    <rect x="6" y="8" width="17" height="3.4" rx="1.7"/>
+    <rect x="6" y="14.6" width="11" height="3.4" rx="1.7"/>
+    <rect x="6" y="21.2" width="14" height="3.4" rx="1.7"/>
+  </g>
+
+  <!--
+    The line that moved. Overlaps the second line rather than replacing it,
+    so the eye reads a displacement rather than a fourth line of text.
+  -->
+  <rect x="13" y="14.6" width="13" height="3.4" rx="1.7" fill="#8ED0EC"/>
+</svg>

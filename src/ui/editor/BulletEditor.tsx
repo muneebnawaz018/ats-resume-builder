@@ -25,11 +25,19 @@ export function BulletEditor({
   onChange,
   label = "Bullet points",
   help,
+  path,
 }: {
   bullets: RichText[];
   onChange: (next: RichText[]) => void;
   label?: string;
   help?: string;
+  /**
+   * Path of the item these belong to, e.g. `sections[1].items[0]`. Each row
+   * is tagged with its own path so clicking a bullet on the page can scroll
+   * to the field that edits it. Optional: an untagged editor still works, it
+   * just cannot be jumped to.
+   */
+  path?: string;
 }) {
   const set = (i: number, text: string) => {
     const next = [...bullets];
@@ -60,7 +68,11 @@ export function BulletEditor({
         const text = plainText(b);
         const tooLong = text.length > LONG_BULLET;
         return (
-          <Box key={i} sx={{ display: "flex", gap: 0.5, mb: 0.75 }}>
+          <Box
+            key={i}
+            data-path={path ? `${path}.bullets[${i}]` : undefined}
+            sx={{ display: "flex", gap: 0.5, mb: 0.75, scrollMarginBlock: 12 }}
+          >
             <TextField
               value={text}
               onChange={(e) => set(i, e.target.value)}

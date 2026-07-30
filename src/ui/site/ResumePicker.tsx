@@ -22,10 +22,17 @@ type Picked = { file: File; format: ResumeFormat };
 export function ResumePicker({
   onFile,
   onClear,
+  compact = false,
 }: {
   onFile?: (picked: Picked) => void;
   /** Fired when the chosen file is removed, so a report can be torn down. */
   onClear?: () => void;
+  /**
+   * Shrink once a report is on screen. Before that this is the only control on
+   * the page and gets the room to say so; afterwards it is a header showing
+   * which file you are looking at.
+   */
+  compact?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [picked, setPicked] = useState<Picked | null>(null);
@@ -69,8 +76,8 @@ export function ResumePicker({
     .join(" ");
 
   return (
-    <div className={css.pickerCard}>
-      <p className={css.pickerLabel}>Choose a resume</p>
+    <div className={`${css.pickerCard} ${compact ? css.pickerCompact : ""}`}>
+      {compact ? null : <p className={css.pickerLabel}>Choose a resume</p>}
 
       <div
         className={zone}
@@ -135,7 +142,7 @@ export function ResumePicker({
               </svg>
             </span>
             <span className={css.pickerPromptText}>
-              <strong>Drop a file here</strong> or click to browse
+              <strong>Drop your resume here</strong> or click to choose a file
             </span>
             <span className={css.pickerHint}>
               PDF, Word, OpenDocument, rich text or plain text, up to 10 MB
@@ -148,7 +155,7 @@ export function ResumePicker({
         <p className={css.pickerError} id={errorId} role="alert">
           {error}
         </p>
-      ) : picked ? (
+      ) : compact ? null : picked ? (
         // What the report can cover depends on the format, and saying so up
         // front beats a clean score on checks the file could never fail.
         <p className={css.pickerNote}>{depthNote(picked.format.depth)}</p>

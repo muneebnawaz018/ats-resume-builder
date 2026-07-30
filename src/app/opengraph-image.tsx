@@ -30,14 +30,43 @@ export default function OgImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          {/*
+            The brand mark, built from positioned divs rather than an <svg>.
+            Satori renders this image at build time and supports only a subset
+            of SVG, so boxes are the reliable way to get the same shape.
+            Geometry is icon.svg's 32 unit grid scaled by 1.375 to fill 44px.
+          */}
           <div
             style={{
+              display: "flex",
+              position: "relative",
               width: 44,
               height: 44,
               borderRadius: 10,
               background: "#0F6FB8",
             }}
-          />
+          >
+            {[
+              { top: 11, width: 23.4, background: "#FFFFFF", left: 8.25 },
+              { top: 20.1, width: 15.1, background: "#FFFFFF", left: 8.25 },
+              { top: 29.2, width: 19.3, background: "#FFFFFF", left: 8.25 },
+              // The displaced line, drawn last so it sits over the second.
+              { top: 20.1, width: 17.9, background: "#8ED0EC", left: 17.9 },
+            ].map((bar) => (
+              <div
+                key={`${bar.top}-${bar.left}`}
+                style={{
+                  position: "absolute",
+                  left: bar.left,
+                  top: bar.top,
+                  width: bar.width,
+                  height: 4.7,
+                  borderRadius: 2.35,
+                  background: bar.background,
+                }}
+              />
+            ))}
+          </div>
           <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1F26" }}>
             ATS Resume Builder
           </div>

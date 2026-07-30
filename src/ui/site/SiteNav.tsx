@@ -50,24 +50,28 @@ export function SiteNav({
             className={css.brand}
             aria-label="ATS Resume Builder, home"
           >
+            {/*
+              The brand mark from /icon.svg, without its tile, which the .logo
+              span already draws in CSS. Inline rather than an <img> so it
+              costs no request and paints with the first byte of HTML.
+
+              Change one, change the other. This and icon.svg are the same
+              mark, and the favicon is generated from the file.
+            */}
             <span className={css.logo} aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 2.5h5.5L12.5 5.5V13a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V3a.5.5 0 0 1 .5-.5Z"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.25 2.75V5.5h2.75"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                />
-                <path
-                  d="M2 9.5h12"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
+              <svg width="19" height="19" viewBox="0 0 32 32">
+                <g fill="currentColor">
+                  <rect x="6" y="8" width="17" height="3.4" rx="1.7" />
+                  <rect x="6" y="14.6" width="11" height="3.4" rx="1.7" />
+                  <rect x="6" y="21.2" width="14" height="3.4" rx="1.7" />
+                </g>
+                <rect
+                  x="13"
+                  y="14.6"
+                  width="13"
+                  height="3.4"
+                  rx="1.7"
+                  fill="#8ED0EC"
                 />
               </svg>
             </span>

@@ -55,6 +55,17 @@ type State = {
 
 type Actions = {
   hydrate: () => Promise<void>;
+  /**
+   * Picks up a document handed over from the checker, if there is one.
+   *
+   * Separate from hydrate because the store is module level and outlives
+   * client-side navigation: somebody who opened the editor once, went to the
+   * checker and came back is already hydrated, and used to land on whatever
+   * they had before while their parsed file was dropped on the floor.
+   *
+   * Returns whether a document was imported.
+   */
+  importHandoff: () => boolean;
 
   activeResume: () => Resume | null;
   activeTheme: () => Theme;
@@ -204,7 +215,15 @@ export const useAppStore = create<State & Actions>((set, get) => {
     lastSavedAt: null,
 
     async hydrate() {
-      if (get().hydrated) return;
+      /*
+       * Already hydrated means a return visit to the editor within one page
+       * load, which is exactly the checker handoff path. Nothing else needs
+       * doing, but the handed-over document still has to be collected.
+       */
+      if (get().hydrated) {
+        get().importHandoff();
+        return;
+      }
 
       const themes = themeMap(BUILTIN_THEMES);
       const resumes: Record<string, Resume> = {};
@@ -239,26 +258,27 @@ export const useAppStore = create<State & Actions>((set, get) => {
               b.updatedAt.localeCompare(a.updatedAt),
             )[0]?.id ?? null);
 
-      if (!activeResumeId) {
-        const id = newId("r");
-        resumes[id] = createSampleResume(id, new Date().toISOString());
-        activeResumeId = id;
-        if (isDbAvailable()) void db.putResume(resumes[id]);
-      }
-
       /*
        * A document handed over from the checker takes precedence over the
        * session: the person just chose a file and pressed a button, so that
        * is what they expect to be looking at.
+       *
+       * Checked before the sample is seeded, not after. Seeding first left a
+       * stray untouched sample in the list on every checker handoff, which is
+       * clutter nobody asked for.
        */
       const handed = takeHandoff();
-      if (handed) {
-        const res = tryLoadResume(handed);
-        if (res.ok) {
-          resumes[res.resume.id] = res.resume;
-          activeResumeId = res.resume.id;
-          if (isDbAvailable()) void db.putResume(res.resume);
-        }
+      const imported = handed ? tryLoadResume(handed) : null;
+
+      if (imported?.ok) {
+        resumes[imported.resume.id] = imported.resume;
+        activeResumeId = imported.resume.id;
+        if (isDbAvailable()) void db.putResume(imported.resume);
+      } else if (!activeResumeId) {
+        const id = newId("r");
+        resumes[id] = createSampleResume(id, new Date().toISOString());
+        activeResumeId = id;
+        if (isDbAvailable()) void db.putResume(resumes[id]);
       }
 
       set((s) => ({
@@ -274,6 +294,28 @@ export const useAppStore = create<State & Actions>((set, get) => {
         },
       }));
       writeSession({ activeResumeId });
+    },
+
+    importHandoff() {
+      const handed = takeHandoff();
+      if (!handed) return false;
+
+      const res = tryLoadResume(handed);
+      // A document the schema rejects is left alone rather than replacing
+      // whatever the person already had open.
+      if (!res.ok) return false;
+
+      set((s) => ({
+        resumes: { ...s.resumes, [res.resume.id]: res.resume },
+        activeResumeId: res.resume.id,
+        // The imported document is a fresh start, so nothing before it is
+        // meaningful to undo back into.
+        past: [],
+        future: [],
+      }));
+      if (isDbAvailable()) void db.putResume(res.resume);
+      writeSession({ activeResumeId: res.resume.id });
+      return true;
     },
 
     activeResume() {

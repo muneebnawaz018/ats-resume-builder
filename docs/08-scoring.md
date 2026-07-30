@@ -10,6 +10,83 @@ So the product does not claim to reproduce a vendor score. It claims something n
 
 That is measurable, reproducible, and demonstrably useful. It is also a stronger claim than the competition makes, because it can be verified by the user on their own file.
 
+## Where the shipped weights come from
+
+`src/extract/score.ts` is the implementation. Its first version invented its own
+numbers, which made the score an opinion in a nice typeface. Every weight now
+rests on a citation, and each deduction carries its source into the UI so a user
+can check it without reading this file.
+
+Evidence used, in descending order of how much it is trusted:
+
+| Source | What it establishes | How it is used |
+| --- | --- | --- |
+| [Greenhouse Support, Unsuccessful resume parse](https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse) | A vendor's own list of what breaks its parser: graphics, tables, headers and footers, contact details in a text box, multi-column layouts, inconsistent section formatting, spaced-out letters | The structural deductions. These are the heaviest non-fatal weights because a vendor documents them as causes of failure |
+| [Greenhouse Support, supported formats](https://support.greenhouse.io/hc/en-us/articles/360052218132-Supported-formats-for-resumes-cover-letters-and-other-candidate-uploads) | Two hard limits: parsing stops above 2.5MB, and an image-only file does not parse at all | No text layer is fatal. Over 2.5MB costs 30, since it is a documented hard failure at one vendor rather than everywhere |
+| [Layout-Aware Parsing Meets Efficient LLMs, arXiv 2510.09722 (2025)](https://arxiv.org/html/2510.09722v1) | ~20% of real resumes use a non-linear multi-column layout. Removing layout-aware reordering costs 10+ accuracy points. Named entities reach F1 0.949 and date periods F1 0.972; long descriptions fall to F1 0.548 without layout handling | Reading order and column layout are the heaviest structural weights. Also the reason a missing date was reduced from 18 to 12: parsers read dates reliably when they exist, so an absence is a gap in the document rather than a transit loss |
+| [Hidden Workers: Untapped Talent, HBS and Accenture (2021)](https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf) | 88% of employers say qualified candidates are screened out for not matching exact criteria; 90%+ use a system to make the first cut; survey of 2,250+ employers | Why a missing email is the most expensive single field. A record that matches but cannot be contacted is inert |
+
+### What was deliberately not used
+
+Several widely-cited numbers were rejected as sources:
+
+- **"75% of resumes are rejected by ATS."** Traced to no primary source. Not used.
+- **Ranked parse-failure percentages** ("multi-column causes 34% of parse errors") published by resume-tool blogs. Plausible, uncited, and produced by companies selling a fix. Not used.
+- **Anything describing a specific vendor's scoring thresholds.** Nobody outside those companies has them.
+
+### The ceiling is 98
+
+A perfect score would be a claim about software whose rules are not published. Two
+points is the honest cost of that, and it is enforced in `score.ts` rather than
+being a copy promise.
+
+### How the findings combine
+
+Multiplicatively: `98 × Π(1 - cost/100)` over every finding. Each cost is a
+percentage of the remaining score, so the same fault takes more off a clean
+document than off a wrecked one.
+
+It used to be `98 - sum(costs)`, which had two faults. The costs summed to well
+past the ceiling, so the top of the range did nothing, and anything past it
+clipped to zero, which meant a user could fix a real problem and watch the score
+stay at 0. Multiplying cannot go below zero, so nothing clips and every fix moves
+the number. A test asserts that removing any finding raises the score, at every
+depth.
+
+Fatal findings cost 100, so their factor is zero and they reach zero through the
+same arithmetic. There is no short-circuit.
+
+### Blockers sit outside the score
+
+A file the portal will not accept never reaches a parser, so a number describing
+how well it would have parsed is beside the point. Format rejection is shown
+above the score and carries no cost. The score still renders, because the content
+advice survives the re-export.
+
+Greenhouse accepts `.pdf`, `.docx`, `.rtf` and `.txt`. We can read `.odt` and
+`.md` and it will take neither, which is the gap this closes: a confident 95 on a
+file that gets rejected at upload is worse than no score.
+
+### Current weights
+
+Not in this document. They live in `src/extract/score.ts`, and `npm run formula`
+renders every one of them, plus the severity thresholds, band boundaries and
+keyword knobs, into `Score-test/FORMULA.md`. That directory is gitignored.
+
+The reasoning is public and the price list is not, for two reasons. The weights
+are the only part of the scoring that is a judgement of ours rather than a
+citation, and a published table of costs invites tuning the number instead of
+fixing the document.
+
+Note the limit of that: this is a static export, so the weights ship inside the
+JS bundle and anyone determined can read them out of it. Keeping them out of the
+UI and out of the repo raises the effort, it does not make them secret. Real
+secrecy would mean scoring on a server, which costs the "nothing is uploaded"
+property, and that trade is not worth making.
+
+The UI shows a severity label per finding rather than a cost, and a test asserts
+the severity order matches the weight order, so the two cannot drift.
+
 ## Four scoring layers
 
 The score is composed from four sources, in increasing order of value.
