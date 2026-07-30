@@ -27,7 +27,7 @@ function PaperStageInner({
   theme: Theme;
   zoom: number;
   selectedPath: string | null;
-  onSelect: (path: string) => void;
+  onSelect: (path: string | null) => void;
   onPageCount?: (pages: number) => void;
 }) {
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,20 @@ function PaperStageInner({
   const t = theme.tokens;
 
   return (
-    <div className={css.stage} data-print-flow>
+    <div
+      className={css.stage}
+      data-print-flow
+      /*
+       * Clicking the desk around the page clears the selection. Without this
+       * the last thing clicked stays outlined and the panel stays parked on
+       * it, with no way to say "nothing, thanks" short of picking something
+       * else. mousedown rather than click, so the outline goes at the moment
+       * the press lands rather than a beat later.
+       */
+      onMouseDown={(e) => {
+        if (!sheetRef.current?.contains(e.target as Node)) onSelect(null);
+      }}
+    >
       <div
         className={css.zoomOuter}
         data-print-flow

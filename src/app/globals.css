@@ -4,7 +4,7 @@
  * Reset only.
  *
  * Colour and radius tokens come from tokens.generated.css, written from
- * src/ui/theme/tokens.ts by scripts/gen-tokens.mjs. The MUI theme reads the
+ * src/ui/theme/tokens.ts by scripts/tasks.ts. The MUI theme reads the
  * same TypeScript source, so chrome and content routes cannot drift.
  *
  * Document styles live in src/render/document.module.css and share nothing

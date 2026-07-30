@@ -1,8 +1,9 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import AddIcon from "@mui/icons-material/Add";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
@@ -15,8 +16,10 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import Collapse from "@mui/material/Collapse";
 import type { Resume } from "@/schema";
 import { tone } from "@/ui/tokens";
+import { itemSummary } from "./ItemEditor";
 
 /**
  * Structure at a glance, not a form. Selecting a section here focuses it on
@@ -35,6 +38,15 @@ function OutlineRailInner({
   onToggleVisible: (id: string) => void;
   onAddSection: () => void;
 }) {
+  /*
+   * Sections start closed. The rail is for finding your way around, and a
+   * fully expanded tree of every entry is longer than the rail is tall, which
+   * makes it worse at that job rather than better.
+   */
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const toggle = (id: string) =>
+    setOpen((prev) => ({ ...prev, [id]: !prev[id] }));
+
   return (
     <Box
       component="nav"
@@ -79,7 +91,9 @@ function OutlineRailInner({
 
           {resume.sections.map((s, i) => {
             const path = `sections[${i}]`;
+            const isOpen = open[s.id] ?? false;
             return (
+              <Box key={`g-${s.id}`}>
               <ListItem
                 key={s.id}
                 disablePadding
@@ -109,12 +123,36 @@ function OutlineRailInner({
                   onClick={() => onSelect(path)}
                   sx={{ py: 0.5, pl: 0.5, opacity: s.visible ? 1 : 0.45 }}
                 >
-                  <DragIndicatorIcon
-                    sx={{ fontSize: 15, color: tone.line2, mr: 0.5 }}
-                  />
+                  {/*
+                    Its own control, not part of selecting the section: opening
+                    a section to look inside it and moving the editor to it are
+                    different intentions, and one should not force the other.
+                  */}
+                  <IconButton
+                    size="small"
+                    aria-label={
+                      isOpen ? `Collapse ${s.title}` : `Expand ${s.title}`
+                    }
+                    aria-expanded={isOpen}
+                    disabled={s.items.length === 0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggle(s.id);
+                    }}
+                    sx={{ p: 0.25, mr: 0.25 }}
+                  >
+                    <ChevronRightIcon
+                      sx={{
+                        fontSize: 16,
+                        color: s.items.length ? tone.text3 : "transparent",
+                        transform: isOpen ? "rotate(90deg)" : "none",
+                        transition: "transform 160ms ease-out",
+                      }}
+                    />
+                  </IconButton>
                   <ListItemText
                     primary={s.title}
-                    secondary={`${s.items.length} item${s.items.length === 1 ? "" : "s"}`}
+                    secondary={`${s.items.length} ${s.items.length === 1 ? "entry" : "entries"}`}
                     slotProps={{
                       primary: { noWrap: true, sx: { fontSize: 13 } },
                       secondary: { sx: { fontSize: 11, color: tone.text3 } },
@@ -122,6 +160,34 @@ function OutlineRailInner({
                   />
                 </ListItemButton>
               </ListItem>
+
+              <Collapse in={isOpen} unmountOnExit>
+                <List dense disablePadding sx={{ mb: 0.5 }}>
+                  {s.items.map((item, j) => {
+                    const itemPath = `sections[${i}].items[${j}]`;
+                    return (
+                      <ListItem key={item.id} disablePadding>
+                        <ListItemButton
+                          selected={selectedPath === itemPath}
+                          onClick={() => onSelect(itemPath)}
+                          sx={{ py: 0.25, pl: 4, pr: 1 }}
+                        >
+                          <ListItemText
+                            primary={itemSummary(s.type, item) || "Untitled"}
+                            slotProps={{
+                              primary: {
+                                noWrap: true,
+                                sx: { fontSize: 12, color: tone.text2 },
+                              },
+                            }}
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Collapse>
+              </Box>
             );
           })}
         </List>

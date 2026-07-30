@@ -15,7 +15,13 @@ const baseTokens: ThemeTokens = {
   fontFamily: "Georgia",
   fontSizeBase: pt(10.5),
   typeScale: 1.15,
-  lineHeight: 1.34,
+  /*
+   * 1.4, not the 1.34 this shipped with. At 10.5pt with only 2.5pt between
+   * bullets the lines closed up into a grey block, which is hard to skim and
+   * is the first thing a recruiter does. Still tight enough for print: a
+   * resume is set closer than body copy on purpose.
+   */
+  lineHeight: 1.4,
   headingSize: pt(11),
   headingWeight: 700,
   headingCase: "upper",
@@ -25,10 +31,12 @@ const baseTokens: ThemeTokens = {
   nameWeight: 700,
   nameAlign: "left",
 
-  sectionGap: pt(11),
-  itemGap: pt(7),
-  bulletGap: pt(2.5),
-  paragraphGap: pt(4),
+  sectionGap: pt(13),
+  itemGap: pt(9),
+  // Bullets need air between them more than anything else on the page: they
+  // are the part that gets scanned rather than read.
+  bulletGap: pt(4.5),
+  paragraphGap: pt(5),
 
   headingRule: "full",
   ruleWeight: pt(0.75),

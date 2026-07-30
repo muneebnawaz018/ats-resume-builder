@@ -11,6 +11,7 @@ import { useAppStore } from "@/store";
 import { tone } from "@/ui/tokens";
 import { AddSectionDialog } from "./AddSectionDialog";
 import { Inspector } from "./Inspector";
+import { PrintPageSize } from "./PrintPageSize";
 import { OutlineRail } from "./OutlineRail";
 import { PaperStage } from "./PaperStage";
 import { ParseView } from "./ParseView";
@@ -44,10 +45,11 @@ export function EditorShell() {
   const [importError, setImportError] = useState<string | null>(null);
 
   /** Clicking the page opens that part in the Content tab, not just a highlight. */
-  const selectAndEdit = useCallback((path: string) => {
+  const selectAndEdit = useCallback((path: string | null) => {
     const s = useAppStore.getState();
     s.select(path);
-    s.setPanel("content");
+    // Clearing the selection should not also yank the panel to Content.
+    if (path !== null) s.setPanel("content");
   }, []);
 
   /*
@@ -198,6 +200,9 @@ export function EditorShell() {
 
   return (
     <Box sx={{ height: "100dvh", display: "flex", flexDirection: "column" }}>
+      {/* The paper the export lands on, which otherwise follows the printer. */}
+      <PrintPageSize pageSize={theme.tokens.pageSize} />
+
       <TopBar
         name={resume.name}
         view={ui.view}

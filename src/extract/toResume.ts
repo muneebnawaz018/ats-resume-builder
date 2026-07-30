@@ -146,6 +146,24 @@ function group(blocks: Block[]): { head: Block[]; groups: Group[] } {
   return { head, groups };
 }
 
+/**
+ * Strips a bullet glyph the source document typed into the text itself.
+ *
+ * A PDF has no list structure, so a bullet is often a literal character in
+ * the run: "\u2022 Led development teams...". The renderer draws its own
+ * marker, so keeping this one produced "\u2022 \u2022 Led development teams"
+ * on every imported line.
+ *
+ * Only leading markers go, and only when something follows them. A line that
+ * is nothing but a marker was an empty bullet in the original and becomes an
+ * empty one here rather than the literal glyph.
+ */
+const LEADING_MARKER = /^\s*[\u2022\u00b7\u25aa\u25e6\u2023\u2219*\u2013\u2014-]+\s*/;
+
+function unmarked(text: string): string {
+  return text.replace(LEADING_MARKER, "").trim();
+}
+
 /** Experience and projects: a role line, a date line, then bullets. */
 function buildEntries(lines: Block[], type: "experience" | "projects") {
   const items: Section["items"] = [];
@@ -196,7 +214,7 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
 
     if (line.kind === "listItem") {
       if (!open) open = blank();
-      open.bullets.push(richText(text));
+      open.bullets.push(richText(unmarked(text)));
       continue;
     }
 
@@ -228,7 +246,7 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
       open.organization = text;
       continue;
     }
-    open.bullets.push(richText(text));
+    open.bullets.push(richText(unmarked(text)));
   }
   push();
 
@@ -250,8 +268,9 @@ function buildEducation(lines: Block[]): Section["items"] {
   return lines
     .filter((l) => l.text.trim())
     .map((l) => {
-      const range = parseRange(l.text);
-      const rest = range ? withoutRange(l.text) : l.text;
+      const clean = unmarked(l.text);
+      const range = parseRange(clean);
+      const rest = range ? withoutRange(clean) : clean;
       const [degree, ...institution] = rest.split(/,\s+/);
       return {
         id: newId("i"),
@@ -291,12 +310,12 @@ function buildSimple(lines: Block[]): Section["items"] {
     .map((l) => ({
       id: newId("i"),
       visible: true,
-      title: l.text.trim(),
+      title: unmarked(l.text),
     }));
 }
 
 function buildText(lines: Block[]): Section["items"] {
-  const body = lines.map((l) => l.text.trim()).filter(Boolean).join("\n");
+  const body = lines.map((l) => unmarked(l.text)).filter(Boolean).join("\n");
   return body ? [{ id: newId("i"), visible: true, body: richText(body) }] : [];
 }
 

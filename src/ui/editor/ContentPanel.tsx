@@ -218,6 +218,12 @@ function SectionEditor({
                   sx={{
                     fontSize: 13,
                     flex: 1,
+                    /*
+                     * A flex child will not shrink below its content unless
+                     * this is set, so the ellipsis never engaged and the
+                     * whole inspector scrolled sideways instead.
+                     */
+                    minWidth: 0,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",

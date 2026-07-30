@@ -1,7 +1,7 @@
 /**
  * The data model. Zod schemas, their inferred types, and the migration chain.
  *
- * Framework-free by design, see scripts/check-boundaries.mjs. Everything the
+ * Framework-free by design, see scripts/tasks.ts (boundaries task). Everything the
  * rest of the app knows about a resume comes from here.
  */
 export * from "./common";

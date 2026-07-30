@@ -26,7 +26,7 @@ const DesignPanel = dynamic(
   },
 );
 import { type Resume, type Theme, type ThemeTokens } from "@/schema";
-import type { PanelTab } from "@/store";
+import { useAppStore, type PanelTab } from "@/store";
 
 /** Placeholder that directs rather than decorates. */
 function Pending({ title, body }: { title: string; body: string }) {
@@ -97,7 +97,29 @@ export function Inspector({
         <Tab label="Checks" value="checks" />
       </Tabs>
 
-      <Box ref={scroller} sx={{ flex: 1, overflowY: "auto" }}>
+      <Box
+        ref={scroller}
+        /*
+         * The other half of the link between the page and the panel. Clicking
+         * the page scrolls to the field; putting the caret in a field, by
+         * mouse or by Tab, highlights what it edits on the page. Without it
+         * the highlight goes stale the moment you tab to the next control and
+         * points at something you are no longer editing.
+         *
+         * onFocus rather than onClick, because it has to cover keyboard
+         * traversal as well as pointing at it.
+         */
+        onFocus={(e) => {
+          const owner = (e.target as HTMLElement).closest("[data-path]");
+          const path = owner?.getAttribute("data-path");
+          // Same path is a no-op: useReveal focuses the field it just scrolled
+          // to, and answering that with another select would be a loop.
+          if (path && path !== selectedPath) {
+            useAppStore.getState().select(path);
+          }
+        }}
+        sx={{ flex: 1, overflowY: "auto" }}
+      >
         {tab === "design" ? (
           <DesignPanel
             theme={theme}

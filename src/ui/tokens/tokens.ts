@@ -3,7 +3,7 @@
  *
  * Read twice, defined once:
  *   - `muiTheme.ts` builds the MUI theme from it (editor and site chrome)
- *   - `scripts/gen-tokens.mjs` emits it as CSS custom properties at build time
+ *   - `scripts/tasks.ts (tokens task)` emits it as CSS custom properties at build time
  *
  * Rules for this file:
  *   1. Every colour is declared once, as a hex, in `palette`.

@@ -193,7 +193,7 @@ whole editor and the MUI runtime with it.
 
 `ui/tokens` is separate from `ui/theme` on purpose. The MUI theme reads the
 tokens, so a single barrel exporting both meant that importing one colour on a
-static page pulled in Emotion, 33KB on every content route. `check-boundaries`
+static page pulled in Emotion, 33KB on every content route. the boundaries task in `scripts/tasks.ts`
 now fails the build if a content route imports MUI, editor chrome, or
 `@/ui/theme`, and if anything in `ui/tokens` grows an import.
 

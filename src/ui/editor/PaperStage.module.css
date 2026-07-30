@@ -65,23 +65,41 @@
   pointer-events: none;
 }
 
+/*
+ * The seam between two sheets.
+ *
+ * A dashed rule read as a strikethrough: it crossed a line of text and looked
+ * like the sentence had been cancelled. This is drawn as the desk showing
+ * through the gap between two stacked pages instead, with the shadow of the
+ * sheet above falling onto the sheet below.
+ *
+ * The document flows continuously rather than being laid out page by page,
+ * so this band covers the strip of content that sits under it. At print time
+ * the browser paginates for real and that content moves to the next page,
+ * which is the behaviour this stands in for. Real per-page layout is a much
+ * larger change; see docs/03-architecture.md.
+ */
 .pageBreak {
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px dashed var(--guide-mark);
+  height: 22px;
+  background: var(--surface-2);
   pointer-events: none;
+  /* Bottom edge of the page above, top edge of the page below. */
+  box-shadow:
+    inset 0 6px 6px -6px rgb(0 0 0 / 0.16),
+    inset 0 -6px 6px -6px rgb(0 0 0 / 0.1);
 }
 
 .pageBreakLabel {
   position: absolute;
-  right: 6px;
+  right: -52px;
   top: 4px;
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 9.5px;
   letter-spacing: 0.03em;
-  color: var(--accent);
-  opacity: 0.65;
+  color: var(--text-4);
 }
 
 .sheet :global([data-path]) {
