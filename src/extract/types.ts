@@ -47,7 +47,14 @@ export type FlagKind =
   | "multiColumn"
   | "readingOrder"
   | "noTextLayer"
-  | "emptyText";
+  | "emptyText"
+  /**
+   * A picture sits in a document that does have text: a photo, a logo, a
+   * skills chart. Distinct from `noTextLayer`, which is the whole page being
+   * one image. Nothing inside it is extractable, so it is worth saying what
+   * was there rather than letting it disappear without a word.
+   */
+  | "image";
 
 export type Flag = {
   kind: FlagKind;

@@ -160,6 +160,14 @@ These cannot be evaluated from the document model. They run after an export roun
 | `link-plain-text` | URLs are literal text, not glyph-only links or shorteners | warning | both | measured |
 | `location-granularity` | city and country are enough; a street address is unnecessary personal data | suggestion | both | convention |
 
+The builder enforces `link-plain-text` rather than only reporting it. Known
+destinations live in `src/schema/links.ts`, and the editor offers them with
+their wordmarks so a link is quick to add, but the document writes every one
+out as text. An icon carries no address: the extractor reads the text layer,
+finds nothing where the glyph sits, and the profile is lost. Choosing "label
+only" is allowed and says so in the editor, because a person reading the page
+may still prefer it.
+
 ### Dates
 
 | id | Check | Severity | Scope | Evidence |

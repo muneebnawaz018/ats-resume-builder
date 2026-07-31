@@ -2,6 +2,7 @@ import { newId } from "@/lib";
 import {
   DEFAULT_THEME_ID,
   RESUME_SCHEMA_VERSION,
+  classifyLink,
   richText,
   type DateEnd,
   type DateValue,
@@ -41,9 +42,18 @@ const MONTHS: Record<string, number> = {
 };
 
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]{2,}/;
+/*
+ * Every address on the line, not just the first. People list three or four
+ * (LinkedIn, GitHub, a portfolio) and taking only one used to throw the rest
+ * away. Global, because the caller matches all of them.
+ */
 const URL_LIKE =
-  /\b((?:https?:\/\/|www\.)[^\s,;)]+|(?:linkedin\.com|github\.com|gitlab\.com)\/[^\s,;)]+|[\w-]+\.(?:dev|io|me|xyz|design)\b[^\s,;)]*)/i;
+  /\b((?:https?:\/\/|www\.)[^\s,;|)]+|(?:linkedin\.com|github\.com|gitlab\.com|stackoverflow\.com|x\.com|twitter\.com|medium\.com|behance\.net|dribbble\.com|kaggle\.com|orcid\.org)\/[^\s,;|)]+|[\w-]+\.(?:dev|io|me|xyz|design|app|tech|site|page)\b[^\s,;|)]*)/gi;
 const PHONE = /(\+?\d[\d\s().-]{7,}\d)/;
+
+/** A place, as it appears on a contact line: "Lahore, Pakistan", "Austin, TX". */
+const LOCATION_LIKE =
+  /^[\p{Lu}][\p{L}.'-]*(?:[\s-][\p{L}.'-]+)*(?:,\s*[\p{L}][\p{L}.'\s-]*)?$/u;
 
 const MONTH_NAME = "(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?";
 const ONE_DATE = `(?:${MONTH_NAME}\\s+(\\d{4})|(\\d{1,2})[/.](\\d{4})|(\\d{4}))`;
@@ -100,7 +110,7 @@ function matchSection(text: string): [SectionType, string] | null {
 }
 
 /**
- * Splits "Senior Engineer, Northwind Systems" or "Northwind — Senior Engineer"
+ * Splits "Senior Engineer, Northwind Systems" or "Northwind, Senior Engineer"
  * into a role and an organisation.
  *
  * Which half is which is genuinely ambiguous, so the common ordering wins:
@@ -164,6 +174,28 @@ function unmarked(text: string): string {
   return text.replace(LEADING_MARKER, "").trim();
 }
 
+/**
+ * A line that names the employer above the role: "WalQalum Technologies:".
+ *
+ * Resumes written this way put the company on its own line, ending in a colon,
+ * with the title and dates underneath. Told apart from a sub-heading inside a
+ * job ("React Native Development:") by what comes next: a company is followed
+ * by a line carrying dates, a sub-heading is followed by bullets.
+ */
+function opensEntry(lines: Block[], i: number): boolean {
+  const text = lines[i].text.trim();
+  if (lines[i].kind === "listItem") return false;
+  if (!/:$/.test(text) || text.length > 60) return false;
+  if (parseRange(text)) return false;
+  for (let j = i + 1; j < lines.length; j++) {
+    const next = lines[j].text.trim();
+    if (!next) continue;
+    if (lines[j].kind === "listItem") return false;
+    return parseRange(next) !== null;
+  }
+  return false;
+}
+
 /** Experience and projects: a role line, a date line, then bullets. */
 function buildEntries(lines: Block[], type: "experience" | "projects") {
   const items: Section["items"] = [];
@@ -180,13 +212,18 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
 
   const push = () => {
     if (!open) return;
+    // Nothing was ever put in it: an artefact of the scan, not an entry.
+    if (!open.role && !open.organization && !open.start && !open.bullets.length) {
+      open = null;
+      return;
+    }
     items.push(
       type === "projects"
         ? {
             id: open.id,
             visible: true,
             name: [open.role, open.organization].filter(Boolean).join(", "),
-            bullets: open.bullets.length ? open.bullets : [richText("")],
+            bullets: open.bullets,
             start: open.start,
             end: open.end,
             tech: [],
@@ -198,14 +235,15 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
             organization: open.organization,
             start: open.start,
             end: open.end,
-            bullets: open.bullets.length ? open.bullets : [richText("")],
+            bullets: open.bullets,
             tech: [],
           },
     );
     open = null;
   };
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     const text = line.text.trim();
     if (!text) continue;
 
@@ -218,12 +256,32 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
       continue;
     }
 
+    // "WalQalum Technologies:" is the employer, with the title below it.
+    if (opensEntry(lines, i)) {
+      push();
+      open = blank();
+      open.organization = text.replace(/:$/, "").trim();
+      continue;
+    }
+
     if (range) {
       // A date on its own line belongs to the entry above it; a date with text
       // beside it starts a new one.
       if (open && !rest && !open.start) {
         open.start = range.start;
         open.end = range.end;
+        continue;
+      }
+      /*
+       * An entry opened by an employer line is still waiting for its title, so
+       * the dates and role fill it in rather than starting a second entry. It
+       * used to split one job across two, leaving the company stranded in an
+       * entry of its own with an empty bullet under it.
+       */
+      if (open && !open.start && !open.role && !open.bullets.length) {
+        open.start = range.start;
+        open.end = range.end;
+        if (rest) open.role = rest.replace(/:$/, "").trim();
         continue;
       }
       push();
@@ -238,7 +296,11 @@ function buildEntries(lines: Block[], type: "experience" | "projects") {
     if (!open || (open.bullets.length === 0 && !open.role)) {
       if (!open) open = blank();
       if (!open.role) {
-        Object.assign(open, splitRole(text));
+        const split = splitRole(text);
+        open.role = split.role;
+        // An employer already named on its own line is not overwritten by the
+        // empty half of a title that did not split.
+        if (split.organization) open.organization = split.organization;
         continue;
       }
     }
@@ -330,7 +392,31 @@ export function toResume(
 
   const headText = head.map((b) => b.text).join("\n");
   const email = EMAIL.exec(headText)?.[0] ?? EMAIL.exec(extraction.text)?.[0];
-  const url = URL_LIKE.exec(headText)?.[1];
+
+  /*
+   * Every address in the header, deduplicated and labelled by destination.
+   * Taking only the first one silently deleted the GitHub and portfolio
+   * addresses of anyone who listed more than one.
+   */
+  const seenUrls = new Set<string>();
+  const links = [...headText.matchAll(URL_LIKE)]
+    .map((m) => m[1].replace(/[.,;)]+$/, ""))
+    .filter((u) => {
+      const key = u.toLowerCase();
+      if (seenUrls.has(key)) return false;
+      seenUrls.add(key);
+      return true;
+    })
+    .map((url) => {
+      const platform = classifyLink(url);
+      return {
+        id: newId("l"),
+        label: platform.label,
+        url,
+        displayAs: "url" as const,
+        platform: platform.id,
+      };
+    });
 
   let phone: string | undefined;
   for (const line of headText.split("\n")) {
@@ -368,16 +454,56 @@ export function toResume(
   const usedInHead = new Set(
     [nameBlock?.text, after && headline ? after.text : null].filter(Boolean),
   );
-  const leftover = head
-    .map((b) => b.text.trim())
-    .filter(
-      (t) =>
-        t &&
-        !usedInHead.has(t) &&
-        !EMAIL.test(t) &&
-        !URL_LIKE.test(t) &&
-        !(phone && t.includes(phone)),
-    );
+
+  /*
+   * Strip the contact details out of each header line rather than dropping any
+   * line that contains one.
+   *
+   * "Alex Mercer | alex@x.com | Austin, TX" used to be discarded whole because
+   * it matched the email test, taking the city with it. Now the recognised
+   * parts are removed and whatever is left is still considered.
+   */
+  const stripContacts = (line: string): string[] =>
+    line
+      .replace(EMAIL, " ")
+      .replace(URL_LIKE, " ")
+      .replace(PHONE, " ")
+      // Not on the comma: it separates a city from its country far more often
+      // than it separates two fields, and splitting there halved "Lahore,
+      // Pakistan" and pushed the country into the summary.
+      .split(/\s*[|·•‧;]\s*|\s{3,}/)
+      .map((s) => s.replace(/^[\s|·•‧;-]+|[\s|·•‧;-]+$/g, "").trim())
+      .filter(Boolean);
+
+  /*
+   * A city sits on the contact line more often than anywhere else, and used to
+   * be lost with it. Only fragments of a line that carried contact details are
+   * considered, so a stray capitalised sentence elsewhere cannot be mistaken
+   * for one.
+   */
+  let location: string | undefined;
+  const remainders: string[] = [];
+  for (const block of head) {
+    const text = block.text.trim();
+    if (!text || usedInHead.has(text)) continue;
+    const hadContact =
+      EMAIL.test(text) || PHONE.test(text) || new RegExp(URL_LIKE).test(text);
+    const parts = stripContacts(text);
+    for (const part of parts) {
+      if (
+        hadContact &&
+        !location &&
+        part.length <= 48 &&
+        !/\d/.test(part) &&
+        LOCATION_LIKE.test(part)
+      ) {
+        location = part;
+        continue;
+      }
+      remainders.push(part);
+    }
+  }
+  const leftover = remainders;
 
   /* ---- sections ---- */
 
@@ -424,9 +550,8 @@ export function toResume(
       headline,
       email,
       phone,
-      links: url
-        ? [{ id: newId("l"), label: "Website", url, displayAs: "url" }]
-        : [],
+      location,
+      links,
       summary: summary ? richText(summary) : undefined,
     },
     sections,

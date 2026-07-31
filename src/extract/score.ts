@@ -217,6 +217,16 @@ export const FLAG_COSTS: Record<
   headerContent: { cost: 16, label: "Page header", basis: GREENHOUSE_PARSE },
   table: { cost: 13, label: "Table", basis: GREENHOUSE_PARSE },
   footerContent: { cost: 9, label: "Page footer", basis: GREENHOUSE_PARSE },
+  /**
+   * Reported, not charged.
+   *
+   * A photo is expected on a resume in much of Europe and most of Asia, so
+   * costing points would mark a document down for following its own market's
+   * convention, which docs/04-ats-rules.md rules out: state both, and let the
+   * person decide. The risk is not the picture, it is information that exists
+   * only inside it, and the finding says exactly that.
+   */
+  image: { cost: 0, label: "Picture", basis: LAYOUT_PAPER },
 };
 
 /**

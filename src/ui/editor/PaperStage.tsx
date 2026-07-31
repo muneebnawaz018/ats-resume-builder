@@ -3,14 +3,15 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ResumeDocument, lengthToCss } from "@/render";
 import { type Resume, type Theme } from "@/schema";
+import { lengthToPx, paginateSheet } from "./paginate";
 import css from "./PaperStage.module.css";
 
 /**
- * Page height in CSS pixels at 96dpi. Used only to draw page-break guides.
+ * Page size in CSS pixels at 96dpi.
  *
- * The browser paginates for real at print time, see the pagination decision
- * in docs/03-architecture.md. These guides are an approximation shown to the
- * user, which is why they are drawn in the non-printing guide colour.
+ * These are the same lengths the print engine uses (8.5in = 816px exactly, by
+ * CSS definition), which is what lets the editor lay pages out itself and
+ * have the exported PDF break in the same places. See paginate.ts.
  */
 const PAGE_PX = { Letter: 11 * 96, A4: (297 / 25.4) * 96 } as const;
 const PAGE_WIDTH_PX = { Letter: 8.5 * 96, A4: (210 / 25.4) * 96 } as const;
@@ -31,35 +32,43 @@ function PaperStageInner({
   onPageCount?: (pages: number) => void;
 }) {
   const sheetRef = useRef<HTMLDivElement>(null);
-  const [breaks, setBreaks] = useState<number[]>([]);
-  const [sheetHeight, setSheetHeight] = useState(0);
+  const [pages, setPages] = useState(1);
   const pageHeight = PAGE_PX[theme.tokens.pageSize];
   const pageWidth = PAGE_WIDTH_PX[theme.tokens.pageSize];
+  const marginTopPx = lengthToPx(theme.tokens.marginTop);
+  const marginBottomPx = lengthToPx(theme.tokens.marginBottom);
 
+  /*
+   * Lay the document out into real pages: any line that would straddle a
+   * page boundary is pushed below the next page's top margin. The observer
+   * re-runs it when something reflows behind React's back (a web font
+   * arriving); the height guard stops observer events caused by the
+   * pagination itself from looping.
+   */
+  const settledHeight = useRef(-1);
   useLayoutEffect(() => {
-    const el = sheetRef.current;
-    if (!el) return;
+    const sheet = sheetRef.current;
+    const doc = sheet?.querySelector("article");
+    if (!sheet || !(doc instanceof HTMLElement)) return;
 
-    const measure = () => {
-      const h = el.scrollHeight;
-      setSheetHeight(h);
-      const count = Math.max(1, Math.ceil(h / pageHeight));
-      setBreaks((prev) => {
-        const next = Array.from(
-          { length: count - 1 },
-          (_, i) => (i + 1) * pageHeight,
-        );
-        // Avoid a state write per observer tick, which would loop.
-        return prev.length === next.length ? prev : next;
+    const run = () => {
+      const res = paginateSheet(doc, {
+        pageHeight,
+        marginTop: marginTopPx,
+        marginBottom: marginBottomPx,
       });
-      onPageCount?.(count);
+      settledHeight.current = res.height;
+      setPages(res.pages);
+      onPageCount?.(res.pages);
     };
 
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    run();
+    const ro = new ResizeObserver(() => {
+      if (Math.abs(doc.offsetHeight - settledHeight.current) > 1) run();
+    });
+    ro.observe(doc);
     return () => ro.disconnect();
-  }, [resume, theme, pageHeight, onPageCount]);
+  }, [resume, theme, pageHeight, marginTopPx, marginBottomPx, onPageCount]);
 
   // Selection highlight is a class toggle, not a re-render of the document.
   useEffect(() => {
@@ -94,7 +103,7 @@ function PaperStageInner({
       <div
         className={css.zoomOuter}
         data-print-flow
-        style={{ width: pageWidth * zoom, height: sheetHeight * zoom }}
+        style={{ width: pageWidth * zoom, height: pages * pageHeight * zoom }}
       >
         <p className={css.hint}>Click any part of the page to edit it.</p>
         <div
@@ -102,21 +111,34 @@ function PaperStageInner({
           data-print-flow
           style={{ transform: `scale(${zoom})`, width: pageWidth }}
         >
-          <div ref={sheetRef} className={css.sheet}>
+          {/* min-height rounds the sheet up to whole pages, so the last page
+              is full-size paper rather than ending where the text does. */}
+          <div
+            ref={sheetRef}
+            className={css.sheet}
+            style={{ minHeight: pages * pageHeight }}
+          >
             <ResumeDocument resume={resume} theme={theme} onSelect={onSelect} />
 
-            <div
-              className={css.guidesInner}
-              aria-hidden="true"
-              style={{
-                top: lengthToCss(t.marginTop),
-                right: lengthToCss(t.marginRight),
-                bottom: lengthToCss(t.marginBottom),
-                left: lengthToCss(t.marginLeft),
-              }}
-            />
-            {breaks.map((top, i) => (
-              <div key={i} className={css.pageBreak} style={{ top }}>
+            {Array.from({ length: pages }, (_, i) => (
+              <div
+                key={i}
+                className={css.guidesInner}
+                aria-hidden="true"
+                style={{
+                  top: i * pageHeight + marginTopPx,
+                  height: pageHeight - marginTopPx - marginBottomPx,
+                  right: lengthToCss(t.marginRight),
+                  left: lengthToCss(t.marginLeft),
+                }}
+              />
+            ))}
+            {Array.from({ length: pages - 1 }, (_, i) => (
+              <div
+                key={i}
+                className={css.pageBreak}
+                style={{ top: (i + 1) * pageHeight - 11 }}
+              >
                 <span className={css.pageBreakLabel}>page {i + 2}</span>
               </div>
             ))}

@@ -66,3 +66,34 @@ export const db = {
 };
 
 export const isDbAvailable = () => typeof indexedDB !== "undefined";
+
+/**
+ * Asks the browser not to evict this origin's data on its own.
+ *
+ * By default a browser may clear site storage when the disk gets tight, and it
+ * picks by how recently a site was used: somebody who writes a resume, does
+ * not come back for two months, and then opens the tab can find it gone. A
+ * persisted origin is exempt from that.
+ *
+ * It is not protection against a person clearing their browsing data, and
+ * nothing on the web is: storage belongs to the browser profile, and clearing
+ * it means clearing it. Exporting the file is the only durable copy, which is
+ * why the editor offers that on the toolbar.
+ *
+ * Chrome grants this silently once a site looks worth keeping; Firefox may
+ * prompt. Either way the answer is advisory and the app works the same
+ * without it, so the result is reported rather than acted on.
+ */
+export async function requestPersistentStorage(): Promise<
+  "persisted" | "denied" | "unsupported"
+> {
+  if (typeof navigator === "undefined" || !navigator.storage?.persist) {
+    return "unsupported";
+  }
+  try {
+    if (await navigator.storage.persisted()) return "persisted";
+    return (await navigator.storage.persist()) ? "persisted" : "denied";
+  } catch {
+    return "unsupported";
+  }
+}

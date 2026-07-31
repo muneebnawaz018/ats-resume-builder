@@ -14,6 +14,7 @@ import {
 } from "@/extract";
 import { EXPORT_FORMATS, type ExportFormat } from "@/export";
 import { ResumePicker } from "@/ui/site/ResumePicker";
+import { SavedResumes } from "@/ui/site/SavedResumes";
 import css from "@/ui/site/site.module.css";
 
 /**
@@ -75,7 +76,38 @@ export function CheckerTool() {
 
   return (
     <div className={css.tool}>
-      <ResumePicker onFile={run} onClear={reset} compact={done} />
+      {/*
+        Once a report exists these two are the page's inputs: which file is
+        being read, and which posting to read it against. They sit in one row
+        so the posting box is reachable without scrolling past the report to
+        find it, and stretch to a common height so the row reads as a pair
+        rather than two unrelated cards.
+      */}
+      {done ? (
+        <div className={css.toolInputs}>
+          <div className={css.toolStack}>
+            <ResumePicker
+              onFile={run}
+              onClear={reset}
+              compact
+              value={state.picked}
+            />
+            {/* What was read, beside the file it was read from. This used to
+                sit down in the report, which put the file's name on screen
+                twice and left this column mostly empty. */}
+            <FilePanel picked={state.picked} result={state.result} />
+          </div>
+          <KeywordPanel resumeText={state.result.text} />
+        </div>
+      ) : (
+        <ResumePicker onFile={run} onClear={reset} />
+      )}
+
+      {/* Only offered before a report exists; afterwards the page is the
+          report, and a second way in would compete with reading it. */}
+      {state.phase === "idle" ? (
+        <SavedResumes onPick={run} />
+      ) : null}
 
       {state.phase === "reading" ? (
         <p className={css.toolStatus} role="status">
@@ -95,14 +127,9 @@ export function CheckerTool() {
           <ScoreCard score={score} />
 
           <div className={css.toolSplit}>
-            <div className={css.toolStack}>
-              <FilePanel picked={state.picked} result={state.result} />
-              <FieldsPanel fields={fields} />
-            </div>
+            <FieldsPanel fields={fields} />
             <FindingsPanel score={score} result={state.result} />
           </div>
-
-          <KeywordPanel resumeText={state.result.text} />
 
           <NextPanel name={state.picked.file.name} result={state.result} />
         </>
@@ -178,20 +205,35 @@ function ScoreCard({ score }: { score: Score }) {
  * What the file is. Separate from the score on purpose: the score is a
  * judgement, and these are the plain facts it was formed from.
  */
+/**
+ * What came out of the file, sat directly beneath it.
+ *
+ * The name is deliberately absent: it is on the bar immediately above this,
+ * and printing it twice in one column reads as a mistake. Everything here is
+ * measured from the extraction rather than claimed about the format.
+ */
 function FilePanel({ picked, result }: { picked: Picked; result: Extraction }) {
+  const words = result.text.trim() ? result.text.trim().split(/\s+/).length : 0;
+
   const facts: [string, string][] = [
-    ["file", picked.file.name],
     ["format", picked.format.label],
     ["size", formatBytes(picked.file.size)],
     ...(result.pages
       ? ([["pages", String(result.pages)]] as [string, string][])
       : []),
-    ["text", `${result.blocks.length} blocks · ${result.text.length} chars`],
+    // Only PDFs carry the notion, so the row is absent rather than guessed at
+    // for a format where it would always read "yes".
+    ...(result.hasTextLayer === undefined
+      ? []
+      : ([
+          ["text layer", result.hasTextLayer ? "readable" : "none found"],
+        ] as [string, string][])),
+    ["recovered", `${words.toLocaleString()} words · ${result.blocks.length} blocks`],
   ];
 
   return (
     <section className={css.panel}>
-      <h3 className={css.panelTitle}>The file</h3>
+      <h3 className={css.panelTitle}>What was read</h3>
       <dl className={css.facts}>
         {facts.map(([k, v]) => (
           <div key={k} className={css.factRow}>
@@ -200,6 +242,9 @@ function FilePanel({ picked, result }: { picked: Picked; result: Extraction }) {
           </div>
         ))}
       </dl>
+      {/* Which checks this format can support at all, so a skipped check is
+          never mistaken for a passed one. */}
+      <p className={css.panelNote}>{depthNote(result.depth)}</p>
     </section>
   );
 }
@@ -348,7 +393,7 @@ function KeywordPanel({ resumeText }: { resumeText: string }) {
     <section className={css.panel}>
       <h3 className={css.panelTitle}>
         Match against a job posting
-        {report ? (
+        {report?.usable ? (
           <span className={css.panelCount}>
             {report.matched} of {report.terms.length} terms
           </span>
@@ -393,13 +438,75 @@ function KeywordPanel({ resumeText }: { resumeText: string }) {
       </div>
 
       {report ? (
-        report.terms.length === 0 ? (
+        !report.usable ? (
+          /*
+           * Say nothing rather than something wrong. A couple of words used to
+           * produce a full report: "1 of 1 terms", and a stuffing warning,
+           * because a resume naturally says a word more often than a one-word
+           * posting does. Every figure in it was arithmetic on nothing.
+           */
           <p className={css.panelNote}>
-            Nothing usable in that text. Paste the requirements section rather
-            than the company blurb.
+            That is too short to compare against. Paste the whole posting, or at
+            least its requirements section. A few words cannot say which terms
+            matter.
           </p>
         ) : (
           <>
+            {/*
+              Required coverage, reported on its own. Overall coverage flattens
+              the difference between a wishlist item and a filter: eighteen of
+              twenty-four is fine if none of the six were required, and trouble
+              if all of them were.
+            */}
+            {report.requiredTotal ? (
+              <p className={css.matchLead}>
+                <strong>
+                  {report.requiredMatched} of {report.requiredTotal}
+                </strong>{" "}
+                {report.requiredTotal === 1 ? "term" : "terms"} the posting
+                calls for outright{" "}
+                {report.requiredMatched === report.requiredTotal
+                  ? "are all in your resume."
+                  : "are in your resume."}
+              </p>
+            ) : null}
+
+            {/* Ordered by what it costs to be missing, not by frequency. */}
+            {report.priority.length ? (
+              <ol className={css.priorityList}>
+                {report.priority.map((t) => (
+                  <li key={t.term} className={css.priorityRow}>
+                    <span className={css.priorityTerm}>{t.term}</span>
+                    <span
+                      className={
+                        t.emphasis === "required"
+                          ? css.tagRequired
+                          : css.tagPreferred
+                      }
+                    >
+                      {t.emphasis === "required"
+                        ? "required"
+                        : t.emphasis === "preferred"
+                          ? "nice to have"
+                          : "mentioned"}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+
+            {/* Requirements no word-overlap check can see. */}
+            {report.demands.length ? (
+              <ul className={css.demandList}>
+                {report.demands.map((d) => (
+                  <li key={d.text} className={css.demandRow}>
+                    <span className={css.demandKind}>{d.kind}</span>
+                    <span>{d.text}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
             <ul className={css.termList}>
               {report.terms.map((t) => (
                 <li
@@ -410,13 +517,18 @@ function KeywordPanel({ resumeText }: { resumeText: string }) {
                       : t.nearMiss
                         ? css.termNear
                         : css.termMissing
-                  }`}
+                  } ${t.emphasis === "required" ? css.termRequired : ""}`}
                   title={
-                    t.found
+                    (t.emphasis === "required"
+                      ? "Required. "
+                      : t.emphasis === "preferred"
+                        ? "Nice to have. "
+                        : "") +
+                    (t.found
                       ? `In your resume ${t.found}×, asked for ${t.askedFor}×`
                       : t.nearMiss
                         ? `You wrote "${t.nearMiss}". The posting says "${t.term}".`
-                        : `Asked for ${t.askedFor}× in the posting, not in your resume`
+                        : `Asked for ${t.askedFor}× in the posting, not in your resume`)
                   }
                 >
                   {t.term}

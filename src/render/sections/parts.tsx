@@ -49,7 +49,7 @@ export function ItemHead({
 }) {
   if (dateAlign === "inline") {
     return (
-      <div className={css.itemHeadInline}>
+      <div className={css.itemHeadInline} data-headed>
         <span className={css.itemTitle}>{title}</span>
         {subtitle ? <span className={css.itemSub}> · {subtitle}</span> : null}
         {meta ? <span className={css.itemMetaInline}> ({meta})</span> : null}
@@ -59,11 +59,16 @@ export function ItemHead({
 
   return (
     <>
-      <div className={css.itemHead}>
+      {/* data-headed: pagination must not leave these as a page's last line. */}
+      <div className={css.itemHead} data-headed>
         <span className={css.itemTitle}>{title}</span>
         {meta ? <span className={css.itemMeta}>{meta}</span> : null}
       </div>
-      {subtitle ? <div className={css.itemSub}>{subtitle}</div> : null}
+      {subtitle ? (
+        <div className={css.itemSub} data-headed>
+          {subtitle}
+        </div>
+      ) : null}
     </>
   );
 }

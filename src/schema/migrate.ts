@@ -40,10 +40,38 @@ function run(
   return doc;
 }
 
+/*
+ * Documents imported before the extractor stripped bullet glyphs carry the
+ * marker inside the text, so the renderer draws "• • Led...". Repair on load:
+ * the glyph belongs to the renderer, never to the data. Only unambiguous
+ * bullet characters. A leading dash stays, since "-30% latency" is content.
+ */
+const LEADING_GLYPH = /^\s*[•·▪◦‣∙*]+\s*/;
+
+function repairBulletList(list: unknown): void {
+  if (!Array.isArray(list)) return;
+  for (let i = list.length - 1; i >= 0; i--) {
+    const spans = (list[i] as { spans?: { text: string }[] }).spans;
+    if (!spans?.length) continue;
+    spans[0].text = spans[0].text.replace(LEADING_GLYPH, "");
+    if (spans.every((s) => s.text.trim() === "")) list.splice(i, 1);
+  }
+}
+
+function repairBullets(resume: Resume): Resume {
+  for (const section of resume.sections) {
+    for (const item of section.items) {
+      repairBulletList((item as { bullets?: unknown }).bullets);
+      repairBulletList((item as { detail?: unknown }).detail);
+    }
+  }
+  return resume;
+}
+
 /** Migrate then validate. Every read path goes through this. */
 export function loadResume(raw: unknown): Resume {
-  return zResume.parse(
-    run(raw, resumeMigrations, RESUME_SCHEMA_VERSION, "resume"),
+  return repairBullets(
+    zResume.parse(run(raw, resumeMigrations, RESUME_SCHEMA_VERSION, "resume")),
   );
 }
 

@@ -121,6 +121,13 @@ export const zLink = z.object({
   label: z.string(),
   url: z.string(),
   displayAs: z.enum(["url", "label", "both"]),
+  /**
+   * Which known destination this is: see schema/links.ts. Optional because
+   * documents written before the registry existed have none, and because a
+   * personal site belongs to no platform. It only chooses the default label
+   * and the editor's hints; the address is always what gets printed.
+   */
+  platform: z.string().optional(),
 });
 
 export const zBasics = z.object({

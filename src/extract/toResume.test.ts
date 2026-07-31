@@ -107,3 +107,147 @@ describe("toResume", () => {
     expect(zResume.safeParse(r).success).toBe(true);
   });
 });
+
+/**
+ * These pin down text that the importer used to destroy outright. Each one
+ * comes from a real imported resume where the content was in the PDF and
+ * missing from the editor.
+ */
+describe("toResume does not lose header content", () => {
+  const head = (...lines: string[]) =>
+    toResume(
+      {
+        depth: "layout" as const,
+        flags: [],
+        text: lines.join("\n"),
+        blocks: lines.map((text) => ({ kind: "paragraph" as const, text })),
+      },
+      "resume.pdf",
+      NOW,
+    );
+
+  it("keeps every address, not just the first", () => {
+    const r = head(
+      "Muneeb Faisal",
+      "Senior Engineer",
+      "linkedin.com/in/muneebfaisal | github.com/muneeb | muneeb.dev",
+    );
+    expect(r.basics.links.map((l) => l.url)).toEqual([
+      "linkedin.com/in/muneebfaisal",
+      "github.com/muneeb",
+      "muneeb.dev",
+    ]);
+  });
+
+  it("labels each address by where it points", () => {
+    const r = head("Muneeb Faisal", "linkedin.com/in/m | github.com/m | m.dev");
+    expect(r.basics.links.map((l) => l.label)).toEqual([
+      "LinkedIn",
+      "GitHub",
+      "Website",
+    ]);
+    expect(r.basics.links.map((l) => l.platform)).toEqual([
+      "linkedin",
+      "github",
+      "website",
+    ]);
+  });
+
+  it("does not repeat one address twice", () => {
+    const r = head("Muneeb Faisal", "github.com/m", "github.com/m");
+    expect(r.basics.links).toHaveLength(1);
+  });
+
+  it("keeps the city off the contact line", () => {
+    // The whole line used to be dropped because it also carried an email.
+    const r = head(
+      "Muneeb Faisal",
+      "Senior Engineer",
+      "muneeb@example.com | +92 300 1234567 | Lahore, Pakistan",
+    );
+    expect(r.basics.location).toBe("Lahore, Pakistan");
+    expect(r.basics.email).toBe("muneeb@example.com");
+  });
+
+  it("does not mistake the city for the summary", () => {
+    const r = head("Muneeb Faisal", "muneeb@example.com | Lahore, Pakistan");
+    const summary = r.basics.summary?.spans.map((s) => s.text).join("") ?? "";
+    expect(summary).not.toContain("Pakistan");
+  });
+});
+
+describe("toResume groups an employer with its role", () => {
+  const experience = (...lines: [string, string][]) => {
+    const blocks = [
+      { kind: "heading" as const, text: "Experience" },
+      ...lines.map(([kind, text]) => ({
+        kind: kind as "paragraph" | "listItem",
+        text,
+      })),
+    ];
+    const r = toResume(
+      {
+        depth: "layout" as const,
+        flags: [],
+        text: blocks.map((b) => b.text).join("\n"),
+        blocks,
+      },
+      "resume.pdf",
+      NOW,
+    );
+    return (r.sections.find((s) => s.type === "experience")?.items ??
+      []) as ExperienceItem[];
+  };
+
+  it("reads a company line above the title as one entry", () => {
+    const items = experience(
+      ["paragraph", "WalQalum Technologies:"],
+      ["paragraph", "Full Stack Software Engineer: NOV 2020 - OCT 2023"],
+      ["listItem", "Built the mobile app."],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0].organization).toBe("WalQalum Technologies");
+    expect(items[0].role).toBe("Full Stack Software Engineer");
+    expect(items[0].start).toEqual({ year: 2020, month: 11 });
+  });
+
+  it("starts a new entry at the next company", () => {
+    const items = experience(
+      ["paragraph", "WalQalum Technologies:"],
+      ["paragraph", "Full Stack Engineer: NOV 2020 - OCT 2023"],
+      ["listItem", "Built the mobile app."],
+      ["paragraph", "AMCO IT Systems:"],
+      ["paragraph", "Associate Engineer: JAN 2020 - NOV 2020"],
+      ["listItem", "Built internal tools."],
+    );
+    expect(items.map((i) => i.organization)).toEqual([
+      "WalQalum Technologies",
+      "AMCO IT Systems",
+    ]);
+  });
+
+  it("does not split on a sub-heading inside a job", () => {
+    // "React Native Development:" ends in a colon like a company does, but
+    // nothing with a date follows it, so it belongs to the job it sits in.
+    const items = experience(
+      ["paragraph", "WalQalum Technologies:"],
+      ["paragraph", "Full Stack Engineer: NOV 2020 - OCT 2023"],
+      ["paragraph", "React Native Development:"],
+      ["listItem", "Shipped to both app stores."],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0].bullets.map((b) => b.spans[0].text)).toContain(
+      "React Native Development:",
+    );
+  });
+
+  it("does not invent an empty bullet", () => {
+    // The company line used to produce an entry of its own whose only bullet
+    // was empty, which rendered as a lone glyph on the page.
+    const items = experience(
+      ["paragraph", "WalQalum Technologies:"],
+      ["paragraph", "Full Stack Engineer: NOV 2020 - OCT 2023"],
+    );
+    expect(items[0].bullets).toEqual([]);
+  });
+});

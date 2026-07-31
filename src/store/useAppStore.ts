@@ -9,8 +9,8 @@ import {
   setAutoFreeze,
 } from "immer";
 import { newId, takeHandoff } from "@/lib";
-import { BUILTIN_THEMES, DEFAULT_THEME_ID, createItem, createSampleResume, tryLoadResume, tryLoadTheme, type Resume, type Section, type Theme, type ThemeTokens } from "@/schema";
-import { db, isDbAvailable } from "./db";
+import { BUILTIN_THEMES, DEFAULT_THEME_ID, createItem, createSampleResume, platformById, tryLoadResume, tryLoadTheme, type Resume, type Section, type Theme, type ThemeTokens } from "@/schema";
+import { db, isDbAvailable, requestPersistentStorage } from "./db";
 import { readSession, writeSession } from "./session";
 
 enablePatches();
@@ -96,9 +96,11 @@ type Actions = {
   moveItem: (sectionId: string, from: number, to: number) => void;
 
   updateBasics: (patch: Partial<Resume["basics"]>) => void;
-  addLink: () => void;
+  /** `platformId` seeds the label and is remembered for the editor's hints. */
+  addLink: (platformId?: string) => void;
   updateLink: (id: string, patch: Partial<Resume["basics"]["links"][number]>) => void;
   removeLink: (id: string) => void;
+  moveLink: (from: number, to: number) => void;
 
   setResumeName: (name: string) => void;
 
@@ -117,6 +119,8 @@ const themeMap = (list: Theme[]): Record<string, Theme> =>
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 /** Set by the store so a page-hide can force the pending write through. */
 let flushSave: (() => void) | null = null;
+/** The hydration in progress, so a second caller joins it instead of racing. */
+let inFlightHydrate: Promise<void> | null = null;
 
 export const useAppStore = create<State & Actions>((set, get) => {
   /** Debounced write. Persistence must never sit on the input path. */
@@ -197,6 +201,93 @@ export const useAppStore = create<State & Actions>((set, get) => {
     scheduleSave();
   }
 
+  /**
+   * One hydration pass.
+   *
+   * Private to the factory: nothing outside can start a second one,
+   * which is the whole point of the guard in hydrate().
+   */
+  async function hydrateOnce(): Promise<void> {
+    /*
+     * The handed-over document is collected before anything is awaited, so
+     * it cannot be lost to a concurrent reader between the check and the
+     * read.
+     */
+    const handed = takeHandoff();
+
+    const themes = themeMap(BUILTIN_THEMES);
+    const resumes: Record<string, Resume> = {};
+
+    if (isDbAvailable()) {
+      // Ask once per load, and never wait on the answer: it only affects
+      // whether the browser may evict this origin under disk pressure.
+      void requestPersistentStorage();
+      try {
+        for (const raw of await db.allThemes()) {
+          const res = tryLoadTheme(raw);
+          if (res.ok) themes[res.theme.id] = res.theme;
+        }
+        for (const raw of await db.allResumes()) {
+          const res = tryLoadResume(raw);
+          // A corrupt or future-version document is skipped rather than
+          // allowed to crash the editor.
+          if (res.ok) resumes[res.resume.id] = res.resume;
+        }
+      } catch {
+        // Private browsing or a blocked store: fall through to in-memory.
+      }
+    }
+
+    /*
+     * Reopen where you left off. The stored id wins if that document still
+     * exists; otherwise fall back to the most recently edited one, which is
+     * a better guess than whichever id happens to sort first.
+     */
+    const session = readSession();
+    let activeResumeId =
+      session.activeResumeId && resumes[session.activeResumeId]
+        ? session.activeResumeId
+        : (Object.values(resumes).sort((a, b) =>
+            b.updatedAt.localeCompare(a.updatedAt),
+          )[0]?.id ?? null);
+
+    /*
+     * A document handed over from the checker takes precedence over the
+     * session: the person just chose a file and pressed a button, so that
+     * is what they expect to be looking at.
+     *
+     * Checked before the sample is seeded, not after. Seeding first left a
+     * stray untouched sample in the list on every checker handoff, which is
+     * clutter nobody asked for.
+     */
+    const imported = handed ? tryLoadResume(handed) : null;
+
+    if (imported?.ok) {
+      resumes[imported.resume.id] = imported.resume;
+      activeResumeId = imported.resume.id;
+      if (isDbAvailable()) void db.putResume(imported.resume);
+    } else if (!activeResumeId) {
+      const id = newId("r");
+      resumes[id] = createSampleResume(id, new Date().toISOString());
+      activeResumeId = id;
+      if (isDbAvailable()) void db.putResume(resumes[id]);
+    }
+
+    set((s) => ({
+      themes,
+      resumes,
+      activeResumeId,
+      hydrated: true,
+      ui: {
+        ...s.ui,
+        panel: (session.panel as State["ui"]["panel"]) ?? s.ui.panel,
+        view: (session.view as State["ui"]["view"]) ?? s.ui.view,
+        zoom: session.zoom ?? s.ui.zoom,
+      },
+    }));
+    writeSession({ activeResumeId });
+  }
+
   return {
     resumes: {},
     themes: themeMap(BUILTIN_THEMES),
@@ -225,75 +316,24 @@ export const useAppStore = create<State & Actions>((set, get) => {
         return;
       }
 
-      const themes = themeMap(BUILTIN_THEMES);
-      const resumes: Record<string, Resume> = {};
-
-      if (isDbAvailable()) {
-        try {
-          for (const raw of await db.allThemes()) {
-            const res = tryLoadTheme(raw);
-            if (res.ok) themes[res.theme.id] = res.theme;
-          }
-          for (const raw of await db.allResumes()) {
-            const res = tryLoadResume(raw);
-            // A corrupt or future-version document is skipped rather than
-            // allowed to crash the editor.
-            if (res.ok) resumes[res.resume.id] = res.resume;
-          }
-        } catch {
-          // Private browsing or a blocked store: fall through to in-memory.
-        }
-      }
-
       /*
-       * Reopen where you left off. The stored id wins if that document still
-       * exists; otherwise fall back to the most recently edited one, which is
-       * a better guess than whichever id happens to sort first.
-       */
-      const session = readSession();
-      let activeResumeId =
-        session.activeResumeId && resumes[session.activeResumeId]
-          ? session.activeResumeId
-          : (Object.values(resumes).sort((a, b) =>
-              b.updatedAt.localeCompare(a.updatedAt),
-            )[0]?.id ?? null);
-
-      /*
-       * A document handed over from the checker takes precedence over the
-       * session: the person just chose a file and pressed a button, so that
-       * is what they expect to be looking at.
+       * One pass at a time.
        *
-       * Checked before the sample is seeded, not after. Seeding first left a
-       * stray untouched sample in the list on every checker handoff, which is
-       * clutter nobody asked for.
+       * The `hydrated` check above is not a lock: the body awaits IndexedDB,
+       * and a second caller arriving during that await saw `hydrated` still
+       * false and started its own pass. Both then raced to the end, but only
+       * the first found the handoff, since taking it clears it. When the
+       * empty-handed pass wrote last it reinstated the previously open
+       * document, so choosing a file in the checker landed on the resume
+       * before it. Effects run twice in development, so this was the common
+       * case rather than the rare one.
        */
-      const handed = takeHandoff();
-      const imported = handed ? tryLoadResume(handed) : null;
-
-      if (imported?.ok) {
-        resumes[imported.resume.id] = imported.resume;
-        activeResumeId = imported.resume.id;
-        if (isDbAvailable()) void db.putResume(imported.resume);
-      } else if (!activeResumeId) {
-        const id = newId("r");
-        resumes[id] = createSampleResume(id, new Date().toISOString());
-        activeResumeId = id;
-        if (isDbAvailable()) void db.putResume(resumes[id]);
+      if (!inFlightHydrate) {
+        inFlightHydrate = hydrateOnce().finally(() => {
+          inFlightHydrate = null;
+        });
       }
-
-      set((s) => ({
-        themes,
-        resumes,
-        activeResumeId,
-        hydrated: true,
-        ui: {
-          ...s.ui,
-          panel: (session.panel as State["ui"]["panel"]) ?? s.ui.panel,
-          view: (session.view as State["ui"]["view"]) ?? s.ui.view,
-          zoom: session.zoom ?? s.ui.zoom,
-        },
-      }));
-      writeSession({ activeResumeId });
+      return inFlightHydrate;
     },
 
     importHandoff() {
@@ -541,13 +581,15 @@ export const useAppStore = create<State & Actions>((set, get) => {
       );
     },
 
-    addLink() {
+    addLink(platformId) {
+      const platform = platformById(platformId);
       get().editResume((r) => {
         r.basics.links.push({
           id: newId("l"),
-          label: "",
+          label: platform?.label ?? "",
           url: "",
           displayAs: "url",
+          platform: platform?.id,
         });
       });
     },
@@ -565,6 +607,15 @@ export const useAppStore = create<State & Actions>((set, get) => {
     removeLink(id) {
       get().editResume((r) => {
         r.basics.links = r.basics.links.filter((l) => l.id !== id);
+      });
+    },
+
+    moveLink(from, to) {
+      get().editResume((r) => {
+        const links = r.basics.links;
+        if (to < 0 || to >= links.length || from === to) return;
+        const [moved] = links.splice(from, 1);
+        links.splice(to, 0, moved);
       });
     },
 

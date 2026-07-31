@@ -207,6 +207,24 @@ export function extractDocx(bytes: Uint8Array): Extraction {
     });
   }
 
+  /*
+   * Pictures are their own parts in the package, so counting them needs no
+   * XML: a .docx with anything under word/media has one. Word puts a photo, a
+   * logo and a decorative bar all in the same place, which is why the wording
+   * stays neutral about what the picture is.
+   */
+  const media = Object.keys(zip).filter((p) =>
+    /^word\/media\//i.test(p),
+  ).length;
+  if (media) {
+    flags.push({
+      kind: "image",
+      detail: `${
+        media === 1 ? "One picture is" : `${media} pictures are`
+      } embedded in this document. Nothing inside a picture is readable, so a photo, a logo, or a skills chart reaches a parser as nothing at all. Keep it if the market you are applying to expects one, but make sure it holds no information that is not also written out as text.`,
+    });
+  }
+
   const text = joinBlocks(blocks);
   if (!text) {
     flags.push({

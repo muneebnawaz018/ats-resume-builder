@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { matchKeywords } from "./keywords";
+import { MIN_POSTING_TERMS, matchKeywords } from "./keywords";
 import { extractText } from "./text";
 
 const RESUME = readFileSync(
@@ -152,5 +152,136 @@ describe("keyword matching", () => {
     const extracted = extractText(RESUME, false);
     const report = matchKeywords(POSTING, extracted.text);
     expect(report.matched).toBeGreaterThan(0);
+  });
+});
+
+/*
+ * A posting is not a flat bag of words: it has a requirements list and a
+ * wishlist. Missing one from each is not the same event, and ranking by
+ * frequency alone buried the term that actually disqualifies someone under
+ * several that did not.
+ */
+describe("how hard the posting asks", () => {
+  it("separates what is required from what is a bonus", () => {
+    const r = matchKeywords(POSTING, "Go and PostgreSQL.");
+    const by = Object.fromEntries(r.terms.map((t) => [t.term, t.emphasis]));
+    expect(by.kubernetes).toBe("required");
+    expect(by.terraform).toBe("required");
+    expect(by.graphql).toBe("preferred");
+  });
+
+  it("reads a requirement that was wrapped across two lines", () => {
+    // Pasted postings are hard-wrapped, so "…Terraform is" and "required."
+    // arrive on separate lines. Reading line by line called this a mention.
+    const wrapped = matchKeywords(
+      "Experience with Terraform is\nrequired.",
+      "nothing here",
+    );
+    expect(wrapped.terms.find((t) => t.term === "terraform")?.emphasis).toBe(
+      "required",
+    );
+  });
+
+  it("does not offer the cue words themselves as terms", () => {
+    const found = matchKeywords(POSTING, "").terms.map((t) => t.term);
+    for (const cue of ["required", "familiarity", "plus", "must"]) {
+      expect(found).not.toContain(cue);
+    }
+  });
+
+  it("puts required terms above merely frequent ones", () => {
+    const r = matchKeywords(POSTING, "");
+    const firstMentioned = r.terms.findIndex((t) => t.emphasis === "mentioned");
+    const lastRequired = r.terms.map((t) => t.emphasis).lastIndexOf("required");
+    expect(lastRequired).toBeLessThan(firstMentioned);
+  });
+
+  it("counts required coverage on its own", () => {
+    const r = matchKeywords(POSTING, "I use Terraform daily.");
+    expect(r.requiredTotal).toBe(2);
+    expect(r.requiredMatched).toBe(1);
+  });
+
+  it("lists what to add first, hardest requirement leading", () => {
+    const r = matchKeywords(POSTING, "Go and PostgreSQL only.");
+    expect(r.priority[0].emphasis).toBe("required");
+    // A term present under another name is a rewording job, not an addition.
+    expect(r.priority.every((t) => t.found === 0 && !t.nearMiss)).toBe(true);
+  });
+
+  it("keeps a bullet's own cue over the heading above it", () => {
+    const r = matchKeywords(
+      "Requirements:\n- Go\n- Kubernetes is a plus\n",
+      "nothing",
+    );
+    const by = Object.fromEntries(r.terms.map((t) => [t.term, t.emphasis]));
+    expect(by.go).toBe("required");
+    expect(by.kubernetes).toBe("preferred");
+  });
+});
+
+describe("demands that are not keywords", () => {
+  it("surfaces a years-of-experience requirement", () => {
+    const r = matchKeywords("You must have 5+ years of backend work.", "x");
+    const years = r.demands.find((d) => d.kind === "experience");
+    expect(years?.text).toContain("5");
+    expect(years?.emphasis).toBe("required");
+  });
+
+  it("surfaces a degree and a seniority level", () => {
+    const r = matchKeywords(
+      "Requirements:\nBachelor degree in Computer Science\nSenior engineer role",
+      "x",
+    );
+    expect(r.demands.some((d) => d.kind === "education")).toBe(true);
+    expect(r.demands.some((d) => d.kind === "seniority")).toBe(true);
+  });
+
+  it("says nothing when the posting makes no such demand", () => {
+    expect(matchKeywords("We use Go and Kafka.", "x").demands).toEqual([]);
+  });
+});
+
+/*
+ * A pasted word is not a job posting. Reporting on one produced arithmetic on
+ * nothing: "1 of 1 terms", and a stuffing warning, because a resume says a
+ * word more often than a one-word posting does.
+ */
+describe("refusing a posting that is not one", () => {
+  it("will not report on a single word", () => {
+    const r = matchKeywords(
+      "testing",
+      "Testing. Testing. Testing. Testing. Testing. Testing.",
+    );
+    expect(r.usable).toBe(false);
+    // The matching still ran; it is the reporting that holds back. The
+    // stuffing warning is the one figure that was actively wrong, so it is
+    // suppressed at the source rather than left to the caller.
+    expect(r.overused).toEqual([]);
+  });
+
+  it("will not report on a job title pasted on its own", () => {
+    expect(matchKeywords("Senior Backend Engineer", RESUME).usable).toBe(false);
+  });
+
+  it("will not be fooled by one word repeated", () => {
+    // Bigrams from a repeated word would otherwise pad the count past the bar.
+    expect(matchKeywords("testing testing testing testing", "x").usable).toBe(
+      false,
+    );
+  });
+
+  it("accepts a real posting", () => {
+    const r = matchKeywords(POSTING, RESUME);
+    expect(r.usable).toBe(true);
+    expect(r.terms.length).toBeGreaterThan(MIN_POSTING_TERMS);
+  });
+
+  it("accepts a short but genuine requirements list", () => {
+    const r = matchKeywords(
+      "Requirements: Go, Kubernetes, PostgreSQL, Terraform, Kafka, Docker, gRPC, Redis.",
+      "Go and Kafka.",
+    );
+    expect(r.usable).toBe(true);
   });
 });

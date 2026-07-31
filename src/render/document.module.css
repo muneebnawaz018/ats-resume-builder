@@ -203,20 +203,15 @@
 
 /* ---------- print ---------- */
 
+/*
+ * The editor lays pages out itself (see ui/editor/paginate.ts): interior page
+ * margins are baked into the flow as pushes, and @page prints with margin 0.
+ * So the document keeps its own width and padding here, and there are no
+ * break-inside rules: letting the print engine move things would break in
+ * different places than the preview showed.
+ */
 @media print {
   .doc {
-    width: auto;
-    padding: 0;
     box-shadow: none;
-  }
-
-  .section,
-  .item,
-  .bullet {
-    break-inside: avoid;
-  }
-
-  .sectionTitle {
-    break-after: avoid;
   }
 }

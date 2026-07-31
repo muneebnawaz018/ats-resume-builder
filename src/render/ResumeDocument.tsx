@@ -1,4 +1,4 @@
-import { type Resume, type Theme, type ThemeOverrides } from "@/schema";
+import { linkText, type Resume, type Theme, type ThemeOverrides } from "@/schema";
 import css from "./document.module.css";
 import { RichText } from "./RichText";
 import { SectionBody } from "./sections";
@@ -27,9 +27,7 @@ export function ResumeDocument({
     resume.basics.email,
     resume.basics.phone,
     resume.basics.location,
-    ...resume.basics.links.map((l) =>
-      l.displayAs === "label" ? l.label : l.url,
-    ),
+    ...resume.basics.links.map(linkText),
   ].filter((s): s is string => Boolean(s));
 
   const ruleClass =

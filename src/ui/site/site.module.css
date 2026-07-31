@@ -1547,6 +1547,29 @@
   align-content: start;
 }
 
+/*
+ * The two inputs once a report exists: the chosen file, and the posting to
+ * compare it against.
+ *
+ * `stretch` rather than `start`, so the short file bar rises to the height of
+ * the posting box and the pair reads as one row. Stacked below the same
+ * breakpoint the report uses, where side by side would leave the textarea too
+ * narrow to paste into.
+ */
+.toolInputs {
+  display: grid;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+@media (min-width: 1000px) {
+  .toolInputs {
+    /* Even halves: these are two inputs of equal standing, unlike the report
+       below, where the narrow rail supports the wide findings list. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 .toolSplit {
   display: grid;
   gap: 1rem;
@@ -2190,4 +2213,251 @@
   margin: 0;
   font-size: 0.8rem;
   color: var(--ink-2);
+}
+
+/*
+ * Resumes already built here, offered beside the dropzone.
+ *
+ * Quieter than the picker on purpose: uploading is the page's headline action
+ * and this is the shortcut for people who have been here before. A second
+ * card of equal weight would make the first choice ambiguous.
+ */
+.savedCard {
+  margin-top: 0.875rem;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  padding: 1.25rem;
+}
+
+.savedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/*
+ * The row is the delete control's positioning context. The two sit side by
+ * side rather than nested, because a button inside a button is invalid and
+ * a stray click on the cross would otherwise also start a check.
+ */
+.savedRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.375rem;
+}
+
+.savedItem {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.875rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 140ms ease-out,
+    background-color 140ms ease-out;
+}
+
+.savedItem:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.savedItem:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.savedName {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  color: var(--text-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Several rows can share a name, so the date is what tells them apart. */
+.savedWhen {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--text-4);
+}
+
+/*
+ * Destructive, so it stays quiet until the row is under the pointer and asks
+ * before it acts. There is no undo behind it: the checker keeps no history,
+ * and for most people this is the only copy.
+ */
+.savedRemove {
+  flex-shrink: 0;
+  width: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-4);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 140ms ease-out,
+    color 140ms ease-out,
+    border-color 140ms ease-out;
+}
+
+.savedRow:hover .savedRemove,
+.savedRemove:focus-visible {
+  opacity: 1;
+}
+
+.savedRemove:hover,
+.savedRemove:focus-visible {
+  color: var(--flag);
+  border-color: var(--line-1);
+}
+
+.savedConfirm {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.savedDanger,
+.savedCancel {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-1);
+  background: var(--surface-1);
+  cursor: pointer;
+}
+
+.savedDanger {
+  color: var(--flag);
+  border-color: currentColor;
+}
+
+.savedCancel {
+  color: var(--text-2);
+}
+
+.savedMeta {
+  flex-shrink: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--text-3);
+}
+
+.savedNote {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+/* ---- how hard the posting asked ---- */
+
+/*
+ * Required coverage, stated before the chips.
+ *
+ * The headline count treats every term alike, which is the wrong shape for a
+ * decision: missing six wishlist items is nothing, missing six requirements is
+ * the whole application. This line is the one worth reading first.
+ */
+.matchLead {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--text-1);
+}
+
+/*
+ * What to add, in the order it is worth adding. Numbered because these really
+ * are a sequence: the first one costs the most to be missing.
+ */
+.priorityList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.375rem;
+}
+
+.priorityRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.priorityTerm {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--text-1);
+}
+
+.tagRequired,
+.tagPreferred {
+  font-size: 0.6875rem;
+  letter-spacing: 0.03em;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.tagRequired {
+  color: var(--flag);
+  background: var(--flag-wash);
+}
+
+.tagPreferred {
+  color: var(--text-3);
+}
+
+/* A solid ring marks a chip the posting insists on, whatever its state. */
+.termRequired {
+  border-width: 2px;
+  border-style: solid;
+}
+
+/*
+ * Demands a word-overlap check cannot see: years, a degree, a level. Quoted
+ * from the posting rather than judged, because working out someone's total
+ * experience from resume prose is guesswork.
+ */
+.demandList {
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.375rem;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+}
+
+.demandRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.demandKind {
+  flex-shrink: 0;
+  width: 5.5rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.03em;
+  color: var(--text-4);
 }

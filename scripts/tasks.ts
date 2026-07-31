@@ -345,7 +345,8 @@ Built the billing service. Costs fell 32\\'25 in the first quarter.\\par
     .join("")}</w:tbl>`;
   }
 
-  function docx(bodyXml: string, extra: Record<string, string> = {}) {
+  // `extra` is spread straight into the archive, so it holds bytes, not text.
+  function docx(bodyXml: string, extra: Record<string, Uint8Array> = {}) {
     const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document ${W_NS}><w:body>${bodyXml}<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/></w:sectPr></w:body></w:document>`;
 
@@ -413,6 +414,30 @@ Built the billing service. Costs fell 32\\'25 in the first quarter.\\par
       para(P.dates1),
       para(P.bullet1),
     ].join(""),
+  );
+
+  /*
+   * A headshot beside the text, which is conventional in much of Europe and
+   * Asia and unreadable everywhere. The picture is a real part in the package,
+   * because that is what the detector counts.
+   */
+  const DOCX_PHOTO = docx(
+    [
+      para(P.name, "Title"),
+      para(`${P.email} | ${P.phone}`),
+      `<w:p><w:r><w:drawing><wp:inline><a:graphic><a:graphicData><pic:pic><pic:blipFill><a:blip r:embed="rId9"/></pic:blipFill></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`,
+      para("Experience", "Heading1"),
+      para(`${P.role1}, ${P.org1}`, "Heading2"),
+      para(P.dates1),
+      para(P.bullet1),
+    ].join(""),
+    // Only the path is read: the detector counts parts under word/media, and
+    // never decodes one. A PNG signature is enough to make it a real picture.
+    {
+      "word/media/image1.png": new Uint8Array([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ]),
+    },
   );
 
   /*
@@ -725,6 +750,8 @@ Built the billing service. Costs fell 32\\'25 in the first quarter.\\par
       "Name and email parked in a VML text box"],
     ["docx/unstyled-paragraphs.docx", DOCX_UNSTYLED,
       "No styles anywhere, so headings must be inferred"],
+    ["docx/photo.docx", DOCX_PHOTO,
+      "A headshot beside the text — conventional in some markets, unreadable in all"],
 
     ["odt/clean-styled.odt", ODT_CLEAN,
       "The LibreOffice equivalent of the clean Word file"],
@@ -1176,6 +1203,24 @@ async function taskBoundaries() {
       dir: "src/ui/site",
       forbid: /from\s+["'](@mui\/|@emotion\/)/,
       message: "site chrome is plain CSS. MUI belongs to the editor",
+    },
+    {
+      /*
+       * House style: no em dashes in anything a person reads. Enforced rather
+       * than remembered, because they come back one copy edit at a time.
+       *
+       * Only the interface. The readers in src/extract match a literal em dash
+       * in date ranges and bullet glyphs, which is other people's text and not
+       * ours to restyle.
+       */
+      dir: "src/ui",
+      forbid: /—/,
+      message: "no em dashes: use a comma, a colon, or two sentences",
+    },
+    {
+      dir: "src/app",
+      forbid: /—/,
+      message: "no em dashes: use a comma, a colon, or two sentences",
     },
     {
       /*

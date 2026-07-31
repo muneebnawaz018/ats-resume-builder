@@ -5,6 +5,7 @@
  * rest of the app knows about a resume comes from here.
  */
 export * from "./common";
+export * from "./links";
 export * from "./resume";
 export * from "./theme";
 export { BUILTIN_THEMES, DEFAULT_THEME_ID } from "./builtinThemes";

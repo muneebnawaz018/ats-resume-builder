@@ -27,12 +27,16 @@ type Pdfjs = {
       numPages: number;
       getPage(n: number): Promise<{
         getTextContent(): Promise<{ items: unknown[] }>;
+        /** Drawing instructions. Read only to find pictures. */
+        getOperatorList?: () => Promise<{ fnArray: number[] }>;
       }>;
     }>;
     /** Frees the worker. Lives on the loading task, not on the document. */
     destroy(): Promise<void>;
   };
   GlobalWorkerOptions: { workerSrc: string };
+  /** Operator codes. Optional so a stub in a test need not supply them. */
+  OPS?: Record<string, number>;
 };
 
 /**
@@ -58,6 +62,15 @@ const LINE_TOLERANCE = 2;
  * line is smaller, and a real column gutter is larger.
  */
 const COLUMN_GAP = 36;
+
+/**
+ * Rows that must show the same gutter before the page is read as two columns.
+ *
+ * A resume's contact line often has one wide gap in it, and a role beside its
+ * dates has another. Neither is a column. Three agreeing rows is the point
+ * where a gutter is a layout rather than a coincidence.
+ */
+const GUTTER_SUPPORT = 3;
 
 type Line = {
   y: number;
@@ -86,6 +99,95 @@ function toLines(items: TextItem[]): Line[] {
   });
   for (const line of lines) line.items.sort((a, b) => a.transform[4] - b.transform[4]);
   return lines;
+}
+
+/**
+ * Where the gutter runs, when the page has one.
+ *
+ * Every wide gap on the page votes with its midpoint; the median of those
+ * votes is the gutter. A median rather than an average because one contact
+ * line with a tab in it should not drag the boundary, and a resume's right
+ * column rarely starts at exactly the same x on every row.
+ *
+ * Returns null unless enough rows agree, since a page with two wide gaps in
+ * it is a page with two wide gaps, not a two-column layout.
+ */
+function findGutter(lines: Line[]): number | null {
+  const votes: number[] = [];
+  for (const line of lines) {
+    let prevEnd: number | null = null;
+    for (const item of line.items) {
+      const x = item.transform[4];
+      if (prevEnd !== null && x - prevEnd > COLUMN_GAP) {
+        votes.push((prevEnd + x) / 2);
+      }
+      prevEnd = x + item.width;
+    }
+  }
+  if (votes.length < GUTTER_SUPPORT || votes.length < lines.length * 0.3) {
+    return null;
+  }
+  votes.sort((a, b) => a - b);
+  return votes[Math.floor(votes.length / 2)];
+}
+
+/**
+ * Splits a two-column page into one run of lines per column.
+ *
+ * The reason this exists: a layout engine emits a two-column page row by row,
+ * so grouping by baseline puts the left column's sentence and the right
+ * column's bullet on the same line. Reading that top to bottom interleaves
+ * them, which is how a summary paragraph comes back with a skills list spliced
+ * through it every other clause. A person reads one column to the bottom and
+ * then starts the next, and so must we.
+ *
+ * A line that straddles the gutter is cut in two and each half goes to its
+ * own column. A line that lies entirely on one side belongs to that side,
+ * which is what keeps a full-width heading with the column it introduces.
+ */
+function splitColumns(lines: Line[], gutter: number): Line[][] {
+  const left: Line[] = [];
+  const right: Line[] = [];
+
+  for (const line of lines) {
+    const before = line.items.filter((i) => i.transform[4] < gutter);
+    const after = line.items.filter((i) => i.transform[4] >= gutter);
+    if (before.length) left.push({ ...line, items: before });
+    if (after.length) right.push({ ...line, items: after });
+  }
+
+  const byY = (a: Line, b: Line) => b.y - a.y;
+  return [left.sort(byY), right.sort(byY)].filter((c) => c.length);
+}
+
+/**
+ * Whether the page draws a picture.
+ *
+ * The operator list is the page's drawing instructions; the paint-image codes
+ * are the only ones that put a raster on the page. Read rather than decoded,
+ * so nothing is loaded into memory and the cost is a list of integers.
+ *
+ * Wrapped in its own try: this is an extra, and a build of pdf.js that does
+ * not expose the operator list must not take the text down with it.
+ */
+async function pageHasImage(
+  page: { getOperatorList?: () => Promise<{ fnArray: number[] }> },
+  ops: Record<string, number> | undefined,
+): Promise<boolean> {
+  if (!page.getOperatorList || !ops) return false;
+  const codes = [
+    ops.paintImageXObject,
+    ops.paintJpegXObject,
+    ops.paintInlineImage,
+    ops.paintImageMaskXObject,
+  ].filter((c): c is number => typeof c === "number");
+  if (!codes.length) return false;
+  try {
+    const { fnArray } = await page.getOperatorList();
+    return fnArray.some((fn) => codes.includes(fn));
+  } catch {
+    return false;
+  }
 }
 
 function lineText(line: Line): string {
@@ -232,6 +334,7 @@ export async function extractPdf(
   const blocks: Block[] = [];
   const flags: Flag[] = [];
   const emptyPages: number[] = [];
+  const imagePages: number[] = [];
   let charCount = 0;
   let orderDiffers = false;
 
@@ -241,24 +344,51 @@ export async function extractPdf(
       const content = await page.getTextContent();
       const items = content.items.filter(isTextItem).filter((i) => i.str.trim());
 
+      if (await pageHasImage(page, pdfjs.OPS)) imagePages.push(n);
+
       if (!items.length) {
         emptyPages.push(n);
         continue;
       }
 
       const lines = toLines(items);
+
+      /*
+       * Reading order.
+       *
+       * Down the page for a single column; down one column and then down the
+       * next when the page has a gutter. Reading a two-column page straight
+       * down produced the failure this whole module exists to catch, in our
+       * own output: the left column's summary came back with the right
+       * column's skills list spliced through it clause by clause.
+       *
+       * The flag below still fires either way. The file really is laid out in
+       * two columns and plenty of parsers really will interleave it; that is
+       * worth telling someone even though we recovered it ourselves.
+       */
+      const gutter = findGutter(lines);
       // Top of the page first. PDF measures y upward from the bottom edge.
-      const reading = [...lines].sort((a, b) => b.y - a.y);
+      const byY = (a: Line, b: Line) => b.y - a.y;
+      const regions = gutter
+        ? splitColumns(lines, gutter)
+        : [[...lines].sort(byY)];
+      const reading = regions.flat();
 
       /*
        * The check that earns this whole module: compare the order the text was
        * drawn in against the order a person reads it. A layout engine emits a
        * two-column page row by row, so a parser that trusts emission order
        * produces "Email  Senior Backend Engineer" on every line.
+       *
+       * A gutter settles it on its own: the columns were emitted row by row
+       * and are read column by column, so the two orders cannot agree.
        */
       if (!orderDiffers) {
-        const emitted = [...lines].sort((a, b) => a.first - b.first);
-        orderDiffers = reading.some((line, i) => line !== emitted[i]);
+        if (gutter) orderDiffers = true;
+        else {
+          const emitted = [...lines].sort((a, b) => a.first - b.first);
+          orderDiffers = reading.some((line, i) => line !== emitted[i]);
+        }
       }
 
       const heights = items.map((i) => i.height).sort((a, b) => a - b);
@@ -280,52 +410,65 @@ export async function extractPdf(
       };
 
       /*
-       * The measure the page was set to. Taken from the widest line rather
-       * than the page width, because margins vary and what matters is where
-       * this document's text actually stops.
+       * Each column is measured on its own.
+       *
+       * The measure is where this document's text actually stops, taken from
+       * the widest line rather than the page width, because margins vary. On
+       * a two-column page there are two such edges: a narrow left column's
+       * lines all fall hundreds of points short of the right column's edge,
+       * and measuring both against one page-wide figure means no line ever
+       * looks full, so nothing is ever rejoined and every wrapped sentence
+       * stays in fragments.
        */
-      const measured = reading.filter((l) => lineText(l));
-      const rights = measured.map((l) => geom(l).right);
-      const measure = Math.max(0, ...rights);
+      for (const region of regions) {
+        const measured = region.filter((l) => lineText(l));
+        if (!measured.length) continue;
 
-      /*
-       * Only rejoin when the page shows a right-hand edge several lines
-       * agree on. Without that there is no measure to have run out of, and
-       * any join would be a guess.
-       */
-      const slack = Math.max(WRAP_SLACK_MIN, median * WRAP_SLACK_EM);
-      const rejoin =
-        rights.filter((r) => r >= measure - slack).length >= MEASURE_SUPPORT;
+        const rights = measured.map((l) => geom(l).right);
+        const measure = Math.max(0, ...rights);
 
-      let open: Block | null = null;
-      let openGeom: LineGeom | null = null;
+        /*
+         * Only rejoin when the column shows a right-hand edge several lines
+         * agree on. Without that there is no measure to have run out of, and
+         * any join would be a guess.
+         */
+        const slack = Math.max(WRAP_SLACK_MIN, median * WRAP_SLACK_EM);
+        const rejoin =
+          rights.filter((r) => r >= measure - slack).length >= MEASURE_SUPPORT;
 
-      for (const line of measured) {
-        const g = geom(line);
-        charCount += g.text.length;
+        let open: Block | null = null;
+        let openGeom: LineGeom | null = null;
 
-        // A wrapped line belongs to the block above it, not to one of its own.
-        if (rejoin && open && openGeom && wraps(openGeom, g, measure, median)) {
-          open.text += ` ${g.text.replace(/\t/g, "  ")}`;
+        for (const line of measured) {
+          const g = geom(line);
+          charCount += g.text.length;
+
+          // A wrapped line belongs to the block above it, not one of its own.
+          if (rejoin && open && openGeom && wraps(openGeom, g, measure, median)) {
+            open.text += ` ${g.text.replace(/\t/g, "  ")}`;
+            openGeom = g;
+            continue;
+          }
+
+          open = {
+            kind: g.kind,
+            text: g.text.replace(/\t/g, "  "),
+            page: n,
+            x: Math.round(g.left),
+            y: Math.round(g.y),
+          };
           openGeom = g;
-          continue;
+          blocks.push(open);
         }
-
-        open = {
-          kind: g.kind,
-          text: g.text.replace(/\t/g, "  "),
-          page: n,
-          x: Math.round(g.left),
-          y: Math.round(g.y),
-        };
-        openGeom = g;
-        blocks.push(open);
       }
 
-      // A gutter that appears on most lines is a column layout, not one wide
-      // gap in a single line of contact details.
-      const gutters = reading.filter((l) => lineText(l).includes("\t")).length;
-      if (gutters >= 3 && gutters >= reading.length * 0.4) {
+      /*
+       * Reported even though the columns were recovered above. The file is
+       * still laid out in two, and most parsers are not this careful: they
+       * flatten the page and interleave it. That is worth knowing before
+       * sending it somewhere.
+       */
+      if (gutter) {
         flags.push({
           kind: "multiColumn",
           page: n,
@@ -355,6 +498,23 @@ export async function extractPdf(
           ? `Page ${emptyPages[0]} has`
           : `Pages ${emptyPages.join(", ")} have`
       } no text on ${emptyPages.length === 1 ? "it" : "them"}: an image, or a blank page.`,
+    });
+  }
+
+  /*
+   * Only when there is text as well. A page that is nothing but an image is
+   * already reported as having no text layer, and saying both would name the
+   * same defect twice.
+   */
+  if (hasTextLayer && imagePages.length) {
+    flags.push({
+      kind: "image",
+      page: imagePages[0],
+      detail: `${
+        imagePages.length === 1
+          ? `Page ${imagePages[0]} contains a picture`
+          : `Pages ${imagePages.join(", ")} contain pictures`
+      }. Nothing inside a picture is readable, so a photo, a logo, or a skills chart reaches a parser as nothing at all. Keep it if the market you are applying to expects one, but make sure it holds no information that is not also written out as text.`,
     });
   }
 

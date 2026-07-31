@@ -21,6 +21,7 @@ import { useAppStore } from "@/store";
 import { tone } from "@/ui/tokens";
 import { Field } from "./fields";
 import { ItemEditor, itemSummary } from "./ItemEditor";
+import { LinksEditor } from "./LinksEditor";
 import { useConfirm } from "./useConfirm";
 
 function PanelHeading({
@@ -93,38 +94,9 @@ function BasicsEditor({ resume }: { resume: Resume }) {
 
       <PanelHeading
         title="Links"
-        help="Write addresses out in full. Shortened links and clickable-word-only links often extract as nothing at all."
+        help="Addresses are printed as text, never as an icon. A parser reads the text layer, so a logo on its own leaves nothing behind to follow."
       />
-      {b.links.map((l) => (
-        <Box key={l.id} sx={{ display: "flex", gap: 1, mb: 1.25 }}>
-          <Box sx={{ flex: 1 }}>
-            <Field
-              label="Label"
-              value={l.label}
-              onChange={(label) => s.updateLink(l.id, { label })}
-            />
-          </Box>
-          <Box sx={{ flex: 1.6 }}>
-            <Field
-              label="Address"
-              value={l.url}
-              onChange={(url) => s.updateLink(l.id, { url })}
-            />
-          </Box>
-          <Tooltip title="Remove link">
-            <IconButton
-              onClick={() => s.removeLink(l.id)}
-              aria-label={`Remove ${l.label || "link"}`}
-              sx={{ mt: 0.75 }}
-            >
-              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ))}
-      <Button startIcon={<AddIcon sx={{ fontSize: 16 }} />} onClick={s.addLink}>
-        Add link
-      </Button>
+      <LinksEditor links={b.links} />
 
       <Divider sx={{ my: 2 }} />
 

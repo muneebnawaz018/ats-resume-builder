@@ -214,9 +214,56 @@ describe("pdf", () => {
   it("catches a two-column layout and the shuffled order it causes", async () => {
     const e = await extractPdf(bytes("pdf/two-column-layout.pdf"), nodePdfjs);
     expect(has(e, "multiColumn")).toBe(true);
-    // Both columns are still recovered, the finding is the interleaving.
+    // The finding stands even though we recover it: most parsers will not.
     expect(e.text).toContain(EMAIL);
     expect(e.text).toContain(ORG);
+  });
+
+  /*
+   * The layout engine emits a two-column page row by row, so the left
+   * column's contact rail and the right column's history share a baseline.
+   * Read straight down, every line came out as one column's text glued to
+   * the other's: a summary paragraph with a skills list spliced through it.
+   */
+  it("reads each column to the bottom before starting the next", async () => {
+    const e = await extractPdf(bytes("pdf/two-column-layout.pdf"), nodePdfjs);
+
+    // No block may hold text from both columns at once.
+    const glued = e.blocks.filter(
+      (b) => b.text.includes(EMAIL) && b.text.includes("Senior Backend"),
+    );
+    expect(glued).toEqual([]);
+
+    // SKILLS sits at the foot of the left rail, EXPERIENCE at the head of the
+    // right one. Reading by column puts the whole left rail first.
+    expect(e.text.indexOf("SKILLS")).toBeGreaterThan(-1);
+    expect(e.text.indexOf("SKILLS")).toBeLessThan(e.text.indexOf("EXPERIENCE"));
+  });
+
+  /*
+   * A photo is conventional on a resume across much of Europe and Asia and is
+   * unreadable everywhere. It used to vanish without a word: the text came
+   * through, the picture did not, and nothing said so.
+   */
+  it("says a Word file holds a picture", () => {
+    const e = extractDocx(bytes("docx/photo.docx"));
+    expect(has(e, "image")).toBe(true);
+    // The text around it still comes through.
+    expect(e.text).toContain(NAME);
+  });
+
+  it("does not report a picture in a document without one", () => {
+    expect(has(extractDocx(bytes("docx/clean-styled.docx")), "image")).toBe(
+      false,
+    );
+  });
+
+  it("does not call a scan a picture as well as a missing text layer", async () => {
+    // One defect, one finding: a page that is only an image is already
+    // reported as having no text layer.
+    const e = await extractPdf(bytes("pdf/no-text-layer.pdf"), nodePdfjs);
+    expect(has(e, "noTextLayer")).toBe(true);
+    expect(has(e, "image")).toBe(false);
   });
 
   it("reports a scan as having no text layer", async () => {

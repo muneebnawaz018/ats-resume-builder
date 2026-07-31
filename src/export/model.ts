@@ -1,5 +1,5 @@
 import { formatDateRange } from "@/lib";
-import { plainText, type Resume, type Section } from "@/schema";
+import { linkText, plainText, type Resume, type Section } from "@/schema";
 
 /**
  * One flat reading of a resume, shared by every writer.
@@ -112,7 +112,10 @@ export function toLines(resume: Resume): Line[] {
   if (b.fullName) out.push({ kind: "name", text: b.fullName });
   if (b.headline) out.push({ kind: "headline", text: b.headline });
 
-  const contact = [b.email, b.phone, b.location, ...b.links.map((l) => l.url)]
+  // Same rendering as the document, so a downloaded file says what the
+  // preview said. These used to disagree: the PDF honoured displayAs and
+  // every other format printed the raw address regardless.
+  const contact = [b.email, b.phone, b.location, ...b.links.map(linkText)]
     .filter(Boolean)
     .join(" · ");
   if (contact) out.push({ kind: "contact", text: contact });

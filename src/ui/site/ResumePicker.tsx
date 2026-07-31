@@ -23,6 +23,7 @@ export function ResumePicker({
   onFile,
   onClear,
   compact = false,
+  value,
 }: {
   onFile?: (picked: Picked) => void;
   /** Fired when the chosen file is removed, so a report can be torn down. */
@@ -33,9 +34,18 @@ export function ResumePicker({
    * which file you are looking at.
    */
   compact?: boolean;
+  /**
+   * What is being read, when something other than this control chose it.
+   *
+   * The checker can also start from a resume built here, which never passes
+   * through the file input. Without this the report appeared with an empty
+   * dropzone above it, still inviting a file that had already been chosen.
+   */
+  value?: Picked | null;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const [picked, setPicked] = useState<Picked | null>(null);
+  const [own, setPicked] = useState<Picked | null>(null);
+  const picked = value ?? own;
   const [error, setError] = useState<string | null>(null);
   const [over, setOver] = useState(false);
   const errorId = useId();
