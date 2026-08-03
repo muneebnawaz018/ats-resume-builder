@@ -75,37 +75,82 @@ function taskTokens() {
   const kebab = (s: string) =>
     s.replace(/([a-z])([A-Z0-9])/g, "$1-$2").toLowerCase();
 
-  const lines: string[] = [];
-  const push = (name: string, value: string) =>
-    lines.push(`  --${name}: ${value};`);
+  const block = (
+    groups: Record<string, unknown>[],
+    extra: [string, string][],
+  ) => {
+    const lines: string[] = [];
+    for (const group of groups) {
+      for (const [k, v] of Object.entries(group)) {
+        lines.push(`  --${kebab(k)}: ${v as string};`);
+      }
+    }
+    for (const [k, v] of extra) lines.push(`  --${k}: ${v};`);
+    return lines;
+  };
 
-  // Raw ramp, exposed so one-off CSS can reach a shade without inventing one.
-  for (const [k, v] of Object.entries(tokens.palette)) push(`c-${kebab(k)}`, v);
-
-  for (const group of [tokens.tone, tokens.blue, tokens.severity]) {
-    for (const [k, v] of Object.entries(group)) push(kebab(k), v as string);
+  /**
+   * Everything that does not change with the scheme.
+   *
+   * The raw ramp is exposed so one-off CSS can reach a shade without inventing
+   * one, and shape and motion are the same in the dark: a radius is not a
+   * colour, and re-emitting them per scheme would invite them to drift.
+   */
+  const constants: string[] = [];
+  for (const [k, v] of Object.entries(tokens.palette)) {
+    constants.push(`  --c-${kebab(k)}: ${v};`);
   }
-
   for (const [k, v] of Object.entries(tokens.radius)) {
-    push(`radius-${k}`, `${v}px`);
+    constants.push(`  --radius-${k}: ${v}px;`);
   }
-  for (const [k, v] of Object.entries(tokens.shadow)) {
-    push(`shadow-${k}`, v as string);
-  }
+  constants.push(`  --dur-fast: ${tokens.motion.fast};`);
+  constants.push(`  --dur-base: ${tokens.motion.base};`);
+  constants.push(`  --dur-slow: ${tokens.motion.slow};`);
+  constants.push(`  --ease: ${tokens.motion.ease};`);
+  constants.push(`  --spring: ${tokens.motion.spring};`);
 
-  push("dur-fast", tokens.motion.fast);
-  push("dur-base", tokens.motion.base);
-  push("dur-slow", tokens.motion.slow);
-  push("ease", tokens.motion.ease);
-  push("spring", tokens.motion.spring);
+  const scheme = (which: "light" | "dark") => {
+    const dark = which === "dark";
+    const lines = block(
+      [
+        dark ? tokens.darkTone : tokens.tone,
+        dark ? tokens.darkBlue : tokens.blue,
+        dark ? tokens.darkSeverity : tokens.severity,
+      ],
+      [],
+    );
+    for (const [k, v] of Object.entries(
+      dark ? tokens.darkShadow : tokens.shadow,
+    )) {
+      lines.push(`  --shadow-${k}: ${v as string};`);
+    }
+    lines.push(`  --edge: ${tokens.edge[which]};`);
+    lines.push(`  --edge-soft: ${tokens.edgeSoft[which]};`);
+    lines.push(`  --lift: ${tokens.lift[which]};`);
+    lines.push(`  --on-accent: ${tokens.onAccent[which]};`);
+    lines.push(`  color-scheme: ${which};`);
+    return lines.join("\n");
+  };
 
-  writeFileSync(
-    join(ROOT, "src/app/tokens.generated.css"),
+  /*
+   * Three rules, in this order.
+   *
+   * The bare :root carries light, so a browser that never runs the theme
+   * script still gets a complete stylesheet. The media query then follows the
+   * operating system, but only while no choice has been made: the
+   * :not([data-theme]) guard is what lets an explicit "light" beat a dark OS.
+   * The attribute rule last, so a stated preference wins outright.
+   */
+  const css =
     "/* Generated from src/ui/tokens/tokens.ts by scripts/tasks.ts.\n" +
-      "   Do not edit, run `npm run gen:tokens`. */\n\n" +
-      `:root {\n${lines.join("\n")}\n  color-scheme: light;\n}\n`,
-  );
-  out("src/app/tokens.generated.css", `${lines.length} tokens`);
+    "   Do not edit, run `npm run gen:tokens`. */\n\n" +
+    `:root {\n${constants.join("\n")}\n\n${scheme("light")}\n}\n\n` +
+    "@media (prefers-color-scheme: dark) {\n" +
+    `  :root:not([data-theme]) {\n${scheme("dark").replace(/^/gm, "  ")}\n  }\n}\n\n` +
+    `:root[data-theme="dark"] {\n${scheme("dark")}\n}\n`;
+
+  writeFileSync(join(ROOT, "src/app/tokens.generated.css"), css);
+  out("src/app/tokens.generated.css", "light + dark");
 }
 
 /**

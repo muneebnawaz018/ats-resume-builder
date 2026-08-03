@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type ResumeFormat } from "@/lib";
-import css from "@/ui/site/site.module.css";
+import type { Picked } from "./Dropzone";
+import { PanelHead } from "./ReportPanels";
+import css from "./console.module.css";
 
 type Saved = { id: string; name: string; updatedAt: string };
 
@@ -31,11 +32,7 @@ function edited(iso: string): string {
  * send, and that file is what gets read. The round trip is the measurement,
  * and it is the same path an upload takes from there on.
  */
-export function SavedResumes({
-  onPick,
-}: {
-  onPick: (picked: { file: File; format: ResumeFormat }) => void;
-}) {
+export function SavedList({ onPick }: { onPick: (picked: Picked) => void }) {
   const [saved, setSaved] = useState<Saved[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -138,10 +135,10 @@ export function SavedResumes({
   if (!saved || saved.length === 0) return null;
 
   return (
-    <section className={css.savedCard} aria-labelledby="saved-heading">
-      <p className={css.pickerLabel} id="saved-heading">
+    <section className={css.panel}>
+      <PanelHead count={String(saved.length)}>
         Or check one you have built
-      </p>
+      </PanelHead>
 
       <ul className={css.savedList}>
         {saved.map((row) => (
@@ -153,12 +150,11 @@ export function SavedResumes({
               onClick={() => void check(row)}
             >
               <span className={css.savedName}>{row.name}</span>
-              {/* Checking one file twice stores two documents, so several
-                  rows can carry the same name. The date is what tells them
-                  apart. */}
+              {/* Checking one file twice stores two documents, so several rows
+                  can carry the same name. The date tells them apart. */}
               <span className={css.savedWhen}>{edited(row.updatedAt)}</span>
-              <span className={css.savedMeta}>
-                {busy === row.id ? "Building the file…" : "Check as Word"}
+              <span className={css.savedAction}>
+                {busy === row.id ? "Building…" : "Check as Word"}
               </span>
             </button>
 
@@ -173,7 +169,7 @@ export function SavedResumes({
                 </button>
                 <button
                   type="button"
-                  className={css.savedCancel}
+                  className={css.btn}
                   onClick={() => setConfirming(null)}
                 >
                   Keep
@@ -187,7 +183,7 @@ export function SavedResumes({
                 title="Delete from this browser"
                 onClick={() => setConfirming(row.id)}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     d="M6 6l12 12M18 6L6 18"
                     stroke="currentColor"
@@ -201,14 +197,14 @@ export function SavedResumes({
         ))}
       </ul>
 
-      <p className={css.savedNote}>
+      <p className={css.note}>
         Each one is exported to Word first and the export is what gets read, so
-        the result describes the file you would send rather than the data
-        behind it.
+        the result describes the file you would send rather than the data behind
+        it.
       </p>
 
       {error ? (
-        <p className={css.toolFailed} role="alert">
+        <p className={css.failed} role="alert">
           {error}
         </p>
       ) : null}

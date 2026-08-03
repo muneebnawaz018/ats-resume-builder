@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
-import { site, url } from "@/lib";
+import { SCHEME_SCRIPT, site, url } from "@/lib";
 import { palette } from "@/ui/tokens";
 import { ScrollReveal } from "@/ui/site";
 import "./globals.css";
@@ -77,8 +77,12 @@ export const metadata: Metadata = {
 
 /** Drives the browser chrome colour on mobile. */
 export const viewport = {
-  // From the palette, not a copy of it, see src/ui/theme/tokens.ts.
-  themeColor: palette.blue600,
+  // From the palette, not a copy of it, see src/ui/tokens/tokens.ts. Two
+  // entries, so the phone's address bar does not stay light above a dark page.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: palette.blue600 },
+    { media: "(prefers-color-scheme: dark)", color: palette.ink900 },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -90,7 +94,20 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${sans.variable} ${mono.variable}`}
+      /* The script below writes data-theme before React sees the document. */
+      suppressHydrationWarning
     >
+      <head>
+        {/*
+          Blocking, inline, and first: it stamps the stored scheme onto <html>
+          before the first paint. Anything asynchronous here means the page
+          paints light and then snaps to dark, on every navigation.
+        */}
+        <script
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: SCHEME_SCRIPT }}
+        />
+      </head>
       {/*
         Browser extensions (password managers, colour pickers) add attributes
         to <body> before React hydrates, which React reports as a mismatch.

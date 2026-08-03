@@ -51,6 +51,34 @@ export const palette = {
   red600: "#C4372A",
   amber700: "#8A5A06",
   green600: "#1E7A4F",
+
+  /**
+   * Dark ramp. Not the light one inverted.
+   *
+   * A slate ramp read backwards gives muddy mid-greys, because the light ramp
+   * is tuned for ink on paper and spends most of its range near white. These
+   * are picked for the opposite job: near-black surfaces separated by a few
+   * points of lightness each, so a panel on a background reads as raised
+   * without a shadow, which is invisible at this end of the scale.
+   */
+  ink900: "#090B0F",
+  ink850: "#0D1117",
+  ink800: "#151A21",
+  ink700: "#1E242D",
+  ink600: "#2A323D",
+  ink550: "#1A1F27",
+  mist400: "#5D6875",
+  mist300: "#7F8B99",
+  mist200: "#A6B1BF",
+  mist100: "#E7EDF4",
+
+  /** Lifted for dark surfaces: blue600 on near-black is under 3:1. */
+  blue350: "#4CB2E8",
+  blue250: "#7ECDF5",
+
+  red400: "#FF6B5E",
+  amber400: "#E0A640",
+  green400: "#3FBF85",
 } as const;
 
 
@@ -138,6 +166,52 @@ export const severity = {
 } as const;
 
 /* ------------------------------------------------------------------ *
+ * 3b. The same semantics, in the dark
+ *
+ * Same names, same meanings, different values. Nothing in the application
+ * chooses between these: components read `var(--surface-0)` and the scheme in
+ * effect decides what that is. The one exception is the resume document, which
+ * is driven entirely by its own `--r-*` variables and stays white paper under
+ * either scheme, because that is what comes out of the printer.
+ * ------------------------------------------------------------------ */
+
+export const darkTone: Record<keyof typeof tone, string> = {
+  surface0: palette.ink850,
+  surface1: palette.ink900,
+  surface2: palette.ink800,
+  surface3: palette.ink700,
+  line1: palette.ink550,
+  line2: palette.ink600,
+  text1: palette.mist100,
+  text2: palette.mist200,
+  text3: palette.mist300,
+  text4: palette.mist400,
+};
+
+export const darkBlue: Record<keyof typeof blue, string> = {
+  guideMark: palette.blue350,
+  guideWash: alpha(palette.blue350, 0.22),
+  accent: palette.blue350,
+  accentHover: palette.blue250,
+  accentSoft: palette.blue350,
+  /* Washes carry further on a dark surface than a light one at the same
+     opacity, so these are not the light values reused. */
+  accentWash: alpha(palette.blue350, 0.1),
+  accentWashStrong: alpha(palette.blue350, 0.18),
+  accentBorder: alpha(palette.blue350, 0.32),
+};
+
+export const darkSeverity: Record<keyof typeof severity, string> = {
+  flag: palette.red400,
+  flagWash: alpha(palette.red400, 0.12),
+  flagBorder: alpha(palette.red400, 0.34),
+  caution: palette.amber400,
+  cautionWash: alpha(palette.amber400, 0.12),
+  pass: palette.green400,
+  passWash: alpha(palette.green400, 0.12),
+};
+
+/* ------------------------------------------------------------------ *
  * 4. Shape, depth, motion
  * ------------------------------------------------------------------ */
 
@@ -152,6 +226,50 @@ export const shadow = {
   md: `0 2px 4px ${alpha(ink, 0.04)}, 0 6px 16px ${alpha(ink, 0.07)}`,
   lg: `0 4px 8px ${alpha(ink, 0.05)}, 0 16px 40px ${alpha(ink, 0.1)}`,
   ring: `0 0 0 4px ${alpha(palette.blue600, 0.14)}`,
+} as const;
+
+/**
+ * Shadows in the dark.
+ *
+ * A soft grey shadow does nothing against a near-black background, so these
+ * are near-opaque black and paired with a hairline top highlight. The
+ * highlight is what actually reads as elevation: the edge catching light.
+ */
+export const darkShadow: Record<keyof typeof shadow, string> = {
+  sm: `0 1px 2px ${alpha(palette.black, 0.4)}`,
+  md: `0 6px 20px ${alpha(palette.black, 0.45)}`,
+  lg: `0 18px 48px ${alpha(palette.black, 0.55)}`,
+  ring: `0 0 0 4px ${alpha(palette.blue350, 0.28)}`,
+};
+
+/** The hairline that stands in for a shadow. Set per scheme. */
+export const edge = {
+  light: alpha(palette.slate900, 0.06),
+  dark: alpha(palette.white, 0.07),
+} as const;
+
+/** The same, at half strength, for rules inside a panel. */
+export const edgeSoft = {
+  light: alpha(palette.slate900, 0.04),
+  dark: alpha(palette.white, 0.045),
+} as const;
+
+/** Inner top highlight. Only visible, and only wanted, on dark surfaces. */
+export const lift = {
+  light: "none",
+  dark: `inset 0 1px 0 ${alpha(palette.white, 0.035)}`,
+} as const;
+
+/**
+ * Text on a filled accent button.
+ *
+ * White on the dark blue, ink on the light one. The accent has to lift in the
+ * dark to clear 3:1 against a near-black surface, and once it does, white text
+ * on top of it fails.
+ */
+export const onAccent = {
+  light: palette.white,
+  dark: palette.ink900,
 } as const;
 
 /** One rhythm for the whole app. Exit faster than enter. */

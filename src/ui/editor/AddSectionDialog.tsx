@@ -8,7 +8,7 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import Typography from "@mui/material/Typography";
 import { ADDABLE_SECTIONS, type SectionType } from "@/schema";
-import { tone } from "@/ui/tokens";
+import { v } from "@/ui/theme/vars";
 
 export function AddSectionDialog({
   open,
@@ -24,7 +24,7 @@ export function AddSectionDialog({
       <DialogTitle sx={{ fontSize: 15, fontWeight: 600, pb: 0.5 }}>
         Add a section
       </DialogTitle>
-      <Typography sx={{ px: 3, pb: 1.5, fontSize: 12.5, color: tone.text3 }}>
+      <Typography sx={{ px: 3, pb: 1.5, fontSize: 12.5, color: v.text3 }}>
         You can rename any of these afterwards. The type decides which fields
         you get and how the entries are laid out.
       </Typography>
@@ -43,7 +43,7 @@ export function AddSectionDialog({
                 <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
                   {s.title}
                 </Typography>
-                <Typography sx={{ fontSize: 12, color: tone.text3 }}>
+                <Typography sx={{ fontSize: 12, color: v.text3 }}>
                   {s.hint}
                 </Typography>
               </Box>

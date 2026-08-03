@@ -16,4 +16,5 @@ export {
 } from "./formats";
 export { stageHandoff, takeHandoff } from "./handoff";
 export { newId } from "./id";
+export { applyScheme, SCHEME_KEY, SCHEME_SCRIPT } from "./scheme";
 export { site, url } from "./site";

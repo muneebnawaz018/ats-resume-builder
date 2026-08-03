@@ -18,8 +18,9 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Collapse from "@mui/material/Collapse";
 import type { Resume } from "@/schema";
-import { tone } from "@/ui/tokens";
 import { itemSummary } from "./ItemEditor";
+import { PanelLabel } from "./PanelLabel";
+import { v } from "@/ui/theme/vars";
 
 /**
  * Structure at a glance, not a form. Selecting a section here focuses it on
@@ -55,8 +56,8 @@ function OutlineRailInner({
       sx={{
         width: 220,
         flexShrink: 0,
-        borderRight: `1px solid ${tone.line1}`,
-        bgcolor: tone.surface0,
+        borderRight: `1px solid ${v.edge}`,
+        bgcolor: v.surface0,
         /*
          * The rail is navigation, and every section it lists can also be
          * reached by clicking it in the document. Below a laptop width the
@@ -67,12 +68,12 @@ function OutlineRailInner({
         overflow: "hidden",
       }}
     >
-      <Typography
-        variant="overline"
-        sx={{ px: 1.75, pt: 1.75, pb: 1, color: tone.text3 }}
+      <PanelLabel
+        sx={{ px: 1.5, pt: 1.75, pb: 1 }}
+        count={String(resume.sections.length)}
       >
         Outline
-      </Typography>
+      </PanelLabel>
 
       <Box sx={{ flex: 1, overflowY: "auto", px: 0.75 }}>
         <List dense disablePadding>
@@ -144,7 +145,7 @@ function OutlineRailInner({
                     <ChevronRightIcon
                       sx={{
                         fontSize: 16,
-                        color: s.items.length ? tone.text3 : "transparent",
+                        color: s.items.length ? v.text3 : "transparent",
                         transform: isOpen ? "rotate(90deg)" : "none",
                         transition: "transform 160ms ease-out",
                       }}
@@ -155,7 +156,7 @@ function OutlineRailInner({
                     secondary={`${s.items.length} ${s.items.length === 1 ? "entry" : "entries"}`}
                     slotProps={{
                       primary: { noWrap: true, sx: { fontSize: 13 } },
-                      secondary: { sx: { fontSize: 11, color: tone.text3 } },
+                      secondary: { sx: { fontSize: 11, color: v.text3 } },
                     }}
                   />
                 </ListItemButton>
@@ -177,7 +178,7 @@ function OutlineRailInner({
                             slotProps={{
                               primary: {
                                 noWrap: true,
-                                sx: { fontSize: 12, color: tone.text2 },
+                                sx: { fontSize: 12, color: v.text2 },
                               },
                             }}
                           />
@@ -193,7 +194,7 @@ function OutlineRailInner({
         </List>
       </Box>
 
-      <Box sx={{ p: 1, borderTop: `1px solid ${tone.line1}` }}>
+      <Box sx={{ p: 1, borderTop: `1px solid ${v.edge}` }}>
         <Button
           fullWidth
           variant="outlined"

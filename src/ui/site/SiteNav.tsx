@@ -1,6 +1,7 @@
 import Link from "next/link";
 import css from "./site.module.css";
 import { NavMenu } from "./NavMenu";
+import { ThemeToggle } from "./ThemeToggle";
 
 /*
  * Order follows the page, top to bottom, so the bar doubles as a table of
@@ -104,6 +105,14 @@ export function SiteNav({
               Build a resume
             </Link>
           </div>
+
+          {/*
+            Last, behind a rule. It is a setting, not a third action, and
+            sitting between the links and the buttons it read as one of them
+            with its label missing. On the far side of a divider it reads as
+            chrome, which is what it is.
+          */}
+          <ThemeToggle />
 
           <NavMenu links={links} />
         </nav>

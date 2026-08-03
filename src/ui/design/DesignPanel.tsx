@@ -3,7 +3,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { BUILTIN_THEMES, SAFE_FONTS, type Theme, type ThemeTokens } from "@/schema";
-import { tone } from "@/ui/tokens";
 import {
   ColorControl,
   GroupTitle,
@@ -13,6 +12,7 @@ import {
   SwitchControl,
   TextControl,
 } from "./controls";
+import { v } from "@/ui/theme/vars";
 
 /**
  * Every token is exposed. Competitors withhold this to keep output on-brand
@@ -347,7 +347,7 @@ export function DesignPanel({
         onChange={set("colorLink")}
       />
 
-      <Typography sx={{ fontSize: 11, color: tone.text3, mt: 3 }}>
+      <Typography sx={{ fontSize: 11, color: v.text3, mt: 3 }}>
         Themes are plain JSON. Export one to share it, or import someone
         else&rsquo;s.
       </Typography>

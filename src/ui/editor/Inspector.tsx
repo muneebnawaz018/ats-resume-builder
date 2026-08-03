@@ -6,7 +6,6 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import dynamic from "next/dynamic";
 import { useRef } from "react";
-import { tone } from "@/ui/tokens";
 import { useReveal } from "./useReveal";
 import { ContentPanel } from "./ContentPanel";
 
@@ -19,7 +18,7 @@ const DesignPanel = dynamic(
   {
     ssr: false,
     loading: () => (
-      <Box sx={{ p: 2.5, fontSize: 12.5, color: tone.text3 }}>
+      <Box sx={{ p: 2.5, fontSize: 12.5, color: v.text3 }}>
         Loading design controls…
       </Box>
     ),
@@ -27,13 +26,14 @@ const DesignPanel = dynamic(
 );
 import { type Resume, type Theme, type ThemeTokens } from "@/schema";
 import { useAppStore, type PanelTab } from "@/store";
+import { v } from "@/ui/theme/vars";
 
 /** Placeholder that directs rather than decorates. */
 function Pending({ title, body }: { title: string; body: string }) {
   return (
     <Box sx={{ p: 2.5 }}>
       <Typography sx={{ fontSize: 13, mb: 0.75 }}>{title}</Typography>
-      <Typography sx={{ fontSize: 12, color: tone.text3, lineHeight: 1.6 }}>
+      <Typography sx={{ fontSize: 12, color: v.text3, lineHeight: 1.6 }}>
         {body}
       </Typography>
     </Box>
@@ -79,8 +79,8 @@ export function Inspector({
          */
         width: { xs: "100%", sm: 320 },
         flexShrink: 0,
-        borderLeft: { xs: "none", sm: `1px solid ${tone.line1}` },
-        bgcolor: tone.surface0,
+        borderLeft: { xs: "none", sm: `1px solid ${v.edge}` },
+        bgcolor: v.surface0,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -90,7 +90,7 @@ export function Inspector({
         value={tab}
         onChange={(_, v: PanelTab) => onTab(v)}
         variant="fullWidth"
-        sx={{ borderBottom: `1px solid ${tone.line1}` }}
+        sx={{ borderBottom: `1px solid ${v.edge}` }}
       >
         <Tab label="Content" value="content" />
         <Tab label="Design" value="design" />

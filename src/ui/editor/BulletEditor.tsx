@@ -11,7 +11,7 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { plainText, richText, type RichText } from "@/schema";
-import { severity, tone } from "@/ui/tokens";
+import { v } from "@/ui/theme/vars";
 
 const LONG_BULLET = 220;
 
@@ -55,11 +55,11 @@ export function BulletEditor({
 
   return (
     <Box sx={{ mb: 1.5 }}>
-      <Typography sx={{ fontSize: 12, color: tone.text2, mb: 0.25 }}>
+      <Typography sx={{ fontSize: 12, color: v.text2, mb: 0.25 }}>
         {label}
       </Typography>
       {help ? (
-        <Typography sx={{ fontSize: 11.5, color: tone.text3, mb: 1 }}>
+        <Typography sx={{ fontSize: 11.5, color: v.text3, mb: 1 }}>
           {help}
         </Typography>
       ) : null}
@@ -85,7 +85,7 @@ export function BulletEditor({
                   : undefined
               }
               slotProps={{
-                formHelperText: { sx: { color: severity.caution } },
+                formHelperText: { sx: { color: v.caution } },
                 htmlInput: { "aria-label": `Bullet ${i + 1}` },
               }}
             />

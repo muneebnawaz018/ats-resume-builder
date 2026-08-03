@@ -285,3 +285,106 @@ describe("refusing a posting that is not one", () => {
     expect(r.usable).toBe(true);
   });
 });
+
+/*
+ * A posting in the shape real ones arrive in: headings in the wording people
+ * actually use, a wishlist, and a tail of pay, benefits and how to apply.
+ * Every case below is something this got wrong on that shape.
+ */
+const REALISTIC = `Software Engineer (Frontend)
+
+What you'll do
+- Build and maintain features in our React/TypeScript web app
+- Write tests and review your teammates' pull requests
+
+What we're looking for
+- 2+ years writing production JavaScript or TypeScript
+- Solid React experience (hooks, state management, forms)
+- Comfortable with HTML and CSS, including responsive layouts
+- Familiar with Git and a normal pull request workflow
+
+Nice to have
+- Next.js
+- Node.js and REST API work
+- Testing with Jest or Playwright
+
+Salary: $110,000 - $140,000 depending on experience.
+Benefits: health, dental, 401k match, 20 days PTO.
+
+To apply, send a resume and a short note about something you've built.
+`;
+
+describe("a posting in its usual shape", () => {
+  const report = matchKeywords(REALISTIC, "Next.js and Node.js. Tested with Jest.");
+  const terms = report.terms.map((t) => t.term);
+
+  it("reads what we're looking for as the requirements list", () => {
+    // Without this heading every requirement ranked as a passing mention and
+    // fell off the end, leaving the wishlist as the whole report.
+    expect(report.requiredTotal).toBeGreaterThan(4);
+    const required = report.terms
+      .filter((t) => t.emphasis === "required")
+      .map((t) => t.term);
+    expect(required).toContain("react");
+    expect(required).toContain("typescript");
+    expect(required).toContain("git");
+  });
+
+  it("takes no terms from pay, benefits or how to apply", () => {
+    // These were ranked as things to add, so the advice read "health dental",
+    // "dental 401k", "401k match": tailor your resume to a dental plan.
+    for (const noise of ["health", "dental", "401k", "pto", "days pto", "salary"]) {
+      expect(terms).not.toContain(noise);
+    }
+  });
+
+  it("does not let the wishlist heading run on to the end of the posting", () => {
+    // The leak that caused the above: section emphasis persisted past its own
+    // bullets, so every later line inherited "nice to have".
+    expect(report.terms.every((t) => t.emphasis === "preferred")).toBe(false);
+  });
+
+  it("still reports the wishlist behind a long requirements list", () => {
+    // Ranking by emphasis alone filled all 24 slots from the requirements, so
+    // a resume matching three wishlist items was told it matched none.
+    expect(terms).toContain("next.js");
+    expect(terms).toContain("node.js");
+    expect(report.matched).toBeGreaterThan(1);
+  });
+
+  it("splits a slash between two full words", () => {
+    // "React/TypeScript" as one token is a term no resume contains, and it
+    // meant React went uncounted.
+    expect(terms).toContain("react");
+    expect(terms).not.toContain("react/typescript");
+  });
+
+  it("does not offer a phrase and both its halves", () => {
+    expect(terms).toContain("pull requests");
+    expect(terms).not.toContain("pull");
+    expect(terms).not.toContain("requests");
+  });
+
+  it("does not offer an instruction verb as a term", () => {
+    // Bullets are written as instructions, so pairing adjacent words produced
+    // "writing production" and "explain technical", and "write" on its own.
+    // Nobody is screened on those.
+    expect(terms).not.toContain("write");
+    expect(terms).not.toContain("writing production");
+    expect(terms).not.toContain("explain technical");
+    expect(terms).not.toContain("review pull");
+  });
+
+  it("keeps a real phrase that merely ends in a verb-like word", () => {
+    // Only the leading half is tested: technical writing is a job.
+    const r = matchKeywords(
+      "Requirements: technical writing, Python, SQL, Tableau, Excel, dbt, Airflow, Looker.",
+      "Technical writing and Python.",
+    );
+    expect(r.terms.map((t) => t.term)).toContain("technical writing");
+  });
+
+  it("does not treat a contraction tail as a word", () => {
+    expect(terms.some((t) => t.startsWith("ve "))).toBe(false);
+  });
+});

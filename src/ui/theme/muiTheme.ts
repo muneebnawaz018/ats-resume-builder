@@ -1,14 +1,17 @@
 "use client";
 
 import { createTheme } from "@mui/material/styles";
+import { v } from "./vars";
 import {
   blue,
+  darkBlue,
+  darkSeverity,
+  darkTone,
   font,
   motion,
   palette,
   radius,
   severity,
-  shadow,
   tone,
 } from "@/ui/tokens";
 
@@ -16,19 +19,57 @@ import {
  * MUI's defaults are the templated Material look and are overridden wholesale.
  * Every value comes from tokens.ts, which the plain-CSS routes read too, so
  * the marketing pages and the editor cannot drift apart.
+ *
+ * Two schemes, selected by the same `data-theme` attribute the inline script in
+ * the root layout writes. MUI's own palette needs real colours rather than
+ * `var(...)`, because it derives from them: it computes contrast text and
+ * hover fills, and it cannot parse a shade out of a custom property. The
+ * component overrides below use the variables instead, which is where the
+ * colours that are only ever displayed live.
  */
 export const muiTheme = createTheme({
-  cssVariables: true,
-  palette: {
-    mode: "light",
-    background: { default: tone.surface1, paper: tone.surface0 },
-    primary: { main: blue.accent, dark: blue.accentHover, contrastText: palette.white },
-    secondary: { main: tone.text2 },
-    error: { main: severity.flag },
-    warning: { main: severity.caution },
-    success: { main: severity.pass },
-    divider: tone.line1,
-    text: { primary: tone.text1, secondary: tone.text2, disabled: tone.text3 },
+  cssVariables: { colorSchemeSelector: "data-theme" },
+  /* No attribute means "follow the OS", which is what the tokens stylesheet
+     already does through its media query. */
+  defaultColorScheme: "light",
+  colorSchemes: {
+    light: {
+      palette: {
+        background: { default: tone.surface1, paper: tone.surface0 },
+        primary: {
+          main: blue.accent,
+          dark: blue.accentHover,
+          contrastText: palette.white,
+        },
+        secondary: { main: tone.text2 },
+        error: { main: severity.flag },
+        warning: { main: severity.caution },
+        success: { main: severity.pass },
+        divider: tone.line1,
+        text: { primary: tone.text1, secondary: tone.text2, disabled: tone.text3 },
+      },
+    },
+    dark: {
+      palette: {
+        background: { default: darkTone.surface1, paper: darkTone.surface0 },
+        primary: {
+          main: darkBlue.accent,
+          dark: darkBlue.accentHover,
+          // Against a light blue, ink reads and white does not.
+          contrastText: palette.ink900,
+        },
+        secondary: { main: darkTone.text2 },
+        error: { main: darkSeverity.flag },
+        warning: { main: darkSeverity.caution },
+        success: { main: darkSeverity.pass },
+        divider: darkTone.line1,
+        text: {
+          primary: darkTone.text1,
+          secondary: darkTone.text2,
+          disabled: darkTone.text3,
+        },
+      },
+    },
   },
 
   /** Anything the machine measured is set in mono. Anything a person wrote is sans. */
@@ -70,12 +111,12 @@ export const muiTheme = createTheme({
         sizeSmall: { minHeight: 32, paddingInline: 12, borderRadius: radius.sm },
         sizeLarge: { minHeight: 48, paddingInline: 24, fontSize: 15.5 },
         contained: {
-          boxShadow: shadow.sm,
-          "&:hover": { boxShadow: shadow.md },
+          boxShadow: v.shadowSm,
+          "&:hover": { boxShadow: v.shadowMd },
         },
         outlined: {
-          borderColor: tone.line2,
-          "&:hover": { borderColor: blue.accent, background: blue.accentWash },
+          borderColor: v.line2,
+          "&:hover": { borderColor: v.accent, background: v.accentWash },
         },
         text: { paddingInline: 10 },
       },
@@ -87,8 +128,11 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
-          border: `1px solid ${tone.line1}`,
+          border: `1px solid ${v.edge}`,
           borderRadius: radius.md,
+          // The hairline replaces the shadow; in dark it needs the inner
+          // highlight as well, or a panel and its background are the same tone.
+          boxShadow: v.lift,
         },
       },
     },
@@ -105,7 +149,7 @@ export const muiTheme = createTheme({
         },
       },
       styleOverrides: {
-        paper: { borderRadius: radius.lg, boxShadow: shadow.lg },
+        paper: { borderRadius: radius.lg, boxShadow: v.shadowLg },
       },
     },
 
@@ -113,14 +157,14 @@ export const muiTheme = createTheme({
       defaultProps: { arrow: true, enterDelay: 400 },
       styleOverrides: {
         tooltip: {
-          backgroundColor: tone.text1,
+          backgroundColor: v.text1,
           fontSize: 12,
           lineHeight: 1.45,
           padding: "6px 9px",
           maxWidth: 260,
           borderRadius: radius.sm,
         },
-        arrow: { color: tone.text1 },
+        arrow: { color: v.text1 },
       },
     },
 
@@ -128,15 +172,15 @@ export const muiTheme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          backgroundColor: tone.surface0,
+          backgroundColor: v.surface0,
           borderRadius: radius.sm,
           transition: `box-shadow ${motion.fast} ${motion.ease}`,
           "& fieldset": {
-            borderColor: tone.line2,
+            borderColor: v.line2,
             transition: `border-color ${motion.fast} ${motion.ease}`,
           },
-          "&:hover fieldset": { borderColor: tone.text3 },
-          "&.Mui-focused": { boxShadow: shadow.ring },
+          "&:hover fieldset": { borderColor: v.text3 },
+          "&.Mui-focused": { boxShadow: v.shadowRing },
         },
         input: { fontSize: 13.5, paddingBlock: 8.5 },
       },
@@ -144,26 +188,28 @@ export const muiTheme = createTheme({
     MuiInputLabel: { styleOverrides: { root: { fontSize: 13 } } },
     MuiFormHelperText: {
       styleOverrides: {
-        root: { fontSize: 11.5, marginLeft: 0, color: tone.text3, lineHeight: 1.45 },
+        root: { fontSize: 11.5, marginLeft: 0, color: v.text3, lineHeight: 1.45 },
       },
     },
 
     MuiTabs: {
       styleOverrides: {
         root: { minHeight: 38 },
-        indicator: { height: 2, backgroundColor: blue.accent },
+        indicator: { height: 2, backgroundColor: v.accent },
       },
     },
     MuiTab: {
       styleOverrides: {
         root: {
           minHeight: 38,
-          fontSize: 13,
+          fontFamily: font.mono,
+          fontSize: 11,
           fontWeight: 500,
-          textTransform: "none",
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
           minWidth: 0,
           paddingInline: 14,
-          color: tone.text2,
+          color: v.text4,
         },
       },
     },
@@ -171,17 +217,19 @@ export const muiTheme = createTheme({
     MuiToggleButton: {
       styleOverrides: {
         root: {
-          textTransform: "none",
-          fontSize: 12.5,
+          fontFamily: font.mono,
+          fontSize: 11,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
           paddingInline: 14,
           paddingBlock: 5,
-          borderColor: tone.line2,
-          color: tone.text2,
+          borderColor: v.line2,
+          color: v.text2,
           borderRadius: radius.sm,
           transition: `background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}`,
           "&.Mui-selected": {
-            backgroundColor: blue.accentWash,
-            color: blue.accent,
+            backgroundColor: v.accentWash,
+            color: v.accent,
             fontWeight: 500,
           },
         },
@@ -191,12 +239,12 @@ export const muiTheme = createTheme({
     MuiSlider: {
       defaultProps: { size: "small" },
       styleOverrides: {
-        rail: { opacity: 1, backgroundColor: tone.surface3 },
+        rail: { opacity: 1, backgroundColor: v.surface3 },
         thumb: {
           width: 13,
           height: 13,
           "&:hover, &.Mui-focusVisible": {
-            boxShadow: `0 0 0 6px ${blue.accentWash}`,
+            boxShadow: `0 0 0 6px ${v.accentWash}`,
           },
         },
       },
@@ -207,15 +255,15 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: radius.sm,
-          color: tone.text2,
+          color: v.text2,
           transition: `background-color ${motion.fast} ${motion.ease}, color ${motion.fast} ${motion.ease}, transform ${motion.fast} ${motion.spring}`,
-          "&:hover": { color: blue.accent, transform: "scale(1.12)" },
+          "&:hover": { color: v.accent, transform: "scale(1.12)" },
           "&:active": { transform: "scale(.94)" },
         },
       },
     },
 
-    MuiDivider: { styleOverrides: { root: { borderColor: tone.line1 } } },
+    MuiDivider: { styleOverrides: { root: { borderColor: v.edge } } },
 
     MuiListItemButton: {
       styleOverrides: {
@@ -224,8 +272,8 @@ export const muiTheme = createTheme({
           transition: `background-color ${motion.fast} ${motion.ease}, padding-left ${motion.base} ${motion.ease}`,
           "&:hover": { paddingLeft: 12 },
           "&.Mui-selected": {
-            backgroundColor: blue.accentWash,
-            "&:hover": { backgroundColor: blue.accentWash },
+            backgroundColor: v.accentWash,
+            "&:hover": { backgroundColor: v.accentWash },
           },
         },
       },
@@ -245,7 +293,7 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           border: "none",
-          borderBottom: `1px solid ${tone.line1}`,
+          borderBottom: `1px solid ${v.line1}`,
           "&::before": { display: "none" },
         },
       },
@@ -263,7 +311,7 @@ export const muiTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         "*:focus-visible": {
-          outline: `2px solid ${blue.accent}`,
+          outline: `2px solid ${v.accent}`,
           outlineOffset: 2,
         },
         "@media (prefers-reduced-motion: reduce)": {

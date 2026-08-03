@@ -18,11 +18,11 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { SECTION_HELP, plainText, richText, type Resume } from "@/schema";
 import { useAppStore } from "@/store";
-import { tone } from "@/ui/tokens";
 import { Field } from "./fields";
 import { ItemEditor, itemSummary } from "./ItemEditor";
 import { LinksEditor } from "./LinksEditor";
 import { useConfirm } from "./useConfirm";
+import { v } from "@/ui/theme/vars";
 
 function PanelHeading({
   title,
@@ -37,7 +37,7 @@ function PanelHeading({
         {title}
       </Typography>
       {help ? (
-        <Typography sx={{ fontSize: 12, color: tone.text3, lineHeight: 1.55 }}>
+        <Typography sx={{ fontSize: 12, color: v.text3, lineHeight: 1.55 }}>
           {help}
         </Typography>
       ) : null}
@@ -164,7 +164,7 @@ function SectionEditor({
 
       {section.items.length === 0 ? (
         <Box sx={{ p: 2 }}>
-          <Typography sx={{ fontSize: 12.5, color: tone.text3, mb: 1.5 }}>
+          <Typography sx={{ fontSize: 12.5, color: v.text3, mb: 1.5 }}>
             Nothing in this section yet.
           </Typography>
           <Button
@@ -216,7 +216,7 @@ function SectionEditor({
                     display: "flex",
                     gap: 0.5,
                     pt: 1,
-                    borderTop: `1px solid ${tone.line1}`,
+                    borderTop: `1px solid ${v.edge}`,
                   }}
                 >
                   <Tooltip title="Move up">

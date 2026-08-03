@@ -1,9 +1,17 @@
 /*
  * Content-route styles. Plain CSS, no MUI, these pages ship almost no JS.
  *
- * No `composes:` here. It is a CSS Modules feature that plain CSS tooling
- * (including the editor's language server) reports as an unknown property, so
- * shared styles are applied as a second class name in JSX instead.
+ * The design language is the checker console's, applied to the marketing and
+ * legal pages: hairline edges instead of shadows, mono uppercase labels with a
+ * rule running out to the panel edge, data set in mono, and severity carried on
+ * a left border rather than a fill. Anything that displays a measurement looks
+ * like a readout, because that is what this product does.
+ *
+ * No `composes:` here, including from the console's stylesheet. It is a CSS
+ * Modules feature that plain CSS tooling (the editor's language server
+ * included) reports as an unknown property, so the two files restate the few
+ * shared primitives instead of importing them. Both read the same tokens, which
+ * is where the values are actually shared.
  */
 
 .page {
@@ -11,7 +19,7 @@
   overflow-y: auto;
   /* Anything too wide scrolls inside its own wrapper, never the page. */
   overflow-x: hidden;
-  background: var(--surface-0);
+  background: var(--surface-1);
   scroll-behavior: smooth;
 }
 
@@ -30,11 +38,16 @@
 }
 
 .band {
-  border-bottom: 1px solid var(--line-1);
+  border-bottom: 1px solid var(--edge);
 }
 
+/*
+ * The alternate band. In light this is a step below paper; in dark it is a step
+ * above the canvas, because a dark scheme's "recessed" reads as a hole rather
+ * than as a different section.
+ */
 .bandTint {
-  background: var(--surface-1);
+  background: var(--surface-0);
 }
 
 /*
@@ -56,18 +69,17 @@
   z-index: 20;
   /*
    * Opaque, not translucent. A blurred bar let page content ghost through as
-   * it scrolled under, which read as a rendering fault. It sits above the
-   * page, so it casts a shadow instead.
+   * it scrolled under, which read as a rendering fault.
    */
   background: var(--surface-0);
-  border-bottom: 1px solid var(--line-1);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--dur-base) var(--ease);
+  border-bottom: 1px solid var(--edge);
+  transition: border-color var(--dur-base) var(--ease);
 }
 
-/* Tightens and lifts once you leave the top of the page. */
+/* Once you leave the top of the page the rule firms up, rather than a shadow
+   appearing: at this weight a shadow is invisible in dark and heavy in light. */
 :global(.scrolled) .navBar {
-  box-shadow: var(--shadow-md);
+  border-bottom-color: var(--line-2);
 }
 
 .nav {
@@ -91,7 +103,7 @@
 }
 
 .logo {
-  color: var(--c-white);
+  color: var(--on-accent);
   width: 34px;
   height: 34px;
   border-radius: var(--radius-sm);
@@ -110,7 +122,7 @@
 .navLinks {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.25rem;
   margin-left: auto;
   min-width: 0;
 }
@@ -123,28 +135,31 @@
   margin-left: 1.25rem;
 }
 
+/*
+ * Mono, small, uppercase: the bar reads as a set of labels rather than as body
+ * text shrunk down, which is what ties it to the headers inside every panel.
+ */
 .navLink {
   position: relative;
   white-space: nowrap;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-2);
-  padding: 0.4rem 0.75rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 0.5rem 0.7rem;
   border-radius: var(--radius-sm);
-  transition:
-    color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease);
 }
 
 /* Underline grows from the centre out, scaleX is composited, width is not. */
 .navLink::after {
   content: "";
   position: absolute;
-  left: 0.75rem;
-  right: 0.75rem;
-  bottom: 0.15rem;
-  height: 1.5px;
-  border-radius: 2px;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: 0.2rem;
+  height: 1px;
   background: var(--accent);
   transform: scaleX(0);
   transition: transform var(--dur-base) var(--ease);
@@ -178,7 +193,7 @@
   width: 44px;
   height: 44px;
   margin-right: -0.5rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
@@ -232,11 +247,11 @@
   min-width: min(17rem, calc(100vw - 2.5rem));
   display: grid;
   gap: 0.125rem;
-  padding: 0.625rem;
+  padding: 0.5rem;
   background: var(--surface-0);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), var(--lift);
   animation: menuIn var(--dur-base) var(--ease);
 }
 
@@ -258,8 +273,8 @@
 .navMenuPanel::before {
   top: -7px;
   background: var(--surface-0);
-  border-top: 1px solid var(--line-1);
-  border-left: 1px solid var(--line-1);
+  border-top: 1px solid var(--edge);
+  border-left: 1px solid var(--edge);
   border-top-left-radius: 3px;
 }
 
@@ -281,13 +296,15 @@
   min-height: 44px;
   padding: 0 0.75rem;
   border-radius: var(--radius-sm);
-  font-size: 1rem;
-  font-weight: 600;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-2);
 }
 
 .navMenuLink:hover {
-  background: var(--surface-1);
+  background: var(--surface-2);
   color: var(--text-1);
 }
 
@@ -297,38 +314,82 @@
   height: 44px;
 }
 
-/* A rule above the pair separates acting from navigating. */
+/* A gap above the pair separates acting from navigating. */
 .navMenuPanel .navCtaGhost {
-  margin-top: 0.75rem;
-  padding-top: 0;
-}
-
-.navMenuPanel .navCtaGhost {
+  margin-top: 0.5rem;
   margin-left: 0;
+  justify-content: center;
+  height: 44px;
 }
 
 /*
- * Sized to the bar, not to the page. Same shape language as the page buttons,
- * no icon and no resting shadow, it should be the one thing to click without
- * announcing itself as a separate object floating in the header.
+ * Light or dark. Square and quiet: it is a setting, not an action, so it sits
+ * last, past the buttons, with a rule between it and them.
+ *
+ * The rule is the toggle's own left border rather than a separate element,
+ * drawn full-height in the gutter so it reads as the seam between actions and
+ * chrome rather than as an edge on the control.
+ */
+.themeToggle {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  margin-left: 0.875rem;
+  padding-left: 0.875rem;
+  position: relative;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.themeToggle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -0.6rem;
+  bottom: -0.6rem;
+  width: 1px;
+  background: var(--edge);
+}
+
+.themeToggle:hover {
+  color: var(--accent);
+}
+
+.themeToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+ * The two bar actions. Same shape and weight as the console's buttons, sized to
+ * the bar: filled for the primary, hairline for the second.
  */
 .navCta {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  height: 36px;
-  font-size: 0.9375rem;
+  height: 34px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--c-white);
+  color: var(--on-accent);
   background: var(--accent);
-  padding: 0 0.9375rem;
-  border-radius: 10px;
-  margin-left: 0.875rem;
-  transition: background-color var(--dur-fast) var(--ease);
+  border: 1px solid var(--accent);
+  padding: 0 0.85rem;
+  border-radius: var(--radius-sm);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 
 .navCta:hover {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 /* The second action: present, but subordinate to Build. */
@@ -336,69 +397,109 @@
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  height: 36px;
-  padding: 0 0.9375rem;
+  height: 34px;
+  padding: 0 0.85rem;
   border: 1px solid var(--line-2);
-  border-radius: 10px;
-  font-size: 0.9375rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--text-1);
   transition:
     border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
     background-color var(--dur-fast) var(--ease);
 }
 
 .navCtaGhost:hover {
-  border-color: var(--accent);
+  border-color: var(--accent-border);
   background: var(--accent-wash);
+  color: var(--accent-hover);
 }
 
 /* You are already on the checker, the button says so rather than lying. */
 .navCtaGhostActive {
-  border-color: var(--accent);
+  border-color: var(--accent-border);
   background: var(--accent-wash);
+  color: var(--accent);
 }
 
 /* ---------- hero ---------- */
 
+/*
+ * The engineering grid from the console, behind the opening argument only.
+ * Masked to fade out, so it reads as the surface the hero sits on rather than
+ * as texture the whole page has to carry.
+ */
 .hero {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(2rem, 5vw, 5rem);
   align-items: center;
-  padding-block: clamp(2.5rem, 5vw, 4rem);
+  padding-block: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  /* Beyond the wrapper's padding, so the grid runs to the window edge. */
+  inset: 0 -100vw;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(70% 60% at 30% 0%, var(--accent-wash), transparent 70%),
+    linear-gradient(var(--edge-soft) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, var(--edge-soft) 1px, transparent 1px) 0 0 / 56px
+      100%;
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 85%);
+  mask-image: linear-gradient(180deg, #000, transparent 85%);
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .heroCopy {
   max-width: 40rem;
 }
 
+/*
+ * A status line, not a badge. The pill it used to sit in made a marketing
+ * claim out of what is really a statement of fact about where the code runs,
+ * and the console says the same thing the same way at the top of its page.
+ */
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
-  background: var(--accent-wash);
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  color: var(--text-4);
   margin: 0 0 1.25rem;
 }
 
+.eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pass);
+  flex: none;
+}
+
 .headline {
-  font-size: clamp(2.6rem, 4vw, 4rem);
-  font-weight: 800;
+  font-size: clamp(2.5rem, 4vw, 3.75rem);
+  font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.05;
   margin: 0 0 1.125rem;
 }
 
 .intro {
-  font-size: 1.3125rem;
+  font-size: 1.25rem;
   line-height: 1.6;
   color: var(--text-2);
   margin: 0 0 0.875rem;
@@ -418,8 +519,8 @@
 
 /*
  * One line, not a checklist. Three ticked items wrapped 2 + 1 and read as a
- * feature list competing with the buttons above it; this is a footnote, so it
- * is set like one, single row, dot-separated, aligned to the button edge.
+ * feature list competing with the copy above; this is a footnote, so it is set
+ * like one: mono, single row, dot-separated.
  */
 .trust {
   list-style: none;
@@ -428,8 +529,11 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  font-size: 0.875rem;
-  color: var(--text-3);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-4);
 }
 
 .trustItem + .trustItem::before {
@@ -449,21 +553,23 @@
 
 /* ---------- demo card ---------- */
 
+/*
+ * The instrument panel, used here to hold an example rather than a result. Same
+ * construction as every panel in the checker: hairline edge, inner top
+ * highlight, mono ruled header.
+ */
 .demo {
   position: relative;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background: var(--surface-1);
-  box-shadow: var(--shadow-md);
-  transition:
-    box-shadow var(--dur-base) var(--ease),
-    transform var(--dur-base) var(--ease);
+  background: var(--surface-0);
+  box-shadow: var(--lift);
+  transition: border-color var(--dur-base) var(--ease);
 }
 
 .demo:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  border-color: var(--accent-border);
 }
 
 /*
@@ -476,6 +582,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 2;
   /* A 2px stripe at the top of a full-height layer, so translateY(100%)
      carries it exactly one card height regardless of the card's size. */
   background:
@@ -495,55 +602,67 @@
   }
 }
 
+/* The ruled mono header. The rule runs from the words to the panel edge, which
+   is what makes a set of these read as one instrument. */
 .demoHead {
-  padding: 0.85rem 1.1rem;
-  border-bottom: 1px solid var(--line-1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1.1rem;
+  border-bottom: 1px solid var(--edge);
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.6875rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-3);
-  background: var(--surface-0);
   margin: 0;
+}
+
+.demoHead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--edge);
 }
 
 .demoBody {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1px;
-  background: var(--line-1);
+  background: var(--edge);
 }
 
 .demoPane {
-  background: var(--surface-1);
+  background: var(--surface-0);
   padding: 1.25rem;
 }
 
 .demoLabel {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-4);
   margin: 0 0 0.75rem;
 }
 
 /*
  * The example is a real resume rendered small, so it uses the same ATS-safe
  * serif and proportions the document renderer uses, not the site's UI font.
- * It was previously set too small to read, which made the whole comparison
- * pointless.
+ *
+ * Fixed light, in both schemes. It is a picture of a piece of paper, and paper
+ * does not have a dark mode; inverting it would make the one thing on the page
+ * that represents the product's output stop looking like the output.
  */
 .miniPaper {
-  background: var(--surface-0);
-  border: 1px solid var(--line-1);
+  background: var(--c-white);
+  border: 1px solid var(--c-slate-200);
   color: var(--c-slate-900);
   padding: 1.15rem 1.25rem;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.8125rem;
   line-height: 1.5;
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-sm);
 }
 
 .miniName {
@@ -554,7 +673,7 @@
 }
 
 .miniMuted {
-  color: var(--text-2);
+  color: var(--c-slate-600);
   font-size: 0.75rem;
 }
 
@@ -574,19 +693,25 @@
   gap: 0.5rem;
 }
 
+/*
+ * The parser's side of the comparison. Mono, and each row carries its verdict
+ * on the left edge: the same way a finding is marked in the report, so the two
+ * pages teach one convention rather than two.
+ */
 .parseList {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
-  line-height: 2;
+  display: grid;
+  gap: 0.3rem;
 }
 
 .parseRow {
   display: grid;
-  grid-template-columns: 4.75rem 1fr;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
   gap: 0.6rem;
+  align-items: baseline;
   border-left: 2px solid var(--pass);
-  padding-left: 0.6rem;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.25rem 0 0.25rem 0.6rem;
 }
 
 .parseRowMissing {
@@ -595,7 +720,8 @@
 }
 
 .parseKey {
-  color: var(--accent);
+  color: var(--text-4);
+  letter-spacing: 0.06em;
 }
 
 .parseVal {
@@ -609,11 +735,10 @@
 
 .demoFoot {
   padding: 0.9rem 1.1rem;
-  border-top: 1px solid var(--line-1);
-  background: var(--surface-0);
-  font-size: 1.0625rem;
+  border-top: 1px solid var(--edge);
+  font-size: 0.9375rem;
   line-height: 1.65;
-  color: var(--text-2);
+  color: var(--text-3);
   margin: 0;
 }
 
@@ -624,7 +749,7 @@
 }
 
 /*
- * Full width. Only the paragraph inside needs a measure, a heading is two or
+ * Full width. Only the paragraph inside needs a measure: a heading is two or
  * three lines read once, so long lines cost it nothing.
  */
 .sectionHead {
@@ -632,51 +757,43 @@
 }
 
 /*
- * Grey mono caps floating above a heading read as a stray label. Anchoring it
- * to a short accent rule makes it a deliberate part of the heading block, and
- * the accent ties it to the rest of the system.
+ * The panel header, at page scale. A mono label with a hairline running out to
+ * the edge of the content column, which is the same object as the header on
+ * every panel in the checker and is what carries the language between them.
  */
 .kicker {
   display: flex;
-  /*
-   * Aligned to the first line, not the block. When the label wraps, a centred
-   * rule floats into the gap between the two lines and reads as a stray mark.
-   */
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.85rem;
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  letter-spacing: 0.14em;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin: 0 0 1rem;
+  color: var(--text-4);
+  margin: 0 0 1.1rem;
 }
 
-.kicker::before {
+.kicker::after {
   content: "";
-  width: 26px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-  flex: none;
-  /* Sits on the optical centre of the first line's cap height. */
-  margin-top: 0.6em;
+  flex: 1;
+  height: 1px;
+  background: var(--edge);
   transform-origin: left;
 }
 
 /* Draws itself when the heading enters view. Gated on `.js` so it is simply
    present when the reveal script never runs. */
-:global(.js) .kicker::before {
+:global(.js) .kicker::after {
   transform: scaleX(0);
-  transition: transform 520ms var(--ease) 140ms;
+  transition: transform 620ms var(--ease) 140ms;
 }
 
-:global(.js) :global(.is-in) .kicker::before {
+:global(.js) :global(.is-in) .kicker::after {
   transform: scaleX(1);
 }
 
 .h2 {
-  font-size: clamp(1.75rem, 2.6vw, 2.4rem);
+  font-size: clamp(1.65rem, 2.6vw, 2.25rem);
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -686,7 +803,7 @@
 .sectionIntro {
   /* Past ~75 characters the eye loses the start of the next line. */
   max-width: 78ch;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   line-height: 1.75;
   color: var(--text-2);
   margin: 0;
@@ -694,15 +811,19 @@
 
 /* ---------- pipeline ---------- */
 
+/*
+ * One panel divided by hairlines, not four cards. The steps are a sequence, and
+ * separate cards with gaps between them read as four unrelated things.
+ */
 .steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1px;
-  background: var(--line-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
+  background: var(--edge);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--lift);
 }
 
 .step {
@@ -712,28 +833,27 @@
 }
 
 .step:hover {
-  background: var(--accent-wash);
+  background: var(--surface-2);
 }
 
-/* Centred to match the feature cards, same grid-of-equals reading. */
 .stepNum {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 1.375rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   color: var(--accent);
-  letter-spacing: -0.02em;
-  text-align: center;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.9rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--edge);
 }
 
 .stepTitle {
-  font-size: 1.1875rem;
-  font-weight: 700;
-  text-align: center;
+  font-size: 1.0625rem;
+  font-weight: 600;
   margin: 0 0 0.4rem;
 }
 
 .stepBody {
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
   color: var(--text-2);
   margin: 0;
@@ -742,19 +862,11 @@
 /* ---------- table ---------- */
 
 .tableWrap {
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
   overflow-x: auto;
   background: var(--surface-0);
-  box-shadow: var(--shadow-sm);
-}
-
-.table tbody tr {
-  transition: background-color var(--dur-fast) var(--ease);
-}
-
-.table tbody tr:hover {
-  background: var(--accent-wash);
+  box-shadow: var(--lift);
 }
 
 .table {
@@ -765,22 +877,30 @@
   min-width: 44rem;
 }
 
+.table tbody tr {
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.table tbody tr:hover {
+  background: var(--surface-2);
+}
+
 .table th {
   text-align: left;
-  font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-weight: 500;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-4);
   padding: 0.75rem 1.125rem;
-  border-bottom: 1px solid var(--line-1);
+  border-bottom: 1px solid var(--edge);
   white-space: nowrap;
-  background: var(--surface-1);
 }
 
 .table td {
   padding: 0.9rem 1.125rem;
-  border-bottom: 1px solid var(--line-1);
+  border-bottom: 1px solid var(--edge-soft);
   vertical-align: top;
   line-height: 1.65;
   color: var(--text-2);
@@ -796,13 +916,19 @@
   width: 20%;
 }
 
+/* The column that says what this product does instead, marked the way a
+   passing check is marked in the report. */
+.table td:last-child {
+  border-left: 2px solid var(--pass);
+}
+
 .mono {
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: 0.8125rem;
 }
 
 .good {
-  color: var(--pass);
+  color: var(--text-2);
 }
 
 /* ---------- feature grid ---------- */
@@ -810,56 +936,54 @@
 .features {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .feature {
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
   background: var(--surface-0);
-  transition:
-    box-shadow var(--dur-base) var(--ease),
-    transform var(--dur-base) var(--ease),
-    border-color var(--dur-base) var(--ease);
+  box-shadow: var(--lift);
+  transition: border-color var(--dur-base) var(--ease);
 }
 
 .feature:hover {
-  box-shadow: var(--shadow-md);
   border-color: var(--accent-border);
-  transform: translateY(-3px);
 }
 
+/* Ranged left, not centred. A centred mark over a left-ranged paragraph leaves
+   the card with two different axes and no reason for either. */
 .featureIcon {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-border);
   background: var(--accent-wash);
   color: var(--accent);
-  margin: 0 auto 1.125rem;
+  margin: 0 0 1rem;
+}
+
+.featureIcon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .featureTitle {
-  font-size: 1.1875rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 600;
   letter-spacing: -0.01em;
-  text-align: center;
   margin: 0 0 0.5rem;
 }
 
 .featureBody {
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
   color: var(--text-2);
   margin: 0;
 }
-
-/*
- * Mark and title centred at every width. The body copy stays ranged left,
- * centred paragraphs cost the reader the line-to-line rhythm.
- */
 
 /* ---------- cards ---------- */
 
@@ -871,7 +995,7 @@
 
 .card {
   border-left: 2px solid var(--line-2);
-  padding: 0.25rem 0 0.25rem 1.25rem;
+  padding: 0.15rem 0 0.15rem 1.25rem;
   transition:
     border-color var(--dur-base) var(--ease),
     transform var(--dur-base) var(--ease);
@@ -883,13 +1007,13 @@
 }
 
 .cardTitle {
-  font-size: 1.1875rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 600;
   margin: 0 0 0.5rem;
 }
 
 .cardBody {
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   line-height: 1.75;
   color: var(--text-2);
   margin: 0 0 0.625rem;
@@ -905,24 +1029,26 @@
 }
 
 .faqQ {
-  font-size: 1.1875rem;
-  font-weight: 700;
+  font-size: 1.0625rem;
+  font-weight: 600;
   margin: 0 0 0.4rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--edge);
 }
 
 .faqA {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   line-height: 1.75;
   color: var(--text-2);
 }
 
-/* ---------- status ---------- */
+/* ---------- copy beside a panel ---------- */
 
 /*
- * Copy beside a card. Used by the checker section, where the report card is
- * the evidence for the claim next to it, so the pairing holds down to tablet
- * portrait rather than stacking early like the row-list layout below.
+ * Used by the checker section, where the report card is the evidence for the
+ * claim next to it, so the pairing holds down to tablet portrait rather than
+ * stacking early.
  */
 .split {
   display: grid;
@@ -954,11 +1080,11 @@
   padding: 0;
   display: grid;
   gap: 1px;
-  background: var(--line-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
+  background: var(--edge);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--lift);
 }
 
 .ctaItem {
@@ -966,13 +1092,13 @@
   grid-template-columns: auto minmax(9rem, max-content) minmax(0, 1fr);
   align-items: baseline;
   gap: 0.25rem 1.25rem;
-  padding: 1rem 1.375rem;
+  padding: 0.85rem 1.25rem;
   background: var(--surface-0);
   transition: background-color var(--dur-fast) var(--ease);
 }
 
 .ctaItem:hover {
-  background: var(--accent-wash);
+  background: var(--surface-2);
 }
 
 .ctaTick {
@@ -982,12 +1108,12 @@
 
 .ctaName {
   font-weight: 600;
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   color: var(--text-1);
 }
 
 .ctaNote {
-  font-size: 1.0625rem;
+  font-size: 0.9375rem;
   color: var(--text-3);
   line-height: 1.55;
 }
@@ -1001,21 +1127,25 @@
 
 .legalMeta {
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  color: var(--text-3);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-4);
   margin: 0 0 2.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--edge);
 }
 
 .legal h2 {
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
   margin: 2.5rem 0 0.75rem;
 }
 
 .legal p,
 .legal li {
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.75;
   color: var(--text-2);
   margin: 0 0 1rem;
@@ -1033,7 +1163,7 @@
 .legal a {
   color: var(--accent);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
 
 /* ---------- footer ---------- */
@@ -1063,8 +1193,8 @@
   align-items: center;
   gap: 0.75rem;
   margin: 0;
-  font-weight: 700;
-  font-size: 1.125rem;
+  font-weight: 600;
+  font-size: 1.0625rem;
   letter-spacing: -0.015em;
   color: var(--text-1);
 }
@@ -1077,7 +1207,7 @@
   height: 32px;
   border-radius: var(--radius-sm);
   background: var(--accent);
-  color: var(--c-white);
+  color: var(--on-accent);
   flex: none;
 }
 
@@ -1089,13 +1219,25 @@
   color: var(--text-3);
 }
 
+/* Same ruled mono header as everywhere else, at column width. */
 .footColTitle {
-  margin: 0 0 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-4);
+}
+
+.footColTitle::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--edge);
 }
 
 .footLinks {
@@ -1156,9 +1298,27 @@
   gap: 0.75rem 1.5rem;
   margin-top: 3rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--line-1);
-  font-size: 0.875rem;
-  color: var(--text-3);
+  border-top: 1px solid var(--edge);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+}
+
+/*
+ * The copyright glyph, scaled up on its own.
+ *
+ * In JetBrains Mono the © has to fit a monospace advance, so it is drawn small
+ * and light. At the label size the rest of this line is set in, it renders as a
+ * smudge rather than a character. Only the glyph grows: the year and the name
+ * beside it are the right size already.
+ *
+ * `line-height: 0` so the larger glyph cannot push the line box taller.
+ */
+.footCopy {
+  font-size: 1.4em;
+  line-height: 0;
+  vertical-align: -0.06em;
 }
 
 .foot a:hover {
@@ -1168,8 +1328,8 @@
 /* ---------- responsive ---------- */
 
 /*
- * Ladder: 1440 is the design width, 1180 drops to two columns, 1000 hands the
- * nav to the disclosure menu, 760 goes single column, 480 and 380 tighten
+ * Ladder: 1440 is the design width, 1180 drops to two columns, 900 hands the
+ * nav to the disclosure menu, 760 goes single column, 560 and 400 tighten
  * type and padding. Tested down to 320.
  */
 
@@ -1194,14 +1354,10 @@
   .footBlurb {
     max-width: 60ch;
   }
-}
-
-/*
- * The capability rows are name + sentence pairs, so a half-width column wraps
- * every one of them onto three lines. This block takes the tablet layout from
- * 1180 down: heading and buttons, then the list at full width.
- */
-@media (max-width: 1180px) {
+  /*
+   * The capability rows are name + sentence pairs, so a half-width column wraps
+   * every one of them onto three lines.
+   */
   .cta {
     grid-template-columns: 1fr;
     gap: 2.25rem;
@@ -1212,7 +1368,7 @@
 }
 
 /*
- * The hero keeps its card on the right longer, that pairing is the argument
+ * The hero keeps its card on the right longer: that pairing is the argument
  * the page opens with, and it survives a narrower column.
  */
 @media (max-width: 900px) {
@@ -1227,7 +1383,7 @@
   }
 }
 
-/* Four links plus two buttons stop fitting alongside the wordmark here. */
+/* Four links plus two buttons stop fitting alongside the mark here. */
 @media (max-width: 900px) {
   .navLinks {
     display: none;
@@ -1236,10 +1392,19 @@
     display: block;
   }
   /*
-   * The buttons move into the menu with the links. Two full-size buttons in a
-   * bar with nothing else in it read as a toolbar, not a header.
+   * The buttons move into the menu with the links, but the theme toggle stays
+   * in the bar: it is a setting, and burying a setting two taps deep to save
+   * 34px is the wrong trade. With the buttons gone it has nothing to be
+   * separated from, so the rule goes with them.
    */
   .navActions {
+    display: none;
+  }
+  .themeToggle {
+    margin-left: auto;
+    padding-left: 0;
+  }
+  .themeToggle::before {
     display: none;
   }
   .nav {
@@ -1273,7 +1438,7 @@
   .ctaNote {
     grid-column: 2;
   }
-  /* A wrapped 3-column grid loses the 1px lines that separated the steps. */
+  /* A wrapped grid loses the 1px lines that separated the steps. */
   .steps {
     gap: 1px;
   }
@@ -1284,18 +1449,18 @@
     padding-block: 2rem 2.5rem;
   }
   .headline {
-    font-size: clamp(2.125rem, 9vw, 2.75rem);
+    font-size: clamp(2rem, 9vw, 2.6rem);
     letter-spacing: -0.03em;
   }
   .intro {
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
   }
   .leadBody,
   .sectionIntro {
     font-size: 1rem;
   }
   .h2 {
-    font-size: clamp(1.5rem, 6.5vw, 2rem);
+    font-size: clamp(1.4rem, 6.5vw, 1.9rem);
   }
   .footBar {
     flex-direction: column;
@@ -1314,1150 +1479,10 @@
   .step {
     padding: 1.125rem;
   }
-  .trust {
-    font-size: 0.8125rem;
-  }
   .trustItem + .trustItem::before {
     margin: 0 0.5rem;
   }
   .miniPaper {
     padding: 0.875rem 0.9375rem;
   }
-}
-
-/* ---------- resume picker ---------- */
-
-/*
- * The one interactive object on the checker page, so it is the loudest thing
- * in its column: solid surface, real border, and a dashed well inside it that
- * reads as a place to put something rather than as another card.
- */
-.pickerCard {
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-md);
-  padding: 1.25rem;
-}
-
-.pickerLabel {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-3);
-  margin: 0 0 0.75rem;
-}
-
-.pickerZone {
-  position: relative;
-  border: 1.5px dashed var(--line-2);
-  border-radius: var(--radius-md);
-  background: var(--surface-0);
-  transition:
-    border-color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
-}
-
-.pickerZone:hover {
-  border-color: var(--accent);
-  background: var(--accent-wash);
-}
-
-/* Dragging over gives the same affirmative state as hover, a drop and a
-   click land in the same place, so they should look the same on the way in. */
-.pickerZoneOver {
-  border-color: var(--accent);
-  border-style: solid;
-  background: var(--accent-wash);
-}
-
-.pickerZoneBad {
-  border-color: var(--flag);
-}
-
-/*
- * Kept in the layout rather than display:none, a hidden input is unreachable
- * by keyboard, and the label needs a real control to point at.
- */
-.pickerInput {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* The whole well is the target: 44px is the floor, this is far past it. */
-.pickerPrompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  /* The primary control on the page. It should read as a target, not a field. */
-  padding: 2.75rem 1.25rem;
-  text-align: center;
-  cursor: pointer;
-}
-
-.pickerInput:focus-visible + .pickerPrompt {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: inherit;
-}
-
-.pickerIcon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  color: var(--accent);
-  background: var(--accent-wash);
-  border: 1px solid var(--accent-border);
-  margin-bottom: 0.15rem;
-}
-
-.pickerPromptText {
-  font-size: 1.125rem;
-  color: var(--text-2);
-}
-
-/*
- * Once a report is on screen this is no longer a call to action, it is a header
- * saying which file is being reported on. Same component, less of it.
- */
-.pickerCompact {
-  padding: 0.75rem;
-}
-
-.pickerCompact .pickerZone {
-  border-style: solid;
-  background: var(--surface-1);
-}
-
-.pickerHint {
-  font-size: 0.8125rem;
-  color: var(--text-3);
-}
-
-/* ---- chosen state ---- */
-
-.pickerFile {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-}
-
-.pickerFileIcon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 9px;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--accent);
-  background: var(--accent-wash);
-  border: 1px solid var(--accent-border);
-}
-
-.pickerFileText {
-  display: grid;
-  /* Without this the filename refuses to shrink and pushes Remove out. */
-  min-width: 0;
-  gap: 0.1rem;
-}
-
-.pickerFileName {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pickerFileMeta {
-  font-size: 0.8125rem;
-  color: var(--text-3);
-}
-
-.pickerClear {
-  flex: none;
-  margin-left: auto;
-  height: 32px;
-  padding: 0 0.75rem;
-  border: 1px solid var(--line-2);
-  border-radius: 8px;
-  background: var(--surface-1);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-2);
-  cursor: pointer;
-  transition:
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-
-.pickerClear:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.pickerNote,
-.pickerError {
-  font-size: 0.8125rem;
-  margin: 0.75rem 0 0;
-}
-
-.pickerNote {
-  color: var(--text-3);
-}
-
-/* Colour is not the only signal, the well takes a red border at the same
-   time, and the message says what to do next. */
-.pickerError {
-  color: var(--flag);
-  font-weight: 500;
-}
-
-
-/* ---------- checker: layout ---------- */
-
-/*
- * A stack, full width, in the order the work happens: choose a file, read the
- * score, read the detail, act.
- *
- * The picker spent one revision in a 23rem rail beside the report, which made
- * the only control on the page the smallest thing on it. It is now first and
- * full width, and the one place two panels sit side by side is the pair that
- * genuinely belongs side by side: a short list of fields next to the findings.
- */
-.tool {
-  display: grid;
-  gap: 1rem;
-  align-content: start;
-}
-
-/*
- * The two inputs once a report exists: the chosen file, and the posting to
- * compare it against.
- *
- * `stretch` rather than `start`, so the short file bar rises to the height of
- * the posting box and the pair reads as one row. Stacked below the same
- * breakpoint the report uses, where side by side would leave the textarea too
- * narrow to paste into.
- */
-.toolInputs {
-  display: grid;
-  gap: 1rem;
-  align-items: stretch;
-}
-
-@media (min-width: 1000px) {
-  .toolInputs {
-    /* Even halves: these are two inputs of equal standing, unlike the report
-       below, where the narrow rail supports the wide findings list. */
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-}
-
-.toolSplit {
-  display: grid;
-  gap: 1rem;
-  align-items: start;
-}
-
-/* The narrow side: file facts above recovered fields, both compact lists. */
-.toolStack {
-  display: grid;
-  gap: 1rem;
-  align-content: start;
-  min-width: 0;
-}
-
-@media (min-width: 1000px) {
-  /* Fields are a fixed-width list of six rows; findings take the rest. */
-  .toolSplit {
-    grid-template-columns: 24rem minmax(0, 1fr);
-  }
-}
-
-.toolStatus,
-.toolFailed {
-  margin: 0;
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.9375rem;
-}
-
-.toolStatus {
-  border: 1px solid var(--line-1);
-  background: var(--surface-1);
-  color: var(--text-2);
-}
-
-.toolFailed {
-  border: 1px solid var(--flag-border);
-  background: var(--flag-wash);
-  color: var(--flag);
-}
-
-/* ---------- checker: panels ---------- */
-
-.panel {
-  display: grid;
-  gap: 0.875rem;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  background: var(--surface-1);
-  box-shadow: var(--shadow-md);
-  padding: 1.25rem;
-  min-width: 0;
-}
-
-.panelTitle {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-.panelCount {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--text-3);
-}
-
-.panelNote {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.7;
-  color: var(--text-3);
-}
-
-/* ---------- checker: score ---------- */
-
-/*
- * One strip across the top of the report. One custom property drives the
- * number, the bar and the border, so they cannot disagree about the band.
- */
-.scoreCard {
-  border: 1px solid var(--score-line);
-  border-radius: var(--radius-lg);
-  background: var(--score-wash);
-  padding: 1.375rem 1.5rem;
-  display: grid;
-  gap: 1rem;
-}
-
-.scoreMain {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.scoreNumber {
-  display: flex;
-  align-items: baseline;
-  gap: 0.15rem;
-  margin: 0;
-  color: var(--score);
-}
-
-.scoreNumber strong {
-  font-size: 3.75rem;
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  line-height: 0.9;
-  /* Digits must not shift width when the number changes. */
-  font-variant-numeric: tabular-nums;
-}
-
-.scoreNumber span {
-  font-size: 1rem;
-  color: var(--text-3);
-}
-
-.scoreCopy {
-  display: grid;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.scoreVerdict {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.scoreBar {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--score-line);
-  overflow: hidden;
-}
-
-.scoreBar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--score);
-  transition: width 600ms var(--ease);
-}
-
-.scoreCaveat {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-  color: var(--text-3);
-  max-width: 70ch;
-}
-
-.score-clean {
-  --score: #1B6E45;
-  --score-wash: rgba(27, 110, 69, 0.06);
-  --score-line: rgba(27, 110, 69, 0.2);
-}
-
-.score-minor {
-  --score: #7D6318;
-  --score-wash: rgba(125, 99, 24, 0.06);
-  --score-line: rgba(125, 99, 24, 0.2);
-}
-
-.score-risky {
-  --score: #A64F17;
-  --score-wash: rgba(166, 79, 23, 0.06);
-  --score-line: rgba(166, 79, 23, 0.2);
-}
-
-.score-broken {
-  --score: var(--flag);
-  --score-wash: var(--flag-wash);
-  --score-line: var(--flag-border);
-}
-
-/* ---------- checker: key/value rows ---------- */
-
-.facts {
-  margin: 0;
-  display: grid;
-  gap: 1px;
-  background: var(--line-1);
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.factRow {
-  display: grid;
-  grid-template-columns: 6.5rem minmax(0, 1fr);
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--surface-1);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-}
-
-.factRowMissing {
-  background: var(--flag-wash);
-}
-
-.factKey {
-  color: var(--accent);
-}
-
-.factVal {
-  margin: 0;
-  color: var(--text-1);
-  /* A long filename or URL wraps rather than widening the panel. */
-  overflow-wrap: anywhere;
-}
-
-.factMissing {
-  margin: 0;
-  color: var(--flag);
-}
-
-/* ---------- checker: findings ---------- */
-
-.findingList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-
-/*
- * Cost in a fixed gutter, so the numbers line up down the left edge and the
- * worst problem is findable without reading a word.
- */
-.finding {
-  display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
-  gap: 0 0.875rem;
-  padding: 0.75rem 0.875rem;
-  border: 1px solid var(--line-1);
-  border-left: 2px solid var(--flag-border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-0);
-}
-
-/*
- * A severity chip where the point value used to be. Fixed-width column so the
- * chips align down the left edge and the list reads as a ranking.
- */
-.findingRank {
-  align-self: start;
-  padding: 0.1rem 0.4rem;
-  border-radius: 5px;
-  border: 1px solid currentColor;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.rank-blocking,
-.rank-high {
-  color: var(--flag);
-  background: var(--flag-wash);
-}
-
-.rank-medium {
-  color: #A64F17;
-  background: rgba(166, 79, 23, 0.07);
-}
-
-.rank-low {
-  color: var(--text-3);
-  background: var(--surface-0);
-}
-
-.findingKind {
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.findingBody {
-  grid-column: 2;
-  font-size: 0.875rem;
-  line-height: 1.65;
-  color: var(--text-2);
-  /* Prose stops at a readable measure even when the panel is wider. */
-  max-width: 62ch;
-}
-
-/*
- * Every weight names where it came from. The first version of the scoring
- * invented its numbers, which made the score an opinion; a citation per line
- * is what makes it checkable.
- */
-.findingSource {
-  grid-column: 2;
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--text-3);
-  text-decoration: underline;
-  text-decoration-color: var(--line-2);
-  text-underline-offset: 2px;
-}
-
-.findingSource:hover {
-  color: var(--accent);
-  text-decoration-color: currentColor;
-}
-
-.sourceList {
-  list-style: none;
-  margin: 0.75rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.875rem;
-}
-
-.sourceList a {
-  font-size: 0.8125rem;
-  color: var(--accent);
-}
-
-.sourceClaim {
-  margin: 0 0 0.2rem;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--text-2);
-  max-width: 70ch;
-}
-
-/* ---------- checker: what to do next ---------- */
-
-.nextRow {
-  display: grid;
-  gap: 1.25rem;
-}
-
-@media (min-width: 760px) {
-  .nextRow {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 2rem;
-  }
-}
-
-.nextItem {
-  display: grid;
-  gap: 0.5rem;
-  align-content: start;
-  min-width: 0;
-}
-
-.nextLabel {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--text-2);
-}
-
-.actionPrimary {
-  justify-self: start;
-  height: 40px;
-  padding: 0 1.125rem;
-  border: 0;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--c-white);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease);
-}
-
-.actionPrimary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.actionPrimary:disabled,
-.actionGhost:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Wraps rather than scrolls: five formats do not fit one mobile row. */
-.actionSaves {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-/*
- * The arrow is the point. Labelled "Word" with no icon, these read as a format
- * switch, and the file appearing in the downloads folder came as a surprise.
- */
-.actionGhost {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  height: 34px;
-  padding: 0 0.75rem;
-  border: 1px solid var(--line-2);
-  border-radius: 8px;
-  background: var(--surface-1);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-2);
-  cursor: pointer;
-  transition:
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-
-.actionGhost:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.actionNote {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--text-3);
-  max-width: 44ch;
-}
-
-/* Says what happened, since a download gives no feedback of its own. */
-.actionSaved {
-  margin: 0.25rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--score, var(--accent));
-}
-
-.actionSaved strong {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-weight: 700;
-}
-
-/* ---------- checker: the raw text ---------- */
-
-.rawText {
-  font-size: 0.875rem;
-}
-
-.rawText summary {
-  cursor: pointer;
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.rawText pre {
-  margin: 0.75rem 0 0;
-  padding: 0.875rem;
-  max-height: 24rem;
-  overflow: auto;
-  border-radius: var(--radius-sm);
-  background: var(--surface-0);
-  border: 1px solid var(--line-1);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  /* Extracted text has no wrapping of its own and a resume line can be long. */
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text-2);
-}
-
-@media (max-width: 560px) {
-  .panel,
-  .scoreCard {
-    padding: 1.125rem;
-  }
-  .factRow {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.15rem;
-  }
-  .finding {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.2rem;
-  }
-  .findingBody {
-    grid-column: 1;
-  }
-}
-
-/* ---------- checker hero ---------- */
-
-/*
- * Compact and left-aligned. This page is a tool, not a pitch: the headline
- * earns one screen-third at most, and the picker should be reachable without
- * scrolling on a laptop.
- */
-.checkHero {
-  display: grid;
-  gap: 1.5rem;
-  padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
-}
-
-/* Copy stops at a readable measure; the tool below it uses the full width. */
-.checkIntro {
-  max-width: 46rem;
-}
-
-.checkHero .headline {
-  font-size: clamp(2.1rem, 4vw, 2.875rem);
-  margin-bottom: 0.875rem;
-}
-
-.checkHero .intro {
-  font-size: 1.125rem;
-  margin-bottom: 0.625rem;
-}
-
-/* ---------- checker: job posting match ---------- */
-
-.jdInput {
-  width: 100%;
-  padding: 0.75rem 0.875rem;
-  border: 1px solid var(--line-2);
-  border-radius: var(--radius-sm);
-  background: var(--surface-0);
-  font: inherit;
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  color: var(--text-1);
-  resize: vertical;
-}
-
-.jdInput:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-color: var(--accent);
-}
-
-/*
- * Chips rather than rows. Twenty-four terms as a table is a wall; as chips it
- * is scannable, and the only thing a reader needs is which ones are red.
- */
-.termList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.term {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.75rem;
-  cursor: default;
-}
-
-.termFound {
-  color: #1B6E45;
-  background: rgba(27, 110, 69, 0.06);
-}
-
-/* Colour is not the only signal: a missing term also carries a dashed edge. */
-.termMissing {
-  color: var(--flag);
-  background: var(--flag-wash);
-  border-style: dashed;
-}
-
-/*
-  Present, but written differently. A third state, because folding it into
-  either of the other two would be a lie: it is not a match the ATS will make,
-  and it is not an absence the person needs to invent experience to fix.
-  Dotted rather than dashed, so the three are told apart without colour.
-*/
-.termNear {
-  color: var(--c-amber-700);
-  background: rgba(138, 90, 0, 0.07);
-  border-style: dotted;
-}
-
-.termCount {
-  font-weight: 700;
-  opacity: 0.75;
-}
-
-.nearList {
-  list-style: none;
-  margin: 0.9rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.nearRow {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--ink-2);
-  padding-left: 0.85rem;
-  border-left: 2px solid rgba(138, 90, 0, 0.35);
-}
-
-/*
-  Above the score and visually apart from it. This is not a finding with a
-  cost, it is the upload failing, so it must not read as one more row in a
-  list the eye can skim past.
-*/
-.blockerPanel {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1.1rem 1.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--flag);
-  background: var(--flag-wash);
-}
-
-.blockerTitle {
-  margin: 0;
-  font-weight: 650;
-  font-size: 0.95rem;
-  color: var(--flag);
-}
-
-.blockerDetail {
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--ink-1);
-}
-
-.blockerNote {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--ink-2);
-}
-
-/*
- * Resumes already built here, offered beside the dropzone.
- *
- * Quieter than the picker on purpose: uploading is the page's headline action
- * and this is the shortcut for people who have been here before. A second
- * card of equal weight would make the first choice ambiguous.
- */
-.savedCard {
-  margin-top: 0.875rem;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-lg);
-  background: var(--surface-0);
-  padding: 1.25rem;
-}
-
-.savedList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.5rem;
-}
-
-/*
- * The row is the delete control's positioning context. The two sit side by
- * side rather than nested, because a button inside a button is invalid and
- * a stray click on the cross would otherwise also start a check.
- */
-.savedRow {
-  display: flex;
-  align-items: stretch;
-  gap: 0.375rem;
-}
-
-.savedItem {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 0.875rem;
-  padding: 0.75rem 0.875rem;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
-  cursor: pointer;
-  text-align: left;
-  transition:
-    border-color 140ms ease-out,
-    background-color 140ms ease-out;
-}
-
-.savedItem:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--surface-2);
-}
-
-.savedItem:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.savedName {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.9375rem;
-  color: var(--text-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Several rows can share a name, so the date is what tells them apart. */
-.savedWhen {
-  flex-shrink: 0;
-  font-size: 0.75rem;
-  color: var(--text-4);
-}
-
-/*
- * Destructive, so it stays quiet until the row is under the pointer and asks
- * before it acts. There is no undo behind it: the checker keeps no history,
- * and for most people this is the only copy.
- */
-.savedRemove {
-  flex-shrink: 0;
-  width: 2.25rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  background: none;
-  color: var(--text-4);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 140ms ease-out,
-    color 140ms ease-out,
-    border-color 140ms ease-out;
-}
-
-.savedRow:hover .savedRemove,
-.savedRemove:focus-visible {
-  opacity: 1;
-}
-
-.savedRemove:hover,
-.savedRemove:focus-visible {
-  color: var(--flag);
-  border-color: var(--line-1);
-}
-
-.savedConfirm {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.savedDanger,
-.savedCancel {
-  padding: 0.4rem 0.6rem;
-  font-size: 0.75rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--line-1);
-  background: var(--surface-1);
-  cursor: pointer;
-}
-
-.savedDanger {
-  color: var(--flag);
-  border-color: currentColor;
-}
-
-.savedCancel {
-  color: var(--text-2);
-}
-
-.savedMeta {
-  flex-shrink: 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
-  color: var(--text-3);
-}
-
-.savedNote {
-  margin: 0.75rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.55;
-  color: var(--text-3);
-}
-
-/* ---- how hard the posting asked ---- */
-
-/*
- * Required coverage, stated before the chips.
- *
- * The headline count treats every term alike, which is the wrong shape for a
- * decision: missing six wishlist items is nothing, missing six requirements is
- * the whole application. This line is the one worth reading first.
- */
-.matchLead {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--text-1);
-}
-
-/*
- * What to add, in the order it is worth adding. Numbered because these really
- * are a sequence: the first one costs the most to be missing.
- */
-.priorityList {
-  margin: 0;
-  padding-left: 1.25rem;
-  display: grid;
-  gap: 0.375rem;
-}
-
-.priorityRow {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.priorityTerm {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  color: var(--text-1);
-}
-
-.tagRequired,
-.tagPreferred {
-  font-size: 0.6875rem;
-  letter-spacing: 0.03em;
-  padding: 0.05rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-}
-
-.tagRequired {
-  color: var(--flag);
-  background: var(--flag-wash);
-}
-
-.tagPreferred {
-  color: var(--text-3);
-}
-
-/* A solid ring marks a chip the posting insists on, whatever its state. */
-.termRequired {
-  border-width: 2px;
-  border-style: solid;
-}
-
-/*
- * Demands a word-overlap check cannot see: years, a degree, a level. Quoted
- * from the posting rather than judged, because working out someone's total
- * experience from resume prose is guesswork.
- */
-.demandList {
-  list-style: none;
-  margin: 0;
-  padding: 0.75rem;
-  display: grid;
-  gap: 0.375rem;
-  border: 1px solid var(--line-1);
-  border-radius: var(--radius-md);
-  background: var(--surface-0);
-}
-
-.demandRow {
-  display: flex;
-  align-items: baseline;
-  gap: 0.625rem;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-}
-
-.demandKind {
-  flex-shrink: 0;
-  width: 5.5rem;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.03em;
-  color: var(--text-4);
 }

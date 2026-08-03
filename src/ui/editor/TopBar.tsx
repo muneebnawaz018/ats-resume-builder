@@ -18,8 +18,9 @@ import InputBase from "@mui/material/InputBase";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { EXPORT_FORMATS, type ExportFormat } from "@/export";
-import { tone } from "@/ui/tokens";
 import type { ViewMode } from "@/store";
+import { v } from "@/ui/theme/vars";
+import { ThemeButton } from "./ThemeButton";
 
 function TopBarInner({
   name,
@@ -69,8 +70,8 @@ function TopBarInner({
         display: "flex",
         alignItems: "center",
         gap: 1,
-        borderBottom: `1px solid ${tone.line1}`,
-        bgcolor: tone.surface0,
+        borderBottom: `1px solid ${v.edge}`,
+        bgcolor: v.surface0,
       }}
     >
       {/* The document name is editable in place, there was no other way to
@@ -88,8 +89,8 @@ function TopBarInner({
             px: 0.75,
             borderRadius: "3px",
             border: "1px solid transparent",
-            "&:hover": { borderColor: tone.line2 },
-            "&.Mui-focused": { borderColor: tone.line2, bgcolor: tone.surface1 },
+            "&:hover": { borderColor: v.line2 },
+            "&.Mui-focused": { borderColor: v.line2, bgcolor: v.surface1 },
             /*
              * Flexible, not fixed. At 320px a fixed 120px name field plus the
              * buttons added up to more than the viewport and scrolled the
@@ -160,7 +161,7 @@ function TopBarInner({
             sx={{
               fontFamily: "var(--font-mono), monospace",
               fontSize: 11,
-              color: tone.text2,
+              color: v.text2,
               width: 44,
               textAlign: "center",
               border: "none",
@@ -178,6 +179,8 @@ function TopBarInner({
           </IconButton>
         </Tooltip>
       </Box>
+
+      <ThemeButton />
 
       <Tooltip title="Opens your browser's print dialog. Choose “Save as PDF”.">
         <Button

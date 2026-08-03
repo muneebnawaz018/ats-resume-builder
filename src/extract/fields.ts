@@ -14,12 +14,23 @@ export type Recovered = {
   value: string | null;
   /** Why it was not found, in words the person can act on. */
   lost?: string;
+  /**
+   * Every value found, where a field can hold more than one.
+   *
+   * `value` stays a single line so that everything reading a field as text
+   * keeps working; this is the same information unflattened, for a caller that
+   * wants to show the whole set. A resume with six headings and four date
+   * ranges printed them all into one cell, which made the row taller than the
+   * five above it put together.
+   */
+  items?: string[];
 };
 
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]{2,}/;
 /** Loose on purpose, international numbers vary more than any pattern. */
 const PHONE = /(\+?\d[\d\s().-]{7,}\d)/;
-const LINK = /\b((?:https?:\/\/|www\.)[^\s,)]+|[\w-]+\.(?:dev|io|com|me)\/[^\s,)]+)/i;
+const LINKS =
+  /\b(?:(?:https?:\/\/|www\.)[^\s,)]+|[\w-]+\.(?:dev|io|com|me)\/[^\s,)]+)/gi;
 
 const MONTH =
   "(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.?";
@@ -72,7 +83,12 @@ export function recoverFields(extraction: Extraction): Recovered[] {
   const name =
     blocks.slice(0, 8).find((b) => looksLikeName(b.text))?.text.trim() ?? null;
 
-  const link = LINK.exec(text)?.[1] ?? null;
+  /*
+   * Every link, not just the first. A resume usually carries three or four,
+   * and which ones came through is the useful part: LinkedIn surviving while
+   * the portfolio is swallowed by a text box is a thing worth seeing.
+   */
+  const links = [...new Set(text.match(LINKS) ?? [])];
 
   const sections = blocks
     .filter((b) => b.kind === "heading" && SECTION_WORDS.test(b.text))
@@ -98,12 +114,14 @@ export function recoverFields(extraction: Extraction): Recovered[] {
     },
     {
       key: "links",
-      value: link,
+      value: links[0] ?? null,
+      items: links,
       lost: "no portfolio or profile URL",
     },
     {
       key: "sections",
       value: sections.length ? sections.join(", ") : null,
+      items: sections,
       lost: "no headings a parser recognises",
     },
     {
@@ -111,6 +129,7 @@ export function recoverFields(extraction: Extraction): Recovered[] {
       value: ranges.length
         ? `${ranges.length} range${ranges.length === 1 ? "" : "s"}, first is ${ranges[0]}`
         : null,
+      items: ranges,
       lost: "no start and end dates found",
     },
   ];

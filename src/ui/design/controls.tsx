@@ -8,7 +8,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { Length } from "@/schema";
-import { tone } from "@/ui/tokens";
+import { monoLabel, v } from "@/ui/theme/vars";
 
 /** Label left, control right, measured value in mono. */
 function Row({
@@ -30,13 +30,13 @@ function Row({
           mb: 0.5,
         }}
       >
-        <Typography sx={{ fontSize: 12, color: tone.text2 }}>{label}</Typography>
+        <Typography sx={{ fontSize: 12, color: v.text2 }}>{label}</Typography>
         {value ? (
           <Typography
             sx={{
               fontFamily: "var(--font-mono), monospace",
               fontSize: 11,
-              color: tone.text3,
+              color: v.text3,
             }}
           >
             {value}
@@ -143,7 +143,7 @@ export function SelectControl<T extends string | number>({
         ))}
       </Select>
       {helper ? (
-        <Typography sx={{ fontSize: 11, color: tone.text3, mt: 0.5 }}>
+        <Typography sx={{ fontSize: 11, color: v.text3, mt: 0.5 }}>
           {helper}
         </Typography>
       ) : null}
@@ -175,9 +175,9 @@ export function ColorControl({
             width: 34,
             height: 30,
             p: 0,
-            border: `1px solid ${tone.line2}`,
+            border: `1px solid ${v.line2}`,
             borderRadius: "3px",
-            bgcolor: tone.surface1,
+            bgcolor: v.surface1,
             cursor: "pointer",
           }}
         />
@@ -215,7 +215,7 @@ export function SwitchControl({
         mb: 1,
       }}
     >
-      <Typography sx={{ fontSize: 12, color: tone.text2 }}>{label}</Typography>
+      <Typography sx={{ fontSize: 12, color: v.text2 }}>{label}</Typography>
       <Switch
         size="small"
         checked={value}
@@ -262,11 +262,11 @@ export function GroupTitle({ children }: { children: React.ReactNode }) {
       variant="overline"
       sx={{
         display: "block",
-        color: tone.text3,
+        ...monoLabel,
         mt: 2,
         mb: 1,
         pb: 0.5,
-        borderBottom: `1px solid ${tone.line1}`,
+        borderBottom: `1px solid ${v.edge}`,
       }}
     >
       {children}

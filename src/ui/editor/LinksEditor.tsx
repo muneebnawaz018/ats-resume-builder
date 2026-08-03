@@ -26,7 +26,7 @@ import {
   type Resume,
 } from "@/schema";
 import { useAppStore } from "@/store";
-import { tone } from "@/ui/tokens";
+import { v } from "@/ui/theme/vars";
 
 type Link = Resume["basics"]["links"][number];
 
@@ -57,7 +57,7 @@ function PlatformMark({ id, size = 22 }: { id?: string; size?: number }) {
   const mark = id ? MARKS[id] : undefined;
   if (!mark) {
     return (
-      <LanguageIcon sx={{ fontSize: size, color: tone.text3, flexShrink: 0 }} />
+      <LanguageIcon sx={{ fontSize: size, color: v.text3, flexShrink: 0 }} />
     );
   }
   return (
@@ -111,7 +111,7 @@ function LinkRow({
   return (
     <Box
       sx={{
-        border: `1px solid ${tone.line1}`,
+        border: `1px solid ${v.edge}`,
         borderRadius: 1.5,
         p: 1.25,
         mb: 1.25,
@@ -240,9 +240,9 @@ function LinkRow({
         </ToggleButton>
       </ToggleButtonGroup>
 
-      <Typography sx={{ fontSize: 11.5, color: tone.text3, lineHeight: 1.5 }}>
+      <Typography sx={{ fontSize: 11.5, color: v.text3, lineHeight: 1.5 }}>
         On the page:{" "}
-        <Box component="span" sx={{ color: tone.text2 }}>
+        <Box component="span" sx={{ color: v.text2 }}>
           {linkText(link) || "nothing yet"}
         </Box>
         {link.displayAs === "label" ? (
@@ -295,7 +295,7 @@ export function LinksEditor({ links }: { links: Link[] }) {
             <PlatformMark id={p.id} size={18} />
             {p.label}
             {used.has(p.id) && p.id !== WEBSITE_PLATFORM.id ? (
-              <Box component="span" sx={{ ml: "auto", color: tone.text4, fontSize: 11 }}>
+              <Box component="span" sx={{ ml: "auto", color: v.text4, fontSize: 11 }}>
                 added
               </Box>
             ) : null}

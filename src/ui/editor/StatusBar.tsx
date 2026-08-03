@@ -4,18 +4,19 @@ import { memo } from "react";
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { tone } from "@/ui/tokens";
+import { monoLabel, v } from "@/ui/theme/vars";
 
 /** Anything the machine measured is set in mono. */
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <Box sx={{ display: "flex", gap: 0.75, alignItems: "baseline" }}>
-      <Typography sx={{ fontSize: 11, color: tone.text3 }}>{label}</Typography>
+      <Typography sx={{ ...monoLabel, fontSize: 10 }}>{label}</Typography>
       <Typography
         sx={{
           fontFamily: "var(--font-mono), monospace",
           fontSize: 11,
-          color: tone.text2,
+          fontVariantNumeric: "tabular-nums",
+          color: v.text2,
         }}
       >
         {value}
@@ -58,8 +59,8 @@ function StatusBarInner({
         display: "flex",
         alignItems: "center",
         gap: 2.5,
-        borderTop: `1px solid ${tone.line1}`,
-        bgcolor: tone.surface0,
+        borderTop: `1px solid ${v.edge}`,
+        bgcolor: v.surface0,
       }}
     >
       <Metric label="pages" value={String(pages)} />
@@ -68,7 +69,7 @@ function StatusBarInner({
       <Box sx={{ flex: 1 }} />
       {/* Stated once, then never explained again. */}
       <Typography
-        sx={{ fontSize: 11, color: tone.line2, display: { xs: "none", md: "block" } }}
+        sx={{ fontSize: 11, color: v.text4, display: { xs: "none", md: "block" } }}
       >
         guides never print
       </Typography>
@@ -79,7 +80,7 @@ function StatusBarInner({
       <Typography
         sx={{
           fontSize: 11,
-          color: tone.line2,
+          color: v.text4,
           display: { xs: "none", sm: "block" },
           whiteSpace: "nowrap",
         }}

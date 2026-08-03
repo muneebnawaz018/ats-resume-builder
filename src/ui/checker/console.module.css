@@ -1,0 +1,1261 @@
+/*
+ * The checker console.
+ *
+ * An instrument-panel layout: mono labels, a dial, severity-coded findings.
+ * The colours are the site's own tokens, so it reads as the same product in
+ * either scheme and the theme toggle in the header moves it with everything
+ * else. Nothing here declares a colour of its own.
+ */
+
+.shell {
+  background: var(--surface-1);
+  color: var(--text-1);
+  min-height: 100%;
+}
+
+/*
+ * A faint engineering grid behind the readout.
+ *
+ * Fixed, so it does not travel with the content, and masked to fade out down
+ * the page: it should read as the surface the panels sit on, not as texture
+ * competing with the data.
+ */
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      var(--accent-wash),
+      transparent 60%
+    ),
+    linear-gradient(var(--edge-soft) 1px, transparent 1px) 0 0 / 100% 56px,
+    linear-gradient(90deg, var(--edge-soft) 1px, transparent 1px) 0 0 / 56px 100%;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+  mask-image: linear-gradient(180deg, #000 0%, transparent 78%);
+}
+
+/* Content above the grid. The shell's stacking context is created above. */
+.shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Frame
+ * ------------------------------------------------------------------ */
+
+.main {
+  width: min(1180px, 100% - 2.5rem);
+  margin: 0 auto;
+  padding: 2.75rem 0 5rem;
+}
+
+@media (max-width: 640px) {
+  .main {
+    width: min(1180px, 100% - 1.75rem);
+    padding: 1.75rem 0 3.5rem;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Masthead
+ *
+ * Stated once, at the top, and it stays put after a file is read: the claim
+ * that nothing is uploaded is the reason someone drops a resume in at all, so
+ * it should not scroll away with the empty state.
+ * ------------------------------------------------------------------ */
+
+.masthead {
+  display: grid;
+  gap: 0.9rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--edge);
+  margin-bottom: 2rem;
+}
+
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pass);
+  box-shadow: 0 0 0 0 var(--pass-wash);
+  animation: pulse 2.4s var(--ease) infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--pass-wash);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.9rem, 1.2rem + 2.4vw, 3rem);
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  max-width: 20ch;
+}
+
+.titleDim {
+  color: var(--text-3);
+}
+
+.lede {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* ------------------------------------------------------------------ *
+ * Dropzone
+ * ------------------------------------------------------------------ */
+
+.zone {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 0.85rem;
+  padding: clamp(2.25rem, 6vw, 4rem) 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+  box-shadow: var(--lift);
+  transition:
+    border-color var(--dur-base) var(--ease),
+    background-color var(--dur-base) var(--ease),
+    transform var(--dur-base) var(--ease);
+}
+
+.zone:hover,
+.zone:focus-within {
+  border-color: var(--accent-border);
+}
+
+.zoneOver {
+  border-color: var(--accent);
+  border-style: solid;
+  background:
+    linear-gradient(180deg, var(--accent-wash), transparent 60%),
+    var(--surface-0);
+  transform: translateY(-2px);
+}
+
+.zoneBad {
+  border-color: var(--flag-border);
+  border-style: solid;
+}
+
+/*
+ * The input covers the whole zone so a click anywhere opens the picker, but it
+ * is the label that is visible: an invisible input still has to be reachable
+ * by keyboard, and focus lands on it, not on the label.
+ */
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:focus-visible + .prompt {
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: var(--radius-md);
+}
+
+.prompt {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.promptIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-border);
+}
+
+.promptText {
+  font-size: 1.0625rem;
+  color: var(--text-1);
+}
+
+.promptText strong {
+  font-weight: 600;
+}
+
+.promptHint {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.zoneError {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--flag);
+}
+
+/* ------------------------------------------------------------------ *
+ * File bar
+ *
+ * What replaces the dropzone once a file has been read. Deliberately narrow:
+ * the file is settled, and the report below it is what deserves the room.
+ * ------------------------------------------------------------------ */
+
+.fileBar {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  box-shadow: var(--lift);
+}
+
+.fileExt {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 46px;
+  height: 32px;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+
+.fileText {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--text-4);
+}
+
+.fileClear {
+  margin-left: auto;
+  flex: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text-1);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  color: var(--accent-hover);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  composes: btn;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--on-accent);
+}
+
+.btn:focus-visible,
+.btnPrimary:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+/* ------------------------------------------------------------------ *
+ * Panels
+ * ------------------------------------------------------------------ */
+
+.panel {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  padding: 1.15rem 1.25rem 1.35rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  box-shadow: var(--lift);
+}
+
+/*
+ * A mono, ruled header. The rule runs from the end of the words to the edge of
+ * the panel, which is what makes a stack of these read as one instrument
+ * rather than as a pile of cards.
+ */
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.panelHead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--edge);
+}
+
+.panelCount {
+  order: 3;
+  flex: none;
+  color: var(--text-4);
+  letter-spacing: 0.08em;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+/* ------------------------------------------------------------------ *
+ * Report grid
+ * ------------------------------------------------------------------ */
+
+.report {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Score beside the field readout: the verdict and its evidence, one row. */
+.readout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .readout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.split {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+/* ------------------------------------------------------------------ *
+ * Score dial
+ * ------------------------------------------------------------------ */
+
+.score {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  text-align: center;
+  padding: 1.5rem 1.25rem 1.35rem;
+}
+
+.dial {
+  position: relative;
+  width: 176px;
+  height: 176px;
+}
+
+.dialSvg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.dialTrack {
+  fill: none;
+  stroke: var(--surface-3);
+  stroke-width: 8;
+}
+
+.dialArc {
+  fill: none;
+  stroke: var(--band);
+  stroke-width: 8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px var(--band-wash));
+  animation: sweep 900ms var(--ease) both;
+}
+
+@keyframes sweep {
+  from {
+    stroke-dashoffset: var(--arc-len);
+  }
+}
+
+.dialFace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.1rem;
+}
+
+.dialValue {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 2.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.dialMax {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--text-4);
+}
+
+.verdict {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: var(--text-1);
+  max-width: 26ch;
+}
+
+.band {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--band);
+  color: var(--band);
+  background: var(--band-wash);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Band colours, set as locals so the dial, pill and glow all track one value. */
+.bandClean {
+  --band: var(--pass);
+  --band-wash: var(--pass-wash);
+}
+.bandMinor {
+  --band: var(--accent);
+  --band-wash: var(--accent-wash);
+}
+.bandRisky {
+  --band: var(--caution);
+  --band-wash: var(--caution-wash);
+}
+.bandBroken {
+  --band: var(--flag);
+  --band-wash: var(--flag-wash);
+}
+
+.caveat {
+  margin: 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--edge);
+  width: 100%;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--text-4);
+}
+
+/* ------------------------------------------------------------------ *
+ * Blockers
+ *
+ * Above the score and outside it. A file a portal refuses never reaches a
+ * parser, so it gets the loudest thing on the page.
+ * ------------------------------------------------------------------ */
+
+.blockers {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--flag-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--flag-wash), transparent 70%),
+    var(--surface-0);
+}
+
+.blockerLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--flag);
+}
+
+.blockerDetail {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* ------------------------------------------------------------------ *
+ * Fields readout
+ *
+ * A checklist, not a table: the question each row answers is whether a parser
+ * came away with the value, so the state marker leads and the value follows.
+ * ------------------------------------------------------------------ */
+
+.fields {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 1rem 8.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--edge-soft);
+}
+
+.field:first-child {
+  border-top: 0;
+}
+
+@media (max-width: 520px) {
+  .field {
+    grid-template-columns: 1rem minmax(0, 1fr);
+  }
+  .fieldKey {
+    grid-column: 2;
+  }
+  .fieldVal {
+    grid-column: 2;
+  }
+}
+
+.mark {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1;
+  color: var(--pass);
+}
+
+.markMissing {
+  composes: mark;
+  color: var(--flag);
+}
+
+.fieldKey {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.fieldVal {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--text-1);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fieldLost {
+  composes: fieldVal;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+.fieldLink {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/*
+ * Several values behind one summary. Six headings printed in full made this
+ * row taller than the rest of the panel, and the count is the thing being
+ * checked anyway: whether a parser found them, not what they say.
+ */
+.more > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.more > ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.35rem;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  color: var(--text-2);
+}
+
+/* ------------------------------------------------------------------ *
+ * Facts
+ * ------------------------------------------------------------------ */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.85rem 1rem;
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.factKey {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.factVal {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.9375rem;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ *
+ * Findings
+ * ------------------------------------------------------------------ */
+
+.findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.finding {
+  display: grid;
+  grid-template-columns: 6.25rem minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--edge);
+  border-left: 3px solid var(--sev);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+@media (max-width: 620px) {
+  .finding {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sevBlocking {
+  --sev: var(--flag);
+}
+.sevHigh {
+  --sev: var(--flag);
+}
+.sevMedium {
+  --sev: var(--caution);
+}
+.sevLow {
+  --sev: var(--text-4);
+}
+
+.sev {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sev);
+  padding-top: 0.15rem;
+}
+
+.findingLabel {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.findingBody {
+  grid-column: 2;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+.findingSource {
+  grid-column: 2;
+  justify-self: start;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: 1px;
+}
+
+.findingSource:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+@media (max-width: 620px) {
+  .findingBody,
+  .findingSource {
+    grid-column: 1;
+  }
+}
+
+.clean {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--pass);
+}
+
+/* ------------------------------------------------------------------ *
+ * Disclosure: sources, and the raw text
+ * ------------------------------------------------------------------ */
+
+.disclose {
+  border-top: 1px solid var(--edge);
+  padding-top: 0.85rem;
+}
+
+.disclose > summary {
+  cursor: pointer;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.disclose > summary:hover {
+  color: var(--accent);
+}
+
+.disclose pre {
+  margin: 0.85rem 0 0;
+  max-height: 26rem;
+  overflow: auto;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--edge);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sources {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sources li {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.sourceClaim {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.sources a {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ *
+ * Job posting match
+ * ------------------------------------------------------------------ */
+
+.jd {
+  width: 100%;
+  min-height: 8.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.jd::placeholder {
+  color: var(--text-4);
+}
+
+.jd:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-ring);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.matchLead {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.matchLead strong {
+  color: var(--text-1);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Coverage as a bar, so "14 of 22" has a shape as well as a number. */
+.meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width var(--dur-slow) var(--ease);
+}
+
+.priority {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.priorityRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--edge);
+}
+
+.priorityTerm {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-1);
+}
+
+.tag {
+  margin-left: auto;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  color: var(--text-4);
+}
+
+.tagRequired {
+  composes: tag;
+  color: var(--flag);
+}
+
+.tagPreferred {
+  composes: tag;
+  color: var(--caution);
+}
+
+.demands {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.demandRow {
+  display: flex;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.demandKind {
+  flex: none;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding-top: 0.2rem;
+  width: 6rem;
+}
+
+.terms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.termFound {
+  color: var(--pass);
+  border-color: currentcolor;
+  background: var(--pass-wash);
+}
+
+.termNear {
+  color: var(--caution);
+  border-color: currentcolor;
+  background: var(--caution-wash);
+}
+
+.termMissing {
+  color: var(--text-3);
+  border-style: dashed;
+}
+
+/*
+ * Required and missing. Drawn as a solid red edge rather than a fourth fill,
+ * because the distinction that matters is which missing terms are filters.
+ */
+.termRequired {
+  border-color: var(--flag-border);
+  border-style: solid;
+  color: var(--flag);
+}
+
+.termCount {
+  font-size: 0.625rem;
+  opacity: 0.75;
+}
+
+/*
+ * What the colours mean, in words. Four states carried by colour alone read as
+ * one undifferentiated list to anyone who cannot separate them.
+ */
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0.85rem 0 0;
+  border-top: 1px solid var(--edge);
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.legendChip {
+  flex: none;
+  width: 22px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.nearList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.nearList strong {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  color: var(--text-1);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ *
+ * Export row
+ * ------------------------------------------------------------------ */
+
+.saves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.saved {
+  margin: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--pass);
+}
+
+/* ------------------------------------------------------------------ *
+ * Saved documents
+ * ------------------------------------------------------------------ */
+
+.savedList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.savedRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.savedItem {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.savedItem:hover:not(:disabled) {
+  border-color: var(--accent-border);
+}
+
+.savedItem:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.savedName {
+  font-size: 0.9375rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedWhen,
+.savedAction {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.savedAction {
+  color: var(--accent);
+}
+
+.savedRemove {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-4);
+  cursor: pointer;
+}
+
+.savedRemove:hover {
+  color: var(--flag);
+  border-color: var(--flag-border);
+}
+
+.savedConfirm {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.savedDanger {
+  composes: btn;
+  border-color: var(--flag-border);
+  color: var(--flag);
+}
+
+/* ------------------------------------------------------------------ *
+ * Status
+ * ------------------------------------------------------------------ */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-3);
+  border-top-color: var(--accent);
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.failed {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--flag-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--flag-wash);
+  font-size: 0.875rem;
+  color: var(--text-1);
+}

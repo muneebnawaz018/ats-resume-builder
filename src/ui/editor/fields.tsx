@@ -5,7 +5,7 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import type { DateEnd, DateValue } from "@/schema";
-import { tone } from "@/ui/tokens";
+import { v } from "@/ui/theme/vars";
 
 /** Labelled text input. `help` explains why the field matters, not what it is. */
 export function Field({
@@ -93,7 +93,7 @@ export function DateField({
 
   return (
     <Box sx={{ mb: 1.75 }}>
-      <Typography sx={{ fontSize: 12, color: tone.text2, mb: 0.75 }}>
+      <Typography sx={{ fontSize: 12, color: v.text2, mb: 0.75 }}>
         {label}
       </Typography>
       <Box sx={{ display: "flex", gap: 1 }}>
@@ -129,7 +129,7 @@ export function DateField({
         </TextField>
       </Box>
       {help ? (
-        <Typography sx={{ fontSize: 11.5, color: tone.text3, mt: 0.5 }}>
+        <Typography sx={{ fontSize: 11.5, color: v.text3, mt: 0.5 }}>
           {help}
         </Typography>
       ) : null}

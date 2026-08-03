@@ -45,9 +45,17 @@
   }
 }
 
+/*
+ * The sheet is white in both schemes.
+ *
+ * It is a picture of the piece of paper that comes out of the printer, and the
+ * text on it is coloured by the document's own `--r-*` tokens, which are ink
+ * values. Letting it follow `--surface-0` into the dark turned the preview into
+ * dark ink on a dark page, and it stopped being a preview of anything.
+ */
 .sheet {
   position: relative;
-  background: var(--surface-0);
+  background: var(--c-white);
   border-radius: var(--radius-sm);
   animation: sheetIn var(--dur-base) var(--ease) both;
   box-shadow: var(--shadow-md);

@@ -8,7 +8,6 @@ import type { ExportFormat } from "@/export";
 import { downloadJson, readJsonFile, slugify } from "@/lib";
 import { plainText, type ThemeTokens } from "@/schema";
 import { useAppStore } from "@/store";
-import { tone } from "@/ui/tokens";
 import { AddSectionDialog } from "./AddSectionDialog";
 import { Inspector } from "./Inspector";
 import { PrintPageSize } from "./PrintPageSize";
@@ -17,6 +16,7 @@ import { PaperStage } from "./PaperStage";
 import { ParseView } from "./ParseView";
 import { StatusBar } from "./StatusBar";
 import { TopBar } from "./TopBar";
+import { v } from "@/ui/theme/vars";
 
 function countWords(text: string): number {
   const t = text.trim();
@@ -188,10 +188,10 @@ export function EditorShell() {
           height: "100dvh",
           display: "grid",
           placeItems: "center",
-          bgcolor: tone.surface1,
+          bgcolor: v.surface1,
         }}
       >
-        <Typography sx={{ fontSize: 13, color: tone.text3 }}>
+        <Typography sx={{ fontSize: 13, color: v.text3 }}>
           Loading your documents from this browser…
         </Typography>
       </Box>

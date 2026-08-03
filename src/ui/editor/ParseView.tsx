@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { plainText, type ExperienceItem, type Resume } from "@/schema";
 import { formatDateRange } from "@/lib";
-import { blue, severity, tone } from "@/ui/tokens";
+import { monoLabel, v } from "@/ui/theme/vars";
 
 /**
  * The signature view: the document as an extractor sees it.
@@ -66,7 +66,7 @@ export function ParseView({ resume }: { resume: Resume }) {
       sx={{
         flex: 1,
         overflow: "auto",
-        bgcolor: tone.surface1,
+        bgcolor: v.surface1,
         p: 4,
         display: "flex",
         justifyContent: "center",
@@ -75,11 +75,11 @@ export function ParseView({ resume }: { resume: Resume }) {
       <Box sx={{ width: "100%", maxWidth: 760 }}>
         <Typography
           variant="overline"
-          sx={{ color: tone.text3, display: "block", mb: 0.5 }}
+          sx={{ ...monoLabel, display: "block", mb: 0.5 }}
         >
           Extracted fields
         </Typography>
-        <Typography sx={{ fontSize: 12, color: tone.text3, mb: 2.5 }}>
+        <Typography sx={{ fontSize: 12, color: v.text3, mb: 2.5 }}>
           {missing === 0
             ? "Every field was recovered."
             : `${missing} field${missing === 1 ? "" : "s"} could not be recovered. A recruiter would see those blank.`}
@@ -101,20 +101,20 @@ export function ParseView({ resume }: { resume: Resume }) {
                 display: "grid",
                 gridTemplateColumns: "160px 1fr",
                 gap: 2,
-                borderLeft: `2px solid ${r.value ? severity.pass : severity.flag}`,
+                borderLeft: `2px solid ${r.value ? v.pass : v.flag}`,
                 pl: 1.5,
                 mb: 0.25,
-                bgcolor: r.value ? "transparent" : severity.flagWash,
+                bgcolor: r.value ? "transparent" : v.flagWash,
               }}
             >
-              <Box component="dt" sx={{ color: blue.guideMark, opacity: 0.8 }}>
+              <Box component="dt" sx={{ color: v.guideMark, opacity: 0.8 }}>
                 {r.key}
               </Box>
               <Box
                 component="dd"
                 sx={{
                   m: 0,
-                  color: r.value ? tone.text1 : severity.flag,
+                  color: r.value ? v.text1 : v.flag,
                   overflowWrap: "anywhere",
                 }}
               >
@@ -124,7 +124,7 @@ export function ParseView({ resume }: { resume: Resume }) {
           ))}
         </Box>
 
-        <Typography sx={{ fontSize: 11, color: tone.line2, mt: 3 }}>
+        <Typography sx={{ fontSize: 11, color: v.line2, mt: 3 }}>
           Phase 0 reads these from the document model. From Phase 2 they come
           from a real export round-trip.
         </Typography>

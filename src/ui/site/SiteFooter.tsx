@@ -111,7 +111,7 @@ export function SiteFooter({ variant = "full" }: { variant?: "full" | "bar" }) {
           style={variant === "bar" ? { marginTop: 0, borderTop: 0 } : undefined}
         >
           <span>
-            © {YEAR} {site.name}
+            <span className={css.footCopy}>©</span> {YEAR} {site.name}
           </span>
           <span className={css.footBarLinks}>
             <Link href="/terms">Terms</Link>
