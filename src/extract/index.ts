@@ -4,7 +4,7 @@ import type { Extraction } from "./types";
 export type { Extraction } from "./types";
 export { recoverFields } from "./fields";
 export { matchKeywords, type KeywordReport } from "./keywords";
-export { scoreExtraction, type Score } from "./score";
+export { CEILING, scoreExtraction, type Score } from "./score";
 
 /**
  * Reads a file with whichever extractor its format calls for.

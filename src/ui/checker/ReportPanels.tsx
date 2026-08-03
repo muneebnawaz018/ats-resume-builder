@@ -1,5 +1,8 @@
-import type { recoverFields } from "@/extract";
-import type { Extraction, Score } from "@/extract";
+import {
+  type Extraction,
+  type recoverFields,
+  type Score,
+} from "@/extract";
 import { depthNote, formatBytes } from "@/lib";
 import type { Picked } from "./Dropzone";
 import css from "./console.module.css";
@@ -170,8 +173,44 @@ export function Fields({
 }
 
 /**
+ * What a flag is called, in words rather than in the enum's spelling.
+ *
+ * The kinds come from the extractor and are named for what the code does with
+ * them. This panel is read by somebody deciding whether to re-export a file.
+ */
+const FLAG_LABEL: Record<string, string> = {
+  table: "Table",
+  textbox: "Text box",
+  headerContent: "Page header",
+  footerContent: "Page footer",
+  multiColumn: "Columns",
+  readingOrder: "Reading order",
+  noTextLayer: "No text layer",
+  emptyText: "No text",
+  image: "Image",
+};
+
+/** Block kinds, in the order a document tends to contain them. */
+const BLOCK_LABEL: [Extraction["blocks"][number]["kind"], string][] = [
+  ["heading", "headings"],
+  ["paragraph", "paragraphs"],
+  ["listItem", "bullets"],
+  ["cell", "table cells"],
+  ["textbox", "text boxes"],
+  ["header", "header lines"],
+  ["footer", "footer lines"],
+];
+
+/**
  * What the file is, measured from the extraction rather than claimed about the
  * format. The name is deliberately absent: it is on the bar above.
+ *
+ * The structures found in the document are listed underneath the counts. They
+ * were being computed and thrown away, which left this panel four numbers deep
+ * beside a panel that runs the height of the screen, and left the reader with
+ * no way to see what the score was reacting to. A flag is not a fault: plenty
+ * of resumes with a table parse perfectly. It is a statement of what is in
+ * there, and the findings panel is where the ones that cost points are argued.
  */
 export function FileFacts({
   picked,
@@ -181,6 +220,30 @@ export function FileFacts({
   result: Extraction;
 }) {
   const words = result.text.trim() ? result.text.trim().split(/\s+/).length : 0;
+
+  /*
+   * What those blocks actually are.
+   *
+   * "97 blocks" is a number nobody can act on. The same 97 split into headings,
+   * paragraphs and bullets says whether the document has structure a parser can
+   * use, and a count against `cell` or `textbox` says where the risk is before
+   * the findings panel has to argue about it. Kinds with none are dropped
+   * rather than printed as zero, so the list describes this document.
+   */
+  const composition = BLOCK_LABEL.map(
+    ([kind, label]) =>
+      [label, result.blocks.filter((b) => b.kind === kind).length] as const,
+  ).filter(([, n]) => n > 0);
+
+  /*
+   * The longest run of text a parser sees as one block. A resume written as a
+   * single 300-word paragraph extracts fine and reads as a wall, and nothing
+   * else on this page would say so.
+   */
+  const longest = result.blocks.reduce(
+    (max, b) => Math.max(max, b.text.trim().split(/\s+/).filter(Boolean).length),
+    0,
+  );
 
   const facts: [string, string][] = [
     ["format", picked.format.label],
@@ -197,10 +260,13 @@ export function FileFacts({
         ] as [string, string][])),
     ["words", words.toLocaleString()],
     ["blocks", String(result.blocks.length)],
+    ...(longest
+      ? ([["longest block", `${longest} words`]] as [string, string][])
+      : []),
   ];
 
   return (
-    <section className={css.panel}>
+    <section className={`${css.panel} ${css.spread}`}>
       <PanelHead>What was read</PanelHead>
       <dl className={css.facts}>
         {facts.map(([k, v]) => (
@@ -210,6 +276,51 @@ export function FileFacts({
           </div>
         ))}
       </dl>
+      {composition.length ? (
+        <>
+          {/* No count: it would be the block total, which is already a
+              column in the row of facts directly above. */}
+          <p className={css.subHead}>What those blocks are</p>
+          <ul className={css.tally}>
+            {composition.map(([label, n]) => (
+              <li key={label} className={css.tallyRow}>
+                <span className={css.tallyCount}>{n}</span>
+                <span className={css.tallyLabel}>{label}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      {result.flags.length ? (
+        <>
+          <p className={css.subHead}>
+            Structures found
+            <span>{result.flags.length}</span>
+          </p>
+          <ul className={css.flagList}>
+            {result.flags.map((f, i) => (
+              <li key={`${f.kind}-${i}`} className={css.flagRow}>
+                <span className={css.flagKind}>
+                  {FLAG_LABEL[f.kind] ?? f.kind}
+                </span>
+                <span className={css.flagDetail}>
+                  {f.detail}
+                  {f.page ? (
+                    <span className={css.flagPage}> page {f.page}</span>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className={css.note}>
+          Nothing in this document sits in a table, a text box, a page header or
+          a second column. That is the layout a parser reads most reliably.
+        </p>
+      )}
+
       {/* Which checks this format can support at all, so a skipped check is
           never mistaken for a passed one. */}
       <p className={css.note}>{depthNote(result.depth)}</p>
@@ -248,14 +359,23 @@ export function Findings({
               <span className={css.sev}>{SEVERITY_LABEL[d.severity]}</span>
               <span className={css.findingLabel}>{d.label}</span>
               <p className={css.findingBody}>{d.detail}</p>
-              <a
-                className={css.findingSource}
-                href={d.basis.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {d.basis.source} ↗
-              </a>
+              {/*
+                A judged weight has nothing to link to, and rendering it as a
+                link to the nearest citation is the specific dishonesty this
+                distinction exists to prevent.
+              */}
+              {d.basis.url ? (
+                <a
+                  className={css.findingSource}
+                  href={d.basis.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {d.basis.source} ↗
+                </a>
+              ) : (
+                <span className={css.findingJudged}>{d.basis.source}</span>
+              )}
             </li>
           ))}
         </ul>
@@ -278,11 +398,15 @@ export function Findings({
           <summary>Where these weights come from</summary>
           <ul className={css.sources}>
             {score.sources.map((b) => (
-              <li key={b.url + b.claim}>
+              <li key={(b.url ?? b.source) + b.claim}>
                 <p className={css.sourceClaim}>{b.claim}</p>
-                <a href={b.url} target="_blank" rel="noopener noreferrer">
-                  {b.source} ↗
-                </a>
+                {b.url ? (
+                  <a href={b.url} target="_blank" rel="noopener noreferrer">
+                    {b.source} ↗
+                  </a>
+                ) : (
+                  <span className={css.findingJudged}>{b.source}</span>
+                )}
               </li>
             ))}
           </ul>

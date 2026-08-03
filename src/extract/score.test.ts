@@ -27,13 +27,25 @@ describe("scoring", () => {
     expect(s.value).toBeLessThanOrEqual(98);
   });
 
-  it("cites a source for every deduction", () => {
+  it("declares where every weight came from", () => {
+    /*
+     * The contract is not "every weight is cited", which was never true: the
+     * column cost and the oversize cost have always been judgement calls. It
+     * is that a weight says which it is. A cited one links to the vendor or
+     * paper that documents the failure; a judged one carries the reasoning
+     * instead and is never rendered beside somebody else's link.
+     */
     const s = score(extractDocx(bytes("docx/contact-in-textbox.docx")));
     expect(s.deductions.length).toBeGreaterThan(0);
     for (const d of s.deductions) {
-      expect(d.basis.url).toMatch(/^https:\/\//);
       expect(d.basis.source.length).toBeGreaterThan(8);
       expect(d.basis.claim.length).toBeGreaterThan(30);
+      if (d.basis.judged) {
+        expect(d.basis.url).toBeUndefined();
+        expect(d.basis.source).toMatch(/judgement/i);
+      } else {
+        expect(d.basis.url).toMatch(/^https:\/\//);
+      }
     }
   });
 
@@ -119,8 +131,18 @@ describe("scoring", () => {
     const plain = score(extractText(text("txt/clean-sections.txt"), false));
     expect(plain.skipped).toContain("Column layout");
 
-    const pdfBacked = score(extractDocx(bytes("docx/clean-styled.docx")));
-    expect(pdfBacked.skipped).toEqual([]);
+    /*
+     * Word is not a layout format. It can be checked for tables, text boxes
+     * and header content, and it cannot be checked for reading order, columns
+     * or a missing text layer, so those three are named rather than passed.
+     */
+    const word = score(extractDocx(bytes("docx/clean-styled.docx")));
+    expect(word.skipped).toEqual([
+      "Reading order",
+      "Column layout",
+      "Text layer",
+    ]);
+    expect(word.skipped).not.toContain("Tables");
   });
 
   it("never leaves the 0 to 100 range", () => {

@@ -157,5 +157,5 @@ export function extractOdt(bytes: Uint8Array): Extraction {
     });
   }
 
-  return { depth: "layout", blocks, text, flags };
+  return { depth: "flow", blocks, text, flags };
 }

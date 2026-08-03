@@ -35,7 +35,9 @@ describe("docx", () => {
     expect(e.text).toContain(NAME);
     expect(e.text).toContain(EMAIL);
     expect(e.text).toContain(ORG);
-    expect(e.depth).toBe("layout");
+    // Not "layout": Word reflows, so there is no geometry to check. See
+    // FormatDepth.
+    expect(e.depth).toBe("flow");
   });
 
   it("joins runs that Word split mid-word", () => {

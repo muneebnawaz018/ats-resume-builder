@@ -45,6 +45,7 @@ import {
   CEILING,
   FIELD_COSTS,
   FLAG_COSTS,
+  STRUCTURE_COSTS,
   OVERSIZE_COST,
   PARSE_SIZE_LIMIT,
   SEVERITY_FLOOR,
@@ -1034,19 +1035,67 @@ async function taskFormula() {
     },
   ];
 
-  const all = [...flagRows, ...fieldRows, ...detectorRows, sizeRow].sort(
+  /** The structural checks. Every weight here is judged, none is cited. */
+  const structureRows: Row[] = [
+    {
+      label: "No work history section",
+      cost: STRUCTURE_COSTS.noWorkHistory,
+      source: "Our judgement, extending a documented Greenhouse failure mode",
+      detail:
+        "No heading names a work history, so there is nothing to build a career timeline from and everything under the renamed heading is unmapped.",
+    },
+    {
+      label: "Entries with no dates",
+      cost: STRUCTURE_COSTS.undatedEntries,
+      source: "Our judgement, not a published weight",
+      detail:
+        "A position with no date range cannot be placed on a timeline. Charged per document, not per entry: the document-level date field still passes, which is the hole this closes.",
+    },
+    {
+      label: "Entries with no employer",
+      cost: STRUCTURE_COSTS.orphanEntries,
+      source: "Our judgement, not a published weight",
+      detail:
+        "A row with a title and dates but no company. The company field is the one most recruiter searches filter on.",
+    },
+    {
+      label: "Headings a parser will not map",
+      cost: STRUCTURE_COSTS.unmappedHeadings,
+      source: "Our judgement, extending a documented Greenhouse failure mode",
+      detail:
+        "A heading that names no section a parser knows. Everything underneath goes unmapped.",
+    },
+    {
+      label: "Mixed date formats",
+      cost: STRUCTURE_COSTS.mixedDateFormats,
+      source: "Our judgement, not a published weight",
+      detail:
+        "Two date shapes in one document. Duration is computed by pairing endpoints, so the mixture is the fault rather than either format.",
+    },
+    {
+      label: "Ongoing role not marked Present",
+      cost: STRUCTURE_COSTS.ongoingWording,
+      source: "Our judgement, not a published weight",
+      detail:
+        "\"Current\", \"Now\", or a dash with nothing after it. An end a parser does not recognise is an end it does not record.",
+    },
+  ];
+
+  const all = [...flagRows, ...fieldRows, ...detectorRows, ...structureRows, sizeRow].sort(
     (a, b) => b.cost - a.cost,
   );
 
   const fatal = all.filter((r) => r.cost >= SEVERITY_FLOOR.blocking);
   const scored = all.filter((r) => r.cost < SEVERITY_FLOOR.blocking);
 
-  /** Deduplicated citations across every weight. */
+  /** Deduplicated citations across every weight that has one. */
   const sources = [
     ...new Set(
-      [...Object.values(FIELD_COSTS), ...Object.values(FLAG_COSTS)].map(
-        (v) => `${v.basis.source}\n  <${v.basis.url}>\n  ${v.basis.claim}`,
-      ),
+      [...Object.values(FIELD_COSTS), ...Object.values(FLAG_COSTS)]
+        .filter((v) => v.basis.url)
+        .map(
+          (v) => `${v.basis.source}\n  <${v.basis.url}>\n  ${v.basis.claim}`,
+        ),
     ),
   ];
 
@@ -1176,6 +1225,12 @@ These are the numbers to argue with:
   boundaries. The two used to bill separately, 42 points for one defect.
 - ${SPACING_TIERS.map((t) => t.cost).join(" / ")} for the letter-spacing tiers, and the 20% / 5% boundaries between them
 - ${PLACEHOLDER_COST} for unfilled template text, priced as a lost employer name
+- Every structural weight: ${Object.values(STRUCTURE_COSTS).join(" / ")}. Nobody publishes what an undated
+  job or a renamed section costs, so these are ours. They carry
+  \`basis.judged\`, are never rendered beside somebody else's link, and are the
+  reason the contract is "every weight declares where it came from" rather than
+  "every weight is cited" — which was never true, as the two entries above it
+  show.
 - The band boundaries (${BAND_FLOOR.clean} / ${BAND_FLOOR.minor} / ${BAND_FLOOR.risky}). Set by what each band should mean, not
   measured. The only corpus is the fixtures in testing/, which were built to
   exercise detectors rather than to represent real resumes, so reading

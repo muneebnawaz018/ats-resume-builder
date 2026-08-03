@@ -406,9 +406,17 @@
 }
 
 /* Score beside the field readout: the verdict and its evidence, one row. */
+/*
+ * The score and the file it was measured from, side by side.
+ *
+ * The dial column is fixed at its natural width and the facts take the rest:
+ * a dial that grows with the viewport just gets a fatter ring, while the facts
+ * are a wrapping grid that uses every pixel it is given.
+ */
 .readout {
   display: grid;
   gap: 1rem;
+  align-items: stretch;
   grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
 }
 
@@ -418,10 +426,16 @@
   }
 }
 
-.split {
+/*
+ * A column of panels inside one side of the readout.
+ *
+ * The gap is the same 1rem the report uses between rows, so a stacked pair on
+ * the left and a single panel on the right sit on one rhythm rather than two.
+ */
+.column {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  align-content: start;
 }
 
 /* ------------------------------------------------------------------ *
@@ -433,7 +447,14 @@
   gap: 1rem;
   justify-items: center;
   text-align: center;
-  padding: 1.5rem 1.25rem 1.35rem;
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+/* Everything else in this panel is centred; the header is not, so it has to
+   take the full width rather than shrink to its own content. */
+.score > .panelHead {
+  justify-self: stretch;
+  text-align: left;
 }
 
 .dial {
@@ -442,16 +463,18 @@
   height: 176px;
 }
 
+/* The rotation is set inline: it is derived from the arc's sweep, and two
+   places holding halves of one calculation is how they drift apart. */
 .dialSvg {
   width: 100%;
   height: 100%;
-  transform: rotate(-90deg);
 }
 
 .dialTrack {
   fill: none;
   stroke: var(--surface-3);
   stroke-width: 8;
+  stroke-linecap: round;
 }
 
 .dialArc {
@@ -487,12 +510,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.dialMax {
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  color: var(--text-4);
-}
 
 .verdict {
   margin: 0;
@@ -535,16 +552,6 @@
   --band-wash: var(--flag-wash);
 }
 
-.caveat {
-  margin: 0;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--edge);
-  width: 100%;
-  font-size: 0.75rem;
-  line-height: 1.6;
-  text-align: left;
-  color: var(--text-4);
-}
 
 /* ------------------------------------------------------------------ *
  * Blockers
@@ -590,10 +597,25 @@
  * came away with the value, so the state marker leads and the value follows.
  * ------------------------------------------------------------------ */
 
+/*
+ * Two columns from tablet up, one below.
+ *
+ * The list is six or seven short rows, and at full page width a single column
+ * left two thirds of the panel empty while the values sat on a 60rem measure
+ * they never came close to using. `column-gap` carries a rule between the two
+ * halves so they read as two columns rather than as one list that wrapped.
+ */
 .fields {
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2.5rem;
   margin: 0;
+}
+
+@media (max-width: 720px) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .field {
@@ -605,8 +627,18 @@
   border-top: 1px solid var(--edge-soft);
 }
 
-.field:first-child {
+/* The first row of each column, not just the first row of the list. */
+.fields > .field:nth-child(-n + 2) {
   border-top: 0;
+}
+
+@media (max-width: 720px) {
+  .fields > .field:nth-child(2) {
+    border-top: 1px solid var(--edge-soft);
+  }
+  .fields > .field:first-child {
+    border-top: 0;
+  }
 }
 
 @media (max-width: 520px) {
@@ -787,6 +819,37 @@
   color: var(--text-4);
   border-bottom: 1px solid var(--line-2);
   padding-bottom: 1px;
+}
+
+/*
+ * A weight nobody published. Set like the citation it sits in place of, in the
+ * caution colour and without a link, so a reader can see at a glance which
+ * numbers rest on a vendor's documentation and which rest on ours.
+ */
+.findingJudged {
+  justify-self: start;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--caution);
+  border-bottom: 1px dotted var(--caution);
+  padding-bottom: 1px;
+}
+
+/*
+ * The column placement belongs to the findings list, not to the marker.
+ * Setting it on the marker itself put a second column into the sources list,
+ * which is a single column, so every judged note floated off to the right of
+ * the claim it belonged to.
+ */
+.finding > .findingJudged {
+  grid-column: 2;
+}
+
+@media (max-width: 620px) {
+  .finding > .findingJudged {
+    grid-column: 1;
+  }
 }
 
 .findingSource:hover {
@@ -1258,4 +1321,178 @@
   background: var(--flag-wash);
   font-size: 0.875rem;
   color: var(--text-1);
+}
+
+/* ------------------------------------------------------------------ *
+ * Sub-heading, and the structures found in a document
+ * ------------------------------------------------------------------ */
+
+/*
+ * A second heading inside a panel. Lighter than the panel's own header: no
+ * rule, so the two never read as two panels that lost their border.
+ */
+.subHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.35rem 0 -0.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--edge);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.flagList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+/*
+ * Not severity-coded. A table or a text box is a fact about the document, and
+ * whether it costs anything is argued in the findings panel; colouring it here
+ * would sentence it twice.
+ */
+.flagRow {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: 0.35rem 0.85rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--line-2);
+}
+
+@media (max-width: 520px) {
+  .flagRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.flagKind {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  padding-top: 0.15rem;
+}
+
+.flagDetail {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+.flagPage {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: var(--text-4);
+  white-space: nowrap;
+}
+
+/*
+ * Content spread over the panel's height rather than stacked at the top.
+ *
+ * Only for a panel whose height is set by something else in its row. `.panel`
+ * packs to the top, which is right when the height is the content's own and
+ * wrong when it is inherited: the leftovers all pooled under the last line and
+ * read as a panel that had lost something.
+ */
+.spread {
+  align-content: space-between;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tally
+ *
+ * Counts of one kind of thing, read at a glance. Wrapping rather than a
+ * column: these are four to seven short pairs, and a vertical list of them
+ * made a panel three times taller than the figures deserve.
+ * ------------------------------------------------------------------ */
+
+.tally {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tallyRow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.tallyCount {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+}
+
+.tallyLabel {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+/* ------------------------------------------------------------------ *
+ * What now
+ *
+ * Two answers to one question, in one panel. The divider is the second
+ * column's left border rather than a separate element, so it cannot get out of
+ * step with the gap it sits in.
+ * ------------------------------------------------------------------ */
+
+.nextRow {
+  display: grid;
+  grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.nextRow > .nextCol + .nextCol {
+  border-left: 1px solid var(--edge);
+  padding-left: 1.5rem;
+}
+
+@media (max-width: 780px) {
+  .nextRow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+  .nextRow > .nextCol + .nextCol {
+    border-left: 0;
+    border-top: 1px solid var(--edge);
+    padding-left: 0;
+    padding-top: 1.25rem;
+  }
+}
+
+.nextCol {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  align-content: start;
+}
+
+/* The sub-heading in this panel has no rule above it: it is a label on a
+   column, not the start of a new block. */
+.nextCol > .subHead {
+  border-top: 0;
+  padding-top: 0;
+  margin: 0;
 }

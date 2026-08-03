@@ -2,6 +2,7 @@ import { ATS_ACCEPTED } from "@/lib/formats";
 import type { Recovered } from "./fields";
 import { detectLetterSpacing, SPACING_TIERS } from "./letterspacing";
 import { findPlaceholders } from "./placeholder";
+import { analyseStructure, DATE_STYLE_LABEL } from "./structure";
 import type { Extraction } from "./types";
 
 /**
@@ -37,11 +38,29 @@ import type { Extraction } from "./types";
  * guessing. This measures what an extractor can get out of a file, which is
  * the input all of them start from.
  */
+/**
+ * Where a weight came from.
+ *
+ * Two kinds, and the difference is stated in the report rather than smoothed
+ * over. `cited` means a vendor documents the failure: Greenhouse publishes that
+ * tables, headers and text boxes break its parser, so those numbers rest on
+ * something a reader can check. `judged` means nobody publishes it and we set
+ * the number ourselves.
+ *
+ * The old contract was "every weight is cited", which was not true: the column
+ * cost and the oversize cost were already judgement calls whose own comments
+ * said so, and the panel rendered them beside a Greenhouse link as though the
+ * link were their source. Declaring provenance is a weaker-sounding promise
+ * and a stronger one, because it is the one the code actually keeps.
+ */
 export type Basis = {
   /** The specific finding this weight rests on. */
   claim: string;
   source: string;
-  url: string;
+  /** Absent on a judged weight: there is nothing to link to. */
+  url?: string;
+  /** Defaults to cited, so an unmarked basis is a documented one. */
+  judged?: true;
 };
 
 /**
@@ -138,6 +157,36 @@ const HIDDEN_WORKERS: Basis = {
   url: "https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf",
 };
 
+
+/* ------------------------------------------------------------------ *
+ * Judged weights
+ *
+ * Nobody publishes what an undated job costs. These say so, carry the
+ * reasoning in place of a link, and are rendered as our judgement rather than
+ * as somebody else's finding.
+ * ------------------------------------------------------------------ */
+
+const JUDGED_ENTRY: Basis = {
+  claim:
+    "Three fields make a job real to a parser: title, employer, dates. Drop one and the entry still parses, but lands as a fragment: unrankable by tenure, invisible to a company filter. Nothing was lost in transit, so no re-export recovers it.",
+  source: "Our judgement, not a published weight",
+  judged: true,
+};
+
+const JUDGED_DATES: Basis = {
+  claim:
+    "Tenure is computed by pairing two endpoints. Two shapes in one document is what breaks the pairing, so the mixture is the fault, not either format. Weighted low: the dates survive, and the cost is a duration filter reading the wrong number rather than a lost field.",
+  source: "Our judgement, not a published weight",
+  judged: true,
+};
+
+const JUDGED_SECTIONS: Basis = {
+  claim:
+    "With no heading a parser reads as work history, every job under it is unmapped and the career comes back empty. Greenhouse documents inconsistent section formatting as a cause of failed parses. It does not publish the cost; this one is ours.",
+  source: "Our judgement, extending a documented Greenhouse failure mode",
+  judged: true,
+};
+
 /**
  * What a missing field costs.
  *
@@ -213,6 +262,10 @@ export const FLAG_COSTS: Record<
     label: "Column layout and reading order",
     basis: LAYOUT_PAPER,
   },
+  /*
+   * The paper below measures the accuracy loss; the 28 is still ours. See
+   * the comment above, and Basis.judged.
+   */
   textbox: { cost: 18, label: "Text box", basis: GREENHOUSE_PARSE },
   headerContent: { cost: 16, label: "Page header", basis: GREENHOUSE_PARSE },
   table: { cost: 13, label: "Table", basis: GREENHOUSE_PARSE },
@@ -256,6 +309,34 @@ export const OVERSIZE_COST = 10;
 export const PLACEHOLDER_COST = 20;
 
 /**
+ * Structural costs, all judged.
+ *
+ * These are per-document, not per-entry: three undated jobs are one finding
+ * that names three, not three findings compounding against each other. A
+ * document is not nine times worse for having nine of them, and multiplying
+ * would say it was.
+ *
+ * `noWorkHistory` is the heaviest thing here that is not fatal. A parser that
+ * finds no work-history section has no career to build, and everything under
+ * the renamed heading is unmapped rather than merely mislabelled.
+ */
+export const STRUCTURE_COSTS = {
+  /*
+   * 26, in the same band as a column layout at 28, and for the same reason:
+   * both mean a whole region of the document fails to map rather than one
+   * field going missing. At 20 a resume whose work history a parser cannot
+   * find still landed in "minor", which reads as "will parse, with some detail
+   * lost" over a document whose entire career section is unmapped.
+   */
+  noWorkHistory: 26,
+  undatedEntries: 14,
+  orphanEntries: 10,
+  unmappedHeadings: 8,
+  mixedDateFormats: 6,
+  ongoingWording: 5,
+} as const;
+
+/**
  * The ceiling is 98, not 100.
  *
  * No parser is guaranteed, none of them publish their rules, and a perfect
@@ -276,6 +357,23 @@ export const SEVERITY_FLOOR = {
   medium: 10,
   low: 0,
 } as const;
+
+
+/** "a", "a and b", "a, b and c". Findings name what they found. */
+function list(items: string[]): string {
+  const shown = items.slice(0, 3);
+  const rest = items.length - shown.length;
+  const joined =
+    shown.length === 1
+      ? shown[0]
+      : `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
+  return rest > 0 ? `${joined}, and ${rest} more` : joined;
+}
+
+/** Curly quotes: these strings are read, not parsed. */
+function quote(text: string): string {
+  return `\u201c${text.trim()}\u201d`;
+}
 
 function severity(cost: number): Severity {
   if (cost >= SEVERITY_FLOOR.blocking) return "blocking";
@@ -508,6 +606,86 @@ export function scoreExtraction(
     });
   }
 
+
+  /*
+   * Structure.
+   *
+   * Everything above asks whether a value exists somewhere in the document.
+   * These ask whether the document is put together in a way a parser can turn
+   * into records: does the work history exist as a section, does each position
+   * carry the three things a row needs, are the dates written one way.
+   *
+   * Every weight here is judged rather than cited, and says so.
+   */
+  const structure = analyseStructure(extraction);
+
+  if (structure.missingCore.includes("experience")) {
+    deductions.push({
+      label: "No work history section",
+      cost: STRUCTURE_COSTS.noWorkHistory,
+      severity: severity(STRUCTURE_COSTS.noWorkHistory),
+      detail:
+        structure.unmapped.length > 0
+          ? `No heading names a work history. ${quote(structure.unmapped[0])} is where one would sit, and a parser matching on known section names will not map it, so every job under it is unmapped.`
+          : "No heading a parser recognises as work history: Experience, Work Experience, Employment or Professional Experience. Without one there is nothing to build a career timeline from.",
+      basis: JUDGED_SECTIONS,
+    });
+  }
+
+  if (structure.undatedEntries.length > 0) {
+    const n = structure.undatedEntries.length;
+    deductions.push({
+      label: n === 1 ? "An entry with no dates" : "Entries with no dates",
+      cost: STRUCTURE_COSTS.undatedEntries,
+      severity: severity(STRUCTURE_COSTS.undatedEntries),
+      detail: `${n === 1 ? "One entry carries" : `${n} entries carry`} no date range: ${list(structure.undatedEntries.map((e) => e.title))}. The document has dates elsewhere, so this reads as missing rather than lost. A row with no dates cannot be placed on a timeline, and recruiters filter on time in role.`,
+      basis: JUDGED_ENTRY,
+    });
+  }
+
+  if (structure.orphanEntries.length > 0) {
+    const n = structure.orphanEntries.length;
+    deductions.push({
+      label: n === 1 ? "An entry with no employer" : "Entries with no employer",
+      cost: STRUCTURE_COSTS.orphanEntries,
+      severity: severity(STRUCTURE_COSTS.orphanEntries),
+      detail: `${list(structure.orphanEntries.map((e) => e.title))} ${n === 1 ? "has" : "have"} a title and dates but no line that reads as an employer. The row arrives with the company field empty, which is the field most recruiter searches filter on.`,
+      basis: JUDGED_ENTRY,
+    });
+  }
+
+  if (structure.unmapped.length > 0 && !structure.missingCore.includes("experience")) {
+    deductions.push({
+      label: "Headings a parser will not map",
+      cost: STRUCTURE_COSTS.unmappedHeadings,
+      severity: severity(STRUCTURE_COSTS.unmappedHeadings),
+      detail: `${list(structure.unmapped.map(quote))} ${structure.unmapped.length === 1 ? "does" : "do"} not match a section name parsers are built to recognise. Everything underneath goes unmapped. Greenhouse lists inconsistent section formatting as a cause of failed parses.`,
+      basis: JUDGED_SECTIONS,
+    });
+  }
+
+  if (structure.dateStyles.length > 1) {
+    deductions.push({
+      label: "Mixed date formats",
+      cost: STRUCTURE_COSTS.mixedDateFormats,
+      severity: severity(STRUCTURE_COSTS.mixedDateFormats),
+      detail: `Dates are written ${structure.dateStyles.length} different ways in one document: ${list(structure.dateStyles.map((d) => quote(DATE_STYLE_LABEL[d])))}. Duration is computed by pairing two endpoints, so a mixture is what defeats it. Pick one shape and use it everywhere.`,
+      basis: JUDGED_DATES,
+    });
+  }
+
+  if (structure.ongoingWording || structure.openEnded) {
+    deductions.push({
+      label: "Ongoing role not marked Present",
+      cost: STRUCTURE_COSTS.ongoingWording,
+      severity: severity(STRUCTURE_COSTS.ongoingWording),
+      detail: structure.ongoingWording
+        ? `A current role ends with ${quote(structure.ongoingWording)} rather than "Present". Parsers are built around the word every vendor's own template uses, and an end they do not recognise is an end they do not record.`
+        : 'A date range starts and never ends: "Mar 2021 -" with nothing after the dash. Write "Present" so the role reads as ongoing rather than unfinished.',
+      basis: JUDGED_DATES,
+    });
+  }
+
   if (bytes !== undefined && bytes > PARSE_SIZE_LIMIT) {
     deductions.push({
       label: "File size",
@@ -528,9 +706,16 @@ export function scoreExtraction(
   const skipped =
     extraction.depth === "layout"
       ? []
-      : extraction.depth === "markup"
-        ? ["Reading order", "Column layout", "Text layer"]
-        : ["Reading order", "Column layout", "Text layer", "Tables"];
+      : extraction.depth === "text"
+        ? ["Reading order", "Column layout", "Text layer", "Tables"]
+        : /*
+           * flow and markup both. Word, OpenDocument and rich text describe a
+           * document that reflows, so there is no reading order to get wrong
+           * and no text layer to be missing. Word and OpenDocument used to be
+           * scored as "layout", which reported two checks that had never run
+           * as passed, on the majority of files this tool sees.
+           */
+          ["Reading order", "Column layout", "Text layer"];
 
   return finish(deductions, skipped, blockers);
 }

@@ -75,43 +75,25 @@ export function NextSteps({
   const empty = !result.text.trim();
 
   return (
-    <>
-      <section className={css.panel}>
-        <PanelHead>Download it in another format</PanelHead>
-        <p className={css.note}>
-          Rebuilt from the extracted text, so what a parser reads is what you
-          send. Each writes a file straight to your downloads.
-        </p>
+    /*
+     * One panel, two decisions, side by side.
+     *
+     * They were two stacked cards, which read as two unrelated steps and left
+     * a band of empty panel beside each one. They are the same question asked
+     * twice: take this document somewhere else, or keep working on it here. A
+     * hairline between the columns is enough to separate them.
+     *
+     * Keep working comes first, and is the filled button: everything above
+     * this panel is a list of things to fix, and the editor is where fixing
+     * happens. Converting is the second answer, so it gets the wider half and
+     * quieter controls.
+     */
+    <section className={css.panel}>
+      <PanelHead>What now</PanelHead>
 
-        <div className={css.saves}>
-          {EXPORT_FORMATS.map((f) => (
-            <button
-              key={f.ext}
-              type="button"
-              className={css.btn}
-              onClick={() => save(f)}
-              disabled={empty || busy !== null}
-              title={f.note}
-            >
-              <DownloadIcon />
-              {busy === f.ext ? "Saving…" : `${f.label} (${f.ext})`}
-            </button>
-          ))}
-        </div>
-
-        {saved ? (
-          <p className={css.saved} role="status">
-            Saved {saved} to your downloads.
-          </p>
-        ) : null}
-      </section>
-
-      <section className={css.panel}>
-        <PanelHead>Edit it in the builder</PanelHead>
-
-        {/* Button and explanation on one line. Stacked, the note wrapped at its
-            own measure while the rest of the card sat empty beside it. */}
-        <div className={css.row}>
+      <div className={css.nextRow}>
+        <div className={css.nextCol}>
+          <p className={css.subHead}>Fix it</p>
           <button
             type="button"
             className={css.btnPrimary}
@@ -120,26 +102,55 @@ export function NextSteps({
           >
             {busy === "editor" ? "Opening…" : "Fix it in the editor"}
           </button>
-          <p className={css.note} style={{ flex: "1 1 18rem" }}>
+          <p className={css.note}>
             Opens what was read above as an editable document. Nothing is sent
             anywhere.
           </p>
         </div>
 
-        {empty ? (
+        <div className={css.nextCol}>
+          <p className={css.subHead}>Convert it</p>
+          <div className={css.saves}>
+            {EXPORT_FORMATS.map((f) => (
+              <button
+                key={f.ext}
+                type="button"
+                className={css.btn}
+                onClick={() => save(f)}
+                disabled={empty || busy !== null}
+                title={f.note}
+              >
+                <DownloadIcon />
+                {busy === f.ext ? "Saving…" : `${f.label} (${f.ext})`}
+              </button>
+            ))}
+          </div>
           <p className={css.note}>
-            There is no text to carry over. Export the original as a PDF with a
-            text layer and try again.
+            Rebuilt from the extracted text, so what a parser reads is what you
+            send. Each writes a file straight to your downloads.
           </p>
-        ) : null}
+        </div>
+      </div>
 
-        {error ? (
-          <p className={css.failed} role="alert">
-            {error}
-          </p>
-        ) : null}
-      </section>
-    </>
+      {saved ? (
+        <p className={css.saved} role="status">
+          Saved {saved} to your downloads.
+        </p>
+      ) : null}
+
+      {empty ? (
+        <p className={css.note}>
+          There is no text to carry over. Export the original as a PDF with a
+          text layer and try again.
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className={css.failed} role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
   );
 }
 

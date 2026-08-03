@@ -69,20 +69,24 @@ export function CheckerConsole() {
         <div className={css.report}>
           <Blockers blockers={score.blockers} />
 
-          {/* The verdict beside its evidence. A score alone invites the
-              question this row answers on the same line. */}
+          {/*
+            The verdict and the file it was formed from, side by side.
+
+            The score is the judgement; the facts beside it are what it was
+            measured from, so the two answer each other on one line. What a
+            parser actually came away with is a longer list and goes underneath
+            at full width, where it can run in two columns instead of being
+            squeezed into a half.
+          */}
           <div className={css.readout}>
             <ScoreDial score={score} />
-            <Fields fields={fields} />
+            <FileFacts picked={state.picked} result={state.result} />
           </div>
+
+          <Fields fields={fields} />
 
           <Findings score={score} result={state.result} />
-
-          <div className={css.split}>
-            <FileFacts picked={state.picked} result={state.result} />
-            <MatchPanel resumeText={state.result.text} />
-          </div>
-
+          <MatchPanel resumeText={state.result.text} />
           <NextSteps name={state.picked.file.name} result={state.result} />
         </div>
       </>

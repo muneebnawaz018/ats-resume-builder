@@ -17,9 +17,15 @@
  * legitimately claim.
  *
  *   layout, geometry and structure are in the file: columns, tables, text
- *            boxes, headers. Every check applies.
- *   markup, structure without geometry. Tables and headings are visible,
- *            reading order and column damage are not.
+ *            boxes, headers. Every check applies. PDF only: it is the one
+ *            format that records where on the page a run of text sat.
+ *   flow,    structure, but no fixed geometry. Word and OpenDocument reflow,
+ *            so tables, text boxes and header content are all visible while
+ *            reading order and column damage are not questions that can be
+ *            asked of them. Previously these claimed "layout", which meant the
+ *            report counted two checks it had never run as passed.
+ *   markup,  structure without geometry and without the container formats'
+ *            detail. Tables are visible, nothing else about layout is.
  *   text, words only. Field recovery, headings and dates still mean
  *            something; nothing about layout does.
  *
@@ -27,7 +33,7 @@
  * not applicable rather than passing them. A clean score the format could
  * never have failed is a lie by omission.
  */
-export type FormatDepth = "layout" | "markup" | "text";
+export type FormatDepth = "layout" | "flow" | "markup" | "text";
 
 export type ResumeFormat = {
   ext: string;
@@ -156,7 +162,9 @@ export function classify(file: File): Classified {
 export function depthNote(depth: FormatDepth): string {
   switch (depth) {
     case "layout":
-      return "Full report: reading order, structure, fields and dates.";
+      return "Full report: reading order, columns, structure, fields and dates.";
+    case "flow":
+      return "Tables, text boxes, header content, fields and dates are all checked. This format reflows, so it has no reading order or columns to lose.";
     case "markup":
       return "This format carries no page geometry, so column and reading-order checks are skipped.";
     case "text":
