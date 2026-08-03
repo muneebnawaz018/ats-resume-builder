@@ -26,6 +26,7 @@ import {
   type Emphasis,
 } from "./segment";
 import {
+  functionWordRatio,
   ledByVerb,
   meaningful,
   standalone,
@@ -60,6 +61,25 @@ export const STUFFING = { timesInResume: 5, timesAsked: 2 } as const;
  * judge how well written the posting is.
  */
 export const MIN_POSTING_TERMS = 8;
+
+/**
+ * The second half of that question: is this English at all.
+ *
+ * The count above asks how much was pasted and cannot tell a posting from a
+ * keyboard mash. Forty distinct-looking words of `asdkja sdk sakjd` clear it
+ * comfortably, and the report that came back named every one of them as a term
+ * the resume was missing, which is a confident answer to nothing.
+ *
+ * Prose is the tell. A posting is written in sentences and runs a third to a
+ * half function words; a mash runs none. The floor is set far below any real
+ * posting because the failure to avoid is rejecting somebody's genuine text.
+ *
+ * Only applied past a length, and that is the point of the pair. A pasted list
+ * of a dozen skills -- "Go, PostgreSQL, Kafka, Terraform" -- honestly contains
+ * no function words and is a fair thing to compare against. Something long
+ * enough to be a posting and still free of them is not a posting.
+ */
+export const PROSE = { minTokens: 40, floor: 0.08 } as const;
 
 /**
  * Abbreviations and their expansions, matched in both directions.
@@ -418,7 +438,11 @@ export function matchKeywords(
    * has to hold back.
    */
   const distinct = [...counts.keys()].filter((k) => !k.includes(" ")).length;
-  const usable = distinct >= MIN_POSTING_TERMS;
+  const postingTokens = tokens(posting);
+  const reads =
+    postingTokens.length < PROSE.minTokens ||
+    functionWordRatio(posting) >= PROSE.floor;
+  const usable = distinct >= MIN_POSTING_TERMS && reads;
 
   const matched = chosen.filter((t) => t.found > 0).length;
   const required = chosen.filter((t) => t.emphasis === "required");

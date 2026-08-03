@@ -46,14 +46,43 @@ const STOPWORDS = new Set([...eng, ...RECRUITING]);
 /** Count only, for the generated formula document. */
 export const STOPWORD_COUNT = () => STOPWORDS.size;
 
+/** The library's English function words, without the recruiting additions. */
+const FUNCTION_WORDS = new Set(eng);
+
+/**
+ * The share of a text's tokens that are English function words.
+ *
+ * A posting is written in sentences, so between a third and a half of it is
+ * "the", "with", "and", "you". Something that is not English prose at all --
+ * a keyboard mash, a paste from the wrong window, a base64 blob -- has almost
+ * none, whatever its word count.
+ *
+ * Reported as a ratio rather than tested here, because what counts as too low
+ * depends on how much text there is: a pasted list of twelve skills honestly
+ * contains no function words and is not junk.
+ */
+export function functionWordRatio(text: string): number {
+  const all = tokens(text);
+  if (!all.length) return 0;
+  return all.filter((t) => FUNCTION_WORDS.has(t)).length / all.length;
+}
+
 /**
  * Kept inside a token: plus for C++, hash for C#, dot for .NET and Node.js,
  * slash for CI/CD, hyphen for well-known compounds.
+ *
+ * Any letter, not the ASCII range. This is an English-language tool and the
+ * letters are still not all English: "résumé", "café" and "façade" are the
+ * words people write, and the names are worse. Zoë, Muñoz, Björn and Nestlé
+ * are ordinary things to find on a resume, and against `[a-z]` every one of
+ * them broke into fragments at the accent -- "Zoë Muñoz" came back as
+ * ["zo", "mu", "oz"], and "résumé" as ["r", "sum"], which then matched the
+ * word "sum".
  */
-const TOKEN = /[.#]?[a-z0-9](?:[a-z0-9+#./-]*[a-z0-9+#])?/g;
+const TOKEN = /[.#]?[\p{L}\p{N}](?:[\p{L}\p{N}+#./-]*[\p{L}\p{N}+#])?/gu;
 
 /** Case-preserving, so capitalisation can be read before it is thrown away. */
-const TOKEN_RAW = new RegExp(TOKEN.source, "gi");
+const TOKEN_RAW = new RegExp(TOKEN.source, "giu");
 
 /**
  * A slash joins a compound only when both sides are short.
@@ -80,8 +109,25 @@ function splitSlash(word: string): string[] {
  * tail of "next.js" as an inflection and returns "next.j". Anything with
  * punctuation or a digit in it is a product name, not an English word.
  */
+/**
+ * Accents removed, for comparison only.
+ *
+ * A posting says Nestlé and the resume says Nestle, or the posting was pasted
+ * out of a system that stripped the accent on the way. Both are the same
+ * employer and a keyword check that says otherwise is reporting a difference
+ * nobody made. Folding costs the distinction between año and ano, which is a
+ * real word pair in a language this tool does not read anyway.
+ *
+ * Only ever applied to the comparison key. Display keeps the accent, because
+ * the accent is how the person wrote their name.
+ */
+function fold(word: string): string {
+  return word.normalize("NFD").replace(/\p{M}/gu, "");
+}
+
 export function stem(word: string): string {
-  return /[^a-z]/.test(word) ? word : stemmer(word);
+  const folded = fold(word);
+  return /[^a-z]/.test(folded) ? folded : stemmer(folded);
 }
 
 export function stemPhrase(phrase: string): string {
@@ -146,7 +192,7 @@ export function meaningful(word: string): boolean {
   // A number is a salary, a year, or a headcount. "2+" from "2+ years" counts
   // as one: it is the years demand, reported there. A digit that starts a real
   // name is always followed by letters, as in 401k.
-  if (/^\d/.test(word) && !/[a-z]/.test(word)) return false;
+  if (/^\p{N}/u.test(word) && !/\p{L}/u.test(word)) return false;
   return true;
 }
 
@@ -179,9 +225,9 @@ export function words(text: string): Word[] {
          * node.js, c++, c# and s3 are not English words.
          */
         proper:
-          ((i > 0 || terse) && /^[A-Z]/.test(part)) ||
-          /[A-Z]/.test(part.slice(1)) ||
-          /[.+#]|\d/.test(part),
+          ((i > 0 || terse) && /^\p{Lu}/u.test(part)) ||
+          /\p{Lu}/u.test(part.slice(1)) ||
+          /[.+#]|\p{N}/u.test(part),
       });
     }
   });

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MIN_POSTING_TERMS, matchKeywords } from "./keywords";
+import { tokens, words } from "./keywords/words";
 import { extractText } from "./text";
 
 const RESUME = readFileSync(
@@ -243,6 +244,50 @@ describe("demands that are not keywords", () => {
 });
 
 /*
+ * English text is not ASCII text. Every case here is something an English
+ * resume contains, and against the old `[a-z0-9]` token every one of them
+ * broke at the accent: "Zoë Muñoz" tokenised as ["zo", "mu", "oz"].
+ */
+describe("accents", () => {
+  const matchOne = (posting: string, resume: string) =>
+    matchKeywords(posting, resume).terms.find((t) => t.found > 0);
+
+  it("keeps an accented word whole", () => {
+    const r = matchKeywords(
+      `Requirements: strong Kubernetes and Terraform. You will work on the
+       Nestlé account alongside a résumé parsing team in São Paulo, and own
+       the Go services behind it end to end.`,
+      "Ran the Nestlé account. Built résumé parsing in Go.",
+    );
+    // Whole, accent kept for display, and credited as found in the resume.
+    expect(r.terms.find((t) => t.term === "nestlé account")?.found).toBe(1);
+    expect(r.terms.find((t) => t.term === "résumé parsing")?.found).toBe(1);
+    expect(r.terms.map((t) => t.term)).toContain("são paulo");
+  });
+
+  it("matches an accented word against its unaccented spelling", () => {
+    // The posting and the resume disagree about the accent, not the employer.
+    expect(matchOne("We are hiring for the Nestlé account.", "Nestle")).toBeDefined();
+    expect(matchOne("We are hiring for the Nestle account.", "Nestlé")).toBeDefined();
+  });
+
+  it("reads an accented capital as a name", () => {
+    // Only a capital separates a name from an ordinary word in plain text, and
+    // Å is not in A-Z.
+    expect(words("worked at Ångström Labs")).toContainEqual({
+      lower: "ångström",
+      proper: true,
+    });
+  });
+
+  it("still keeps the punctuation that belongs to a name", () => {
+    expect(tokens("C++ and C# with .NET and CI/CD")).toEqual([
+      "c++", "and", "c#", "with", ".net", "and", "ci/cd",
+    ]);
+  });
+});
+
+/*
  * A pasted word is not a job posting. Reporting on one produced arithmetic on
  * nothing: "1 of 1 terms", and a stuffing warning, because a resume says a
  * word more often than a one-word posting does.
@@ -275,6 +320,37 @@ describe("refusing a posting that is not one", () => {
     const r = matchKeywords(POSTING, RESUME);
     expect(r.usable).toBe(true);
     expect(r.terms.length).toBeGreaterThan(MIN_POSTING_TERMS);
+  });
+
+  /*
+   * The case the word count could not see. Typed at a keyboard and pasted six
+   * times over, this clears MIN_POSTING_TERMS on distinct words alone, and the
+   * report that came back named every one of them as a term the resume lacked.
+   */
+  it("will not report on text that is not English", () => {
+    const mash = Array.from(
+      { length: 6 },
+      () =>
+        "askdjna sdk sakjd sakd askjd kas dkas dkaj djkad jkas djkas dkjas " +
+        "asdadadadadadlsak;dlasldmaslkd",
+    ).join(" ");
+    const r = matchKeywords(mash, RESUME);
+    expect(r.usable).toBe(false);
+  });
+
+  it("accepts a long posting written as bullet fragments", () => {
+    // Terse, but still English: the prose floor sits far below this.
+    const r = matchKeywords(
+      `Requirements:
+       - Five years building backend services in Go
+       - Strong PostgreSQL schema design and query tuning
+       - Kafka, or another event streaming platform
+       - Kubernetes in production, with Terraform for infrastructure
+       - gRPC and protocol buffers
+       - Docker, Redis, and CI/CD pipelines you have owned end to end`,
+      RESUME,
+    );
+    expect(r.usable).toBe(true);
   });
 
   it("accepts a short but genuine requirements list", () => {

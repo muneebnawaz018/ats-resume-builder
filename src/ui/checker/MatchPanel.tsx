@@ -77,10 +77,10 @@ export function MatchPanel({ resumeText }: { resumeText: string }) {
            * posting does. Every figure in it was arithmetic on nothing.
            */
           <p className={css.note}>
-            That posting is too short to compare against. Your resume is fine:
-            it is the box above that needs more. Paste the whole posting, or at
-            least its requirements section. A few words cannot say which terms
-            matter.
+            There is not enough of a posting there to compare against. Your
+            resume is fine: it is the box above. Paste the whole posting, or at
+            least its requirements section. A few words, or text that is not a
+            posting, cannot say which terms matter.
           </p>
         ) : (
           <>
