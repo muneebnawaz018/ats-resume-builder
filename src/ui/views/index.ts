@@ -8,5 +8,6 @@
 export { CheckerView } from "./CheckerView";
 export { HomeView } from "./HomeView";
 export { LegalView } from "./LegalView";
+export { NotFoundView } from "./NotFoundView";
 export { PrivacyContent } from "./PrivacyContent";
 export { TermsContent } from "./TermsContent";

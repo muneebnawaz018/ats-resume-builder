@@ -125,11 +125,29 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebSite",
-              name: site.name,
-              url: url("/"),
-              description: site.description,
-              inLanguage: "en",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": `${url("/")}#website`,
+                  name: site.name,
+                  url: url("/"),
+                  description: site.description,
+                  inLanguage: "en",
+                  publisher: { "@id": `${url("/")}#org` },
+                },
+                /*
+                 * The publisher, stated once and referenced by @id. Without a
+                 * named entity behind the site, rich results have nothing to
+                 * attribute a logo or a name to.
+                 */
+                {
+                  "@type": "Organization",
+                  "@id": `${url("/")}#org`,
+                  name: site.name,
+                  url: url("/"),
+                  logo: url("/icon-512.png"),
+                },
+              ],
             }),
           }}
         />

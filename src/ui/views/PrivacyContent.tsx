@@ -12,7 +12,7 @@ import { LegalView } from "@/ui/views";
  */
 export function PrivacyContent() {
   return (
-    <LegalView kicker="Privacy" title="What happens to your data" updated="30 July 2026">
+    <LegalView kicker="Privacy" title="What happens to your data" updated="30 July 2026" path="/privacy">
 
         <p>
           Short version: your resume never leaves your browser, and there is

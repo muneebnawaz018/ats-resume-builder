@@ -12,7 +12,7 @@ import { LegalView } from "@/ui/views";
  */
 export function TermsContent() {
   return (
-    <LegalView kicker="Terms" title="Terms of use" updated="30 July 2026">
+    <LegalView kicker="Terms" title="Terms of use" updated="30 July 2026" path="/terms">
 
         <p>
           Using {site.name} means you accept what is below. It is short
