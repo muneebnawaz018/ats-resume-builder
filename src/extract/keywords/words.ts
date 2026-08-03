@@ -61,8 +61,7 @@ const FUNCTION_WORDS = new Set(eng);
  * depends on how much text there is: a pasted list of twelve skills honestly
  * contains no function words and is not junk.
  */
-export function functionWordRatio(text: string): number {
-  const all = tokens(text);
+export function functionWordRatio(all: readonly string[]): number {
   if (!all.length) return 0;
   return all.filter((t) => FUNCTION_WORDS.has(t)).length / all.length;
 }
@@ -125,9 +124,29 @@ function fold(word: string): string {
   return word.normalize("NFD").replace(/\p{M}/gu, "");
 }
 
+/*
+ * Stemming is pure and repetitive: a posting says "engineering" a dozen times
+ * and the resume says it a dozen more, and every pass over either text stems
+ * every token again. The cache is keyed on the word as written.
+ *
+ * Capped, because the key space is whatever text gets pasted in, and a cache
+ * that only grows is a leak with a friendly name. At the limit it is cleared
+ * rather than evicted one by one: which entries are hot is not worth tracking
+ * for a table this size.
+ */
+const STEM_CACHE = new Map<string, string>();
+const STEM_CACHE_LIMIT = 20_000;
+
 export function stem(word: string): string {
+  const hit = STEM_CACHE.get(word);
+  if (hit !== undefined) return hit;
+
   const folded = fold(word);
-  return /[^a-z]/.test(folded) ? folded : stemmer(folded);
+  const stemmed = /[^a-z]/.test(folded) ? folded : stemmer(folded);
+
+  if (STEM_CACHE.size >= STEM_CACHE_LIMIT) STEM_CACHE.clear();
+  STEM_CACHE.set(word, stemmed);
+  return stemmed;
 }
 
 export function stemPhrase(phrase: string): string {

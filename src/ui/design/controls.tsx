@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
@@ -48,7 +49,7 @@ function Row({
   );
 }
 
-export function LengthControl({
+function LengthControlInner({
   label,
   value,
   min,
@@ -79,7 +80,7 @@ export function LengthControl({
   );
 }
 
-export function NumberControl({
+function NumberControlInner({
   label,
   value,
   min,
@@ -110,7 +111,7 @@ export function NumberControl({
   );
 }
 
-export function SelectControl<T extends string | number>({
+function SelectControlInner<T extends string | number>({
   label,
   value,
   options,
@@ -151,7 +152,7 @@ export function SelectControl<T extends string | number>({
   );
 }
 
-export function ColorControl({
+function ColorControlInner({
   label,
   value,
   onChange,
@@ -197,7 +198,7 @@ export function ColorControl({
   );
 }
 
-export function SwitchControl({
+function SwitchControlInner({
   label,
   value,
   onChange,
@@ -226,7 +227,7 @@ export function SwitchControl({
   );
 }
 
-export function TextControl({
+function TextControlInner({
   label,
   value,
   onChange,
@@ -273,3 +274,25 @@ export function GroupTitle({ children }: { children: React.ReactNode }) {
     </Typography>
   );
 }
+
+/*
+ * Memoised, all of them.
+ *
+ * The panel re-renders on every frame of a slider drag, because the theme it
+ * reads is the thing being dragged. Each of these mounts real MUI controls,
+ * and only the one being dragged has changed. The props are stable by
+ * construction: the option lists are module constants and the handlers come
+ * from a per-token cache, see DesignPanel.tsx.
+ */
+export const LengthControl = memo(LengthControlInner);
+export const NumberControl = memo(NumberControlInner);
+export const ColorControl = memo(ColorControlInner);
+export const SwitchControl = memo(SwitchControlInner);
+export const TextControl = memo(TextControlInner);
+
+/*
+ * `memo` returns a component whose props are fixed, which drops the type
+ * parameter. The cast puts it back, so callers keep the inference that ties
+ * `value` and `options` to the same token type.
+ */
+export const SelectControl = memo(SelectControlInner) as typeof SelectControlInner;

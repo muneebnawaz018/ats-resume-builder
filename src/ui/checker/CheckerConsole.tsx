@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   extract,
   recoverFields,
@@ -53,14 +53,30 @@ export function CheckerConsole() {
 
   const reset = useCallback(() => setState({ phase: "idle" }), []);
 
-  if (state.phase === "done") {
+  /*
+   * The whole report, derived once per file rather than once per render.
+   *
+   * Both of these walk every block in the document. They sat in the render
+   * body, so anything that re-rendered this component, a resize, a parent
+   * update, re-ran the entire analysis for a result that cannot have changed:
+   * it is a pure function of an extraction that is already frozen in state.
+   */
+  const report = useMemo(() => {
+    if (state.phase !== "done") return null;
     const fields = recoverFields(state.result);
-    const score = scoreExtraction(
-      state.result,
+    return {
       fields,
-      state.picked.file.size,
-      state.picked.format.ext,
-    );
+      score: scoreExtraction(
+        state.result,
+        fields,
+        state.picked.file.size,
+        state.picked.format.ext,
+      ),
+    };
+  }, [state]);
+
+  if (state.phase === "done" && report) {
+    const { fields, score } = report;
 
     return (
       <>

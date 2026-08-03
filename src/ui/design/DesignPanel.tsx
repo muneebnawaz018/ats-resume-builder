@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { BUILTIN_THEMES, SAFE_FONTS, type Theme, type ThemeTokens } from "@/schema";
@@ -13,6 +14,118 @@ import {
   TextControl,
 } from "./controls";
 import { v } from "@/ui/theme/vars";
+
+/*
+ * Every option list on this panel, declared once.
+ *
+ * They were literals in the JSX, which meant a slider drag rebuilt fifteen
+ * arrays and handed each Select a prop it could not compare equal to the one
+ * before, so every control on the panel re-rendered for every frame of the
+ * drag. None of these lists depends on the theme, so none of them belongs
+ * inside the render.
+ */
+const PAGE_SIZES = [
+  { value: "Letter", label: "Letter (8.5 × 11 in)" },
+  { value: "A4", label: "A4 (210 × 297 mm)" },
+] as const satisfies readonly { value: ThemeTokens["pageSize"]; label: string }[];
+
+const FONT_OPTIONS = SAFE_FONTS.map((f) => ({ value: f, label: f }));
+
+const PRESET_OPTIONS = BUILTIN_THEMES.map((b) => ({
+  value: b.id,
+  label: b.name,
+}));
+
+const NAME_WEIGHTS = [
+  { value: 400, label: "Regular" },
+  { value: 600, label: "Semibold" },
+  { value: 700, label: "Bold" },
+] as const satisfies readonly {
+  value: ThemeTokens["nameWeight"];
+  label: string;
+}[];
+
+const HEADING_WEIGHTS = [
+  { value: 400, label: "Regular" },
+  { value: 500, label: "Medium" },
+  { value: 600, label: "Semibold" },
+  { value: 700, label: "Bold" },
+] as const satisfies readonly {
+  value: ThemeTokens["headingWeight"];
+  label: string;
+}[];
+
+const ALIGNMENTS = [
+  { value: "left", label: "Left" },
+  { value: "center", label: "Centre" },
+] as const satisfies readonly { value: "left" | "center"; label: string }[];
+
+const HEADING_CASES = [
+  { value: "none", label: "As typed" },
+  { value: "upper", label: "UPPERCASE" },
+  { value: "capitalize", label: "Capitalised" },
+] as const satisfies readonly {
+  value: ThemeTokens["headingCase"];
+  label: string;
+}[];
+
+const HEADING_RULES = [
+  { value: "none", label: "None" },
+  { value: "full", label: "Full width" },
+  { value: "underText", label: "Under the text" },
+] as const satisfies readonly {
+  value: ThemeTokens["headingRule"];
+  label: string;
+}[];
+
+const DATE_ALIGNMENTS = [
+  { value: "right", label: "Right aligned" },
+  { value: "inline", label: "Inline with the title" },
+] as const satisfies readonly {
+  value: ThemeTokens["dateAlign"];
+  label: string;
+}[];
+
+const CONTACT_LAYOUTS = [
+  { value: "inline", label: "One line" },
+  { value: "stacked", label: "Stacked" },
+] as const satisfies readonly {
+  value: ThemeTokens["contactLayout"];
+  label: string;
+}[];
+
+const BULLET_CHARS = [
+  { value: "•", label: "• Round" },
+  { value: "–", label: "– En dash" },
+  { value: "-", label: "- Hyphen" },
+  { value: "▪", label: "▪ Square" },
+] as const satisfies readonly {
+  value: ThemeTokens["bulletChar"];
+  label: string;
+}[];
+
+/** Placed on the preset list when the theme is a fork rather than a built-in. */
+const CUSTOM_PRESET = "__custom";
+
+/**
+ * One setter per token, created once and reused.
+ *
+ * `set(key)` built a fresh closure on every render, which is a new `onChange`
+ * for every control and defeats the memo on them. The cache is keyed by token
+ * name and lives as long as the `onToken` it closes over.
+ */
+function setterCache(
+  onToken: <K extends keyof ThemeTokens>(key: K, value: ThemeTokens[K]) => void,
+) {
+  const cache = new Map<string, (value: never) => void>();
+  return <K extends keyof ThemeTokens>(key: K) => {
+    const hit = cache.get(key as string);
+    if (hit) return hit as (value: ThemeTokens[K]) => void;
+    const fn = (value: ThemeTokens[K]) => onToken(key, value);
+    cache.set(key as string, fn as (value: never) => void);
+    return fn;
+  };
+}
 
 /**
  * Every token is exposed. Competitors withhold this to keep output on-brand
@@ -33,23 +146,31 @@ export function DesignPanel({
   onThemeChange: (id: string) => void;
 }) {
   const t = theme.tokens;
-  const set =
-    <K extends keyof ThemeTokens>(key: K) =>
-    (value: ThemeTokens[K]) =>
-      onToken(key, value);
+  const set = useMemo(() => setterCache(onToken), [onToken]);
+
+  /* The only list that varies: a forked theme adds itself to the end. */
+  const presets = useMemo(
+    () =>
+      theme.builtin
+        ? PRESET_OPTIONS
+        : [...PRESET_OPTIONS, { value: CUSTOM_PRESET, label: theme.name }],
+    [theme.builtin, theme.name],
+  );
+
+  const pickPreset = useMemo(
+    () => (id: string) => {
+      if (id !== CUSTOM_PRESET) onThemeChange(id);
+    },
+    [onThemeChange],
+  );
 
   return (
     <Box sx={{ p: 1.75 }}>
       <SelectControl
         label="Preset"
-        value={theme.builtin ? theme.id : "__custom"}
-        options={[
-          ...BUILTIN_THEMES.map((b) => ({ value: b.id, label: b.name })),
-          ...(theme.builtin
-            ? []
-            : [{ value: "__custom", label: `${theme.name}` }]),
-        ]}
-        onChange={(id) => id !== "__custom" && onThemeChange(id)}
+        value={theme.builtin ? theme.id : CUSTOM_PRESET}
+        options={presets}
+        onChange={pickPreset}
         helper={
           theme.builtin
             ? "Changing anything below forks this preset into your own copy."
@@ -61,10 +182,7 @@ export function DesignPanel({
       <SelectControl
         label="Page size"
         value={t.pageSize}
-        options={[
-          { value: "Letter", label: "Letter (8.5 × 11 in)" },
-          { value: "A4", label: "A4 (210 × 297 mm)" },
-        ]}
+        options={PAGE_SIZES}
         onChange={set("pageSize")}
       />
       <LengthControl
@@ -104,7 +222,7 @@ export function DesignPanel({
       <SelectControl
         label="Font"
         value={t.fontFamily}
-        options={SAFE_FONTS.map((f) => ({ value: f, label: f }))}
+        options={FONT_OPTIONS}
         onChange={set("fontFamily")}
         helper={
           safeMode
@@ -149,20 +267,13 @@ export function DesignPanel({
       <SelectControl
         label="Name weight"
         value={t.nameWeight}
-        options={[
-          { value: 400 as const, label: "Regular" },
-          { value: 600 as const, label: "Semibold" },
-          { value: 700 as const, label: "Bold" },
-        ]}
+        options={NAME_WEIGHTS}
         onChange={set("nameWeight")}
       />
       <SelectControl
         label="Name alignment"
         value={t.nameAlign}
-        options={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Centre" },
-        ]}
+        options={ALIGNMENTS}
         onChange={set("nameAlign")}
       />
 
@@ -178,31 +289,19 @@ export function DesignPanel({
       <SelectControl
         label="Heading weight"
         value={t.headingWeight}
-        options={[
-          { value: 400 as const, label: "Regular" },
-          { value: 500 as const, label: "Medium" },
-          { value: 600 as const, label: "Semibold" },
-          { value: 700 as const, label: "Bold" },
-        ]}
+        options={HEADING_WEIGHTS}
         onChange={set("headingWeight")}
       />
       <SelectControl
         label="Heading case"
         value={t.headingCase}
-        options={[
-          { value: "none", label: "As typed" },
-          { value: "upper", label: "UPPERCASE" },
-          { value: "capitalize", label: "Capitalised" },
-        ]}
+        options={HEADING_CASES}
         onChange={set("headingCase")}
       />
       <SelectControl
         label="Heading alignment"
         value={t.headingAlign}
-        options={[
-          { value: "left", label: "Left" },
-          { value: "center", label: "Centre" },
-        ]}
+        options={ALIGNMENTS}
         onChange={set("headingAlign")}
       />
       <LengthControl
@@ -216,11 +315,7 @@ export function DesignPanel({
       <SelectControl
         label="Rule"
         value={t.headingRule}
-        options={[
-          { value: "none", label: "None" },
-          { value: "full", label: "Full width" },
-          { value: "underText", label: "Under the text" },
-        ]}
+        options={HEADING_RULES}
         onChange={set("headingRule")}
       />
       <LengthControl
@@ -273,19 +368,13 @@ export function DesignPanel({
       <SelectControl
         label="Dates"
         value={t.dateAlign}
-        options={[
-          { value: "right", label: "Right aligned" },
-          { value: "inline", label: "Inline with the title" },
-        ]}
+        options={DATE_ALIGNMENTS}
         onChange={set("dateAlign")}
       />
       <SelectControl
         label="Contact details"
         value={t.contactLayout}
-        options={[
-          { value: "inline", label: "One line" },
-          { value: "stacked", label: "Stacked" },
-        ]}
+        options={CONTACT_LAYOUTS}
         onChange={set("contactLayout")}
       />
       <TextControl
@@ -299,12 +388,7 @@ export function DesignPanel({
       <SelectControl
         label="Bullet character"
         value={t.bulletChar}
-        options={[
-          { value: "•", label: "• Round" },
-          { value: "–", label: "– En dash" },
-          { value: "-", label: "- Hyphen" },
-          { value: "▪", label: "▪ Square" },
-        ]}
+        options={BULLET_CHARS}
         onChange={set("bulletChar")}
         helper={
           safeMode

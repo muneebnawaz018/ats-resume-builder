@@ -24,6 +24,9 @@ import { LinksEditor } from "./LinksEditor";
 import { useConfirm } from "./useConfirm";
 import { v } from "@/ui/theme/vars";
 
+/** Paths look like sections[2].items[0].bullets[3]; both indices matter. */
+const SECTION_PATH = /^sections\[(\d+)\](?:\.items\[(\d+)\])?/;
+
 function PanelHeading({
   title,
   help,
@@ -314,8 +317,7 @@ export function ContentPanel({
     return <BasicsEditor resume={resume} />;
   }
 
-  // Paths look like sections[2].items[0].bullets[3]; both indices matter.
-  const match = /^sections\[(\d+)\](?:\.items\[(\d+)\])?/.exec(selectedPath);
+  const match = SECTION_PATH.exec(selectedPath);
   if (match) {
     const index = Number(match[1]);
     const itemIndex = match[2] === undefined ? null : Number(match[2]);

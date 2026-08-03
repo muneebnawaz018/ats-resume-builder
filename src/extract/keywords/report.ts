@@ -130,16 +130,35 @@ const AMBIGUOUS: Readonly<Record<string, readonly string[]>> = {
  * `kubernetes` keys as `kubernet`, so a literal table lookup finds nothing.
  * The value returned is the unstemmed form, since it goes on screen.
  */
-function alternatesFor(stemmedTerm: string): string[] {
-  const out = new Set<string>();
+const ALTERNATES: ReadonlyMap<string, readonly string[]> = (() => {
+  const index = new Map<string, Set<string>>();
+  const add = (key: string, value: string) => {
+    const existing = index.get(key);
+    if (existing) existing.add(value);
+    else index.set(key, new Set([value]));
+  };
+
   for (const [abbr, expansions] of [
     ...Object.entries(EXPANSIONS),
     ...Object.entries(AMBIGUOUS),
   ]) {
-    if (stemmedTerm === stemPhrase(abbr)) expansions.forEach((e) => out.add(e));
-    if (expansions.some((e) => stemPhrase(e) === stemmedTerm)) out.add(abbr);
+    for (const expansion of expansions) {
+      add(stemPhrase(abbr), expansion);
+      add(stemPhrase(expansion), abbr);
+    }
   }
-  return [...out];
+  return new Map([...index].map(([k, v]) => [k, [...v]]));
+})();
+
+/*
+ * Built once, at module load, rather than walked per term.
+ *
+ * The table is fixed, so the loop over it was re-stemming every abbreviation
+ * and every expansion for each of the terms this is asked about, which is once
+ * per missing term on every comparison.
+ */
+function alternatesFor(stemmedTerm: string): readonly string[] {
+  return ALTERNATES.get(stemmedTerm) ?? [];
 }
 
 export type TermMatch = {
@@ -263,15 +282,46 @@ function collect(text: string): Map<string, Candidate> {
   return counts;
 }
 
-/** Occurrences of a term in already-stemmed resume tokens. */
-function occurrences(term: string, haystack: string[]): number {
-  const parts = term.split(" ");
-  if (parts.length === 1) {
-    return haystack.filter((w) => w === parts[0]).length;
+/**
+ * The resume's stemmed tokens, counted once and looked up by term.
+ *
+ * Every candidate the posting yields has to be counted against the resume, and
+ * a posting of any length yields hundreds. Scanning the whole token list per
+ * candidate made the comparison quadratic in the size of the two documents;
+ * counting the words and adjacent pairs up front makes each lookup constant.
+ *
+ * Longer terms fall back to a windowed scan. Only the alternate spellings
+ * reach that path, and only a handful of them are three words long.
+ */
+type Haystack = {
+  tokens: readonly string[];
+  unigrams: ReadonlyMap<string, number>;
+  bigrams: ReadonlyMap<string, number>;
+};
+
+function indexHaystack(tokens: string[]): Haystack {
+  const unigrams = new Map<string, number>();
+  const bigrams = new Map<string, number>();
+  for (let i = 0; i < tokens.length; i += 1) {
+    unigrams.set(tokens[i], (unigrams.get(tokens[i]) ?? 0) + 1);
+    if (i + 1 < tokens.length) {
+      const pair = `${tokens[i]} ${tokens[i + 1]}`;
+      bigrams.set(pair, (bigrams.get(pair) ?? 0) + 1);
+    }
   }
+  return { tokens, unigrams, bigrams };
+}
+
+/** Occurrences of a term in already-stemmed resume tokens. */
+function occurrences(term: string, haystack: Haystack): number {
+  const parts = term.split(" ");
+  if (parts.length === 1) return haystack.unigrams.get(term) ?? 0;
+  if (parts.length === 2) return haystack.bigrams.get(term) ?? 0;
+
   let hits = 0;
-  for (let i = 0; i < haystack.length - 1; i += 1) {
-    if (haystack[i] === parts[0] && haystack[i + 1] === parts[1]) hits += 1;
+  const { tokens } = haystack;
+  for (let i = 0; i + parts.length <= tokens.length; i += 1) {
+    if (parts.every((p, j) => tokens[i + j] === p)) hits += 1;
   }
   return hits;
 }
@@ -377,7 +427,7 @@ export function matchKeywords(
   posting: string,
   resumeText: string,
 ): KeywordReport {
-  const haystack = tokens(resumeText).map(stem);
+  const haystack = indexHaystack(tokens(resumeText).map(stem));
   const counts = collect(posting);
 
   /*
@@ -438,10 +488,11 @@ export function matchKeywords(
    * has to hold back.
    */
   const distinct = [...counts.keys()].filter((k) => !k.includes(" ")).length;
+  // Tokenised once: the ratio is measured over the same list the length is.
   const postingTokens = tokens(posting);
   const reads =
     postingTokens.length < PROSE.minTokens ||
-    functionWordRatio(posting) >= PROSE.floor;
+    functionWordRatio(postingTokens) >= PROSE.floor;
   const usable = distinct >= MIN_POSTING_TERMS && reads;
 
   const matched = chosen.filter((t) => t.found > 0).length;

@@ -6,7 +6,7 @@ import Snackbar from "@mui/material/Snackbar";
 import Typography from "@mui/material/Typography";
 import type { ExportFormat } from "@/export";
 import { downloadJson, readJsonFile, slugify } from "@/lib";
-import { plainText, type ThemeTokens } from "@/schema";
+import { plainText, type Section, type ThemeTokens } from "@/schema";
 import { useAppStore } from "@/store";
 import { AddSectionDialog } from "./AddSectionDialog";
 import { Inspector } from "./Inspector";
@@ -53,8 +53,8 @@ export function EditorShell() {
   }, []);
 
   /*
-   * Stable handler identities. The chrome components are memoised, and an
-   * inline arrow would hand them a new prop on every keystroke, defeating it.
+   * Everything handed to the chrome is stable. Those components are memoised,
+   * and an inline arrow would give them a new prop on every keystroke.
    */
   const openAdd = useCallback(() => setAddOpen(true), []);
   const closeAdd = useCallback(() => setAddOpen(false), []);
@@ -101,23 +101,28 @@ export function EditorShell() {
     }
   }, []);
 
-  const store = useAppStore.getState();
-  const handlers = useMemo(
-    () => ({
-      setView: store.setView,
-      setZoom: store.setZoom,
-      undo: store.undo,
-      redo: store.redo,
-      setPanel: store.setPanel,
-      toggleSectionVisible: store.toggleSectionVisible,
-      setThemeById: store.setThemeById,
-      setResumeName: store.setResumeName,
-    }),
-    [store],
-  );
+  /*
+   * Selected one at a time rather than lifted off a snapshot.
+   *
+   * An action's identity never changes, so each of these is stable for the
+   * life of the store and the memoised chrome below can actually skip. Taking
+   * them from `getState()` and holding them in a `useMemo` looked equivalent
+   * and was not: the state object is replaced on every `set`, so the
+   * dependency changed on every keystroke, the object was rebuilt, and TopBar
+   * re-rendered for each character typed into a bullet -- the exact thing the
+   * memo was there to prevent.
+   */
+  const setView = useAppStore((s) => s.setView);
+  const setZoom = useAppStore((s) => s.setZoom);
+  const undo = useAppStore((s) => s.undo);
+  const redo = useAppStore((s) => s.redo);
+  const setPanel = useAppStore((s) => s.setPanel);
+  const toggleSectionVisible = useAppStore((s) => s.toggleSectionVisible);
+  const setThemeById = useAppStore((s) => s.setThemeById);
+  const setResumeName = useAppStore((s) => s.setResumeName);
 
   const addSection = useCallback(
-    (type: Parameters<typeof store.addSection>[0], title: string) => {
+    (type: Section["type"], title: string) => {
       const s = useAppStore.getState();
       s.addSection(type, title);
       const r = s.activeResume();
@@ -209,11 +214,11 @@ export function EditorShell() {
         zoom={ui.zoom}
         canUndo={canUndo}
         canRedo={canRedo}
-        onView={handlers.setView}
-        onZoom={handlers.setZoom}
-        onRename={handlers.setResumeName}
-        onUndo={handlers.undo}
-        onRedo={handlers.redo}
+        onView={setView}
+        onZoom={setZoom}
+        onRename={setResumeName}
+        onUndo={undo}
+        onRedo={redo}
         onExport={doPrint}
         onExportFile={doExportFile}
         onExportJson={doExportJson}
@@ -225,7 +230,7 @@ export function EditorShell() {
           resume={resume}
           selectedPath={ui.selectedPath}
           onSelect={selectAndEdit}
-          onToggleVisible={handlers.toggleSectionVisible}
+          onToggleVisible={toggleSectionVisible}
           onAddSection={openAdd}
         />
 
@@ -244,13 +249,13 @@ export function EditorShell() {
 
         <Inspector
           tab={ui.panel}
-          onTab={handlers.setPanel}
+          onTab={setPanel}
           resume={resume}
           selectedPath={ui.selectedPath}
           theme={theme}
           safeMode={ui.safeMode}
           onToken={setToken}
-          onThemeChange={handlers.setThemeById}
+          onThemeChange={setThemeById}
         />
       </Box>
 

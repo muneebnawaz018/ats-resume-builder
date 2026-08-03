@@ -128,9 +128,23 @@ export const DATE_RANGE = new RegExp(
  */
 export type DateStyle = "monthYear" | "numeric" | "yearOnly";
 
+/*
+ * Compiled once. These are called per line of a document, and a regex built
+ * from a template string inside the function is recompiled on every call.
+ *
+ * `DATE_RANGE_SCAN` is a separate object rather than `DATE_RANGE` itself: both
+ * carry the `g` flag, which makes `lastIndex` stateful, and sharing one
+ * instance between a `test` here and a `match` elsewhere makes each call
+ * depend on where the previous one stopped.
+ */
+const MONTH_YEAR = new RegExp(`^${MONTH}\\s+\\d{4}$`);
+const DATE_RANGE_SCAN = new RegExp(DATE_RANGE.source, "gi");
+/** Ungreedy about state: no `g`, so `test` never carries a `lastIndex`. */
+const DATE_RANGE_TEST = new RegExp(DATE_RANGE.source, "i");
+
 export function dateStyle(endpoint: string): DateStyle | null {
   const t = endpoint.trim().toLowerCase();
-  if (new RegExp(`^${MONTH}\\s+\\d{4}$`).test(t)) return "monthYear";
+  if (MONTH_YEAR.test(t)) return "monthYear";
   if (/^\d{1,2}[/.]\d{4}$/.test(t)) return "numeric";
   if (/^\d{4}$/.test(t)) return "yearOnly";
   return null;
@@ -150,7 +164,7 @@ export const DATE_STYLE_LABEL: Record<DateStyle, string> = {
  * is not recognised is a range with no end: the role either disappears from
  * the timeline or is recorded as still open in a way that skews duration.
  */
-const ONGOING_PREFERRED = "present";
+const ONGOING_PREFERRED = /\bpresent\b/i;
 const ONGOING_OTHER = /\b(current|currently|now|to date|ongoing|till date)\b/i;
 /** An en dash or hyphen with nothing after it: "Mar 2021 –". */
 const OPEN_ENDED = new RegExp(`${ENDPOINT}\\s*[–—−-]\\s*(?:$|\\n)`, "im");
@@ -210,7 +224,7 @@ function looksLikeOrg(text: string): boolean {
   if (/@|https?:\/\//.test(t)) return false;
   if (t.split(/\s+/).length > 12) return false;
   // A line that is only a date range is the date row, not the employer.
-  const withoutDates = t.replace(new RegExp(DATE_RANGE.source, "gi"), "").trim();
+  const withoutDates = t.replace(DATE_RANGE_SCAN, "").trim();
   return withoutDates.replace(/[\p{P}\s]/gu, "").length > 1;
 }
 
@@ -234,7 +248,7 @@ function titleCarriesOrg(title: string): boolean {
  */
 function isDateRow(text: string): boolean {
   const t = text.trim();
-  const ranges = t.match(new RegExp(DATE_RANGE.source, "gi"));
+  const ranges = t.match(DATE_RANGE_SCAN);
   if (!ranges) return false;
   const remainder = ranges
     .reduce((acc, r) => acc.replace(r, ""), t)
@@ -275,7 +289,7 @@ export function segmentEntries(extraction: Extraction): Entry[] {
   const close = () => {
     if (!current) return;
     const body = current.lines.join("\n");
-    current.hasDates = new RegExp(DATE_RANGE.source, "gi").test(body);
+    current.hasDates = DATE_RANGE_TEST.test(body);
     /*
      * The employer is as often on the title line as under it:
      * "Senior Backend Engineer, Northwind Systems" is the commonest shape a
@@ -473,7 +487,7 @@ export function analyseStructure(extraction: Extraction): StructureReport {
     if (classifyHeading(text)) return;
     if (entryTitles.has(text)) return;
     if (text.split(/\s+/).length > 6) return;
-    if (new RegExp(DATE_RANGE.source, "i").test(text)) return;
+    if (DATE_RANGE_TEST.test(text)) return;
     if (!unmapped.includes(text)) unmapped.push(text);
   });
 
@@ -499,9 +513,7 @@ export function analyseStructure(extraction: Extraction): StructureReport {
   }
 
   const ongoingMatch = ONGOING_OTHER.exec(extraction.text);
-  const usesPreferred = new RegExp(`\\b${ONGOING_PREFERRED}\\b`, "i").test(
-    extraction.text,
-  );
+  const usesPreferred = ONGOING_PREFERRED.test(extraction.text);
 
   return {
     sections,

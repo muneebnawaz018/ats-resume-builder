@@ -84,9 +84,17 @@ export function ResumeDocument({
         ) : null}
       </header>
 
+      {/*
+        Indexed against the whole array, then filtered.
+        `data-path` is how a click on the page finds the section in the store,
+        and the outline, the inspector and the store all count sections
+        including the hidden ones. Filtering first renumbered them, so with any
+        section hidden, clicking one selected a different one.
+      */}
       {resume.sections
-        .filter((s) => s.visible)
-        .map((section, si) => {
+        .map((section, si) => ({ section, si }))
+        .filter(({ section }) => section.visible)
+        .map(({ section, si }) => {
           const path = `sections[${si}]`;
           const overrides = section.overrides as ThemeOverrides | undefined;
           // Section overrides re-declare only the changed custom properties on

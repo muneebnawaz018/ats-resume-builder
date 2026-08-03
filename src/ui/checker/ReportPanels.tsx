@@ -227,23 +227,29 @@ export function FileFacts({
    * "97 blocks" is a number nobody can act on. The same 97 split into headings,
    * paragraphs and bullets says whether the document has structure a parser can
    * use, and a count against `cell` or `textbox` says where the risk is before
-   * the findings panel has to argue about it. Kinds with none are dropped
-   * rather than printed as zero, so the list describes this document.
+   * the findings panel has to argue about it.
+   *
+   * One pass, not one per kind. Counting each kind with its own `filter` walked
+   * the block list seven times and split every block's text an eighth time; a
+   * long PDF has thousands of them.
+   *
+   * `longest` is the longest run of text a parser sees as one block. A resume
+   * written as a single 300-word paragraph extracts fine and reads as a wall,
+   * and nothing else on this page would say so.
    */
-  const composition = BLOCK_LABEL.map(
-    ([kind, label]) =>
-      [label, result.blocks.filter((b) => b.kind === kind).length] as const,
-  ).filter(([, n]) => n > 0);
+  const tally = new Map<Extraction["blocks"][number]["kind"], number>();
+  let longest = 0;
+  for (const b of result.blocks) {
+    tally.set(b.kind, (tally.get(b.kind) ?? 0) + 1);
+    const n = b.text.trim().split(/\s+/).filter(Boolean).length;
+    if (n > longest) longest = n;
+  }
 
-  /*
-   * The longest run of text a parser sees as one block. A resume written as a
-   * single 300-word paragraph extracts fine and reads as a wall, and nothing
-   * else on this page would say so.
-   */
-  const longest = result.blocks.reduce(
-    (max, b) => Math.max(max, b.text.trim().split(/\s+/).filter(Boolean).length),
-    0,
-  );
+  // Kinds with none are dropped rather than printed as zero, so the list
+  // describes this document.
+  const composition = BLOCK_LABEL.map(
+    ([kind, label]) => [label, tally.get(kind) ?? 0] as const,
+  ).filter(([, n]) => n > 0);
 
   const facts: [string, string][] = [
     ["format", picked.format.label],
